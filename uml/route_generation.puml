@@ -1,10 +1,12 @@
 @startuml
 
+title Route Schedule Generation
+
 ' Initialize
-[*] --> Initialize
-Initialize : Set initial temperate
-Initialize : Set cooling schedule
-Initialize : Define YAML path
+[*] --> Initialize : Given schedule parameters
+Initialize : - Set initial temperate
+Initialize : - Set cooling schedule
+Initialize : - Define YAML path
 
 ' Import
 Initialize --> Import
@@ -12,18 +14,18 @@ Import : Import schedule YAML file
 
 ' Load or generate schedule
 Import --> run_prev
-run_prev : True: Load schedule from disk
-run_prev : False: Generate new schedule
+run_prev : - True: Load schedule from disk
+run_prev : - False: Generate new schedule
 
 '================================================================================
 ' True
 
 ' Buffer
 run_prev --> Buffer : False
-Buffer : Charger data
-Buffer : Bus data
-Buffer : Time information
-Buffer : etc.
+Buffer : - Charger data
+Buffer : - Bus data
+Buffer : - Time information
+Buffer : - etc.
 
 ' Generate schedule
 Buffer --> GenerateSchedule
@@ -33,9 +35,9 @@ state GenerateSchedule {
 
 	' Select times
 	NumberBusVisits --> SelectTimes
-	SelectTimes : Arrival time (new)
-	SelectTimes : Arrival time (old)
-	SelectTimes : Departure time
+	SelectTimes : - Arrival time (new)
+	SelectTimes : - Arrival time (old)
+	SelectTimes : - Departure time
 
 	' Arrival time old
 	SelectTimes --> ArrivalTimeOld
@@ -47,13 +49,13 @@ state GenerateSchedule {
 	
 	' Departure time
 	FinalVisit --> DepartureTime
-	DepartureTime : if not final visit: select a departure time between [min_rest,max_rest]
-	DepartureTime : else: set departure time as time horizon (T)
+	DepartureTime : - if not final visit: select a departure time between [min_rest,max_rest]
+	DepartureTime : - else: set departure time as time horizon (T)
 	
 	' Arrival time new
 	DepartureTime --> ArrivalTimeNew
-	ArrivalTimeNew : Chunk = T/NumberBusVisits
-	ArrivalTimeNew : ArrivalTimeNew = i*Chunk (i represents the ith NumberBusVisit)
+	ArrivalTimeNew : - Chunk = T/NumberBusVisits
+	ArrivalTimeNew : - ArrivalTimeNew = i*Chunk (i represents the ith NumberBusVisit)
 
 	' Discharge
 	ArrivalTimeNew --> Discharge

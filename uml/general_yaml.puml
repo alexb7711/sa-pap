@@ -1,5 +1,7 @@
 @startyaml
 
+title General Configuration Input
+
 # Number of processes to input values
 jobs: int (8)
 
@@ -7,7 +9,7 @@ jobs: int (8)
 plot: bool (1)
 
 # Time limit to solve [s]
-time_limit: int (100)
+time_limit: int (-1)
 
 # Load previously saved solution
 load_solution: bool (0)

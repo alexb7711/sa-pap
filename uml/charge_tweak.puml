@@ -1,0 +1,24 @@
+@startuml
+title Tweak Charge Schedule
+
+[*] --> PickBus : Given charge schedule
+
+' Slide
+PickBus --> CalculateSlide
+CalculateSlide : Valid "play" with start \n and end charging times
+
+CalculateSlide --> PickRandomOption
+
+' Region
+PickBus --> FindOpenRegion
+FindOpenRegion : Determine any other \nvalid regions exist
+
+FindOpenRegion --> PickRandomOption
+PickRandomOption : Either pick
+PickRandomOption : - Random slide amount (if available)
+PickRandomOption : - Random region (if available)
+
+PickRandomOption --> PickBus : For each bus
+PickRandomOption --> [*] : New charge schedule
+
+@enduml
