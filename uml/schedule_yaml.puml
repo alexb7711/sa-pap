@@ -1,5 +1,7 @@
 @startyaml
 
+title Schedule Parameters
+
 ' Time horizon information
 time_horizon: int (24)                 # [hr]
 
