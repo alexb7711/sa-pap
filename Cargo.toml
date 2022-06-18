@@ -1,5 +1,5 @@
 [package]
-name = "sa-pap"
+name = "sa_pap"
 version = "0.0.1"
 edition = "2021"
 
