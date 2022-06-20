@@ -48,7 +48,7 @@ pub mod yaml_loader
     pub fn load_yaml(config_path: &str) -> Yaml
     {
         // Parse file as String
-        let text: std::io::Result<String> = crate::fileio::yaml_loader::create_yaml_string(&config_path);
+        let text: std::io::Result<String> = crate::util::fileio::yaml_loader::create_yaml_string(&config_path);
 
         // Parse YAML
         let yaml = match text

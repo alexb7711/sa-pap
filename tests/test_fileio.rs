@@ -3,7 +3,7 @@ extern crate sa_pap;
 #[cfg(test)]
 mod yaml_loader
 {
-    use sa_pap::fileio::yaml_loader;
+    use sa_pap::util::fileio::yaml_loader;
 
     //---------------------------------------------------------------------------
     /// Invalid paths should cause a panic
