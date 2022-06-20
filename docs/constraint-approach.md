@@ -1,13 +1,14 @@
 ---
 title: Bus Charging Schedule Simulated Annealing
 ---
+
 This document outlines the simulated annealing approach to the bus charging scheduling problem.
 
 # Simulated Annealing Requirements
 * Initial Temperature
 * Cooling schedule (temperature function)
 * Generation mechanism
-* Repetition schedule
+* Repetition schedule ($\pi_k$)
 
 # Optimization Problem
 
@@ -39,10 +40,10 @@ $$
 PC = \sum_{i=1}^I \sum_{q=1}^Q w_{iq} r_q c_i
 $$
 
-where $r_q$ is the wattage of the charger and $\xi_p(t)$ is the time penalty (i.e. cost is higher during peak times) where larger values represent larger punishment in peak periods. The average peak time penalty is taken between the initial charge time, $u_i$, the departure time, $p_i$, and $c_i = u_i + p_i$. Peak 15 should also be taken into consideration. P15 can be written as:
+where $r_q$ is the wattage of the charger (KW). Peak 15 should also be taken into consideration. P15 can be written as:
 
 $$
-\rho_{15}(t) = 1/15 \int_{t-15}^{15} p(\tau) d\tau
+\rho_{15}(t) = 1/15 \int_{t-15}^{t} \rho(\tau) d\tau
 $$
 
 because worst case must be assumed to always ensure enough power is supplied
@@ -60,12 +61,12 @@ $$
 where $s_r$ is the demand rate. From this we can write:
 
 $$
-PC = \sum_{i=1}^I \sum_{q=1}^Q \left(w_{iq} r_q c_i + \frac{\rho_{d}(u_i) + \rho_d(p_i)}{c_i}\right) \frac{\xi_p(u_i) + \xi_p(p_i)}{c_i}
+PC = \sum_{i=1}^I \sum_{q=1}^Q w_{iq} r_q c_i + \rho_{T}
 $$
 
 
 ## Constraints
-Now that a method of calculating the "goodness" of a schedule has been established, a method for determining if the schedule is feasible must be determined. Feasible schedule require
+Now that a method of calculating the fitness of a schedule has been established, a method for determining if the schedule is feasible must be determined. Feasible schedule require
 
 * No overlap in time
 * No overlap in space
@@ -74,8 +75,8 @@ Now that a method of calculating the "goodness" of a schedule has been establish
 
 $$
 \begin{array}{ll}
-	u_j - u_i - p_i \geq 0                                             & \text{Valid time}                                                        \\
-	v_j - v_i - s_i \geq 0                                             & \text{Valid position}                                                    \\
+	p_i \geq u_j \;||\; p_j \geq u_i                                   & \text{Valid time}                                                        \\
+	q_i \;!= q_j                                                         & \text{Valid position}                                                    \\
 	p_i + u_i = c_i                                                    & \text{Valid depart time (TODO: redundant?)}                              \\
 	a_i \leq u_i \leq (T-p_i)                                          & \text{Arrival time < initial charge time < maximum initial charge time}  \\
 	c_i \leq \tau_i                                                    & \text{Detatch time should be less than or equal to departure time}       \\
@@ -85,16 +86,21 @@ $$
 $$
 
 ## Cooling Equation (Experimental)
-There are three basic types of cooling equations as shown in Fig \ref{fig:cool}. (I'm not really sure a good way to decide between the three).
+There are three basic types of cooling equations as shown in Fig \ref{fig:cool}.
 
 ![Cooling equations \label{fig:cool}](img/cool-func.png)
 
 # Generation Mechanism(s)
-For the case of the bus generation, three generation mechanism shall be used. More specific generation algorithms can be typed out, these are just placeholders to verify that all of these are required/sufficient.
+For the case of the bus generation, three generation mechanism shall be used.
 
-* Random Schedule
-	* Generate an initial random bus schedule
-* Random Configuration
-	* Generate an initial random bus charging schedule
-* Random Tweaks
-	* Tweak a given bus charging schedule by "sliding" the bus times around
+* Route generation (Fig \ref{fig:route})
+
+![Cooling equations \label{fig:route}](img/route_generation.png)
+	
+* Schedule generation (Fig \ref{fig:schedule})
+
+![Cooling equations \label{fig:schedule}](img/charge_solution.png)
+
+* Tweak schedule (Fig \ref{fig:tweak})
+
+![Cooling equations \label{fig:tweak}](img/charge_tweak.png)
