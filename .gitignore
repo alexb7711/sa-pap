@@ -1,3 +1,5 @@
-/target
+target/
+uml/*.png
+
 *.utxt
-*.png
+*.pdf
