@@ -11,10 +11,10 @@ use crate::fileio::yaml_loader;
 
 //===============================================================================
 // Structure for ScheduleGenerator
-#[allow(dead_code)]
 pub struct RouteGenerator
 {
-    pub config: Vec<Yaml>,
+    // pub config: Vec<Yaml>,
+    pub config: Yaml,
 }
 
 //===============================================================================

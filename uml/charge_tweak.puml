@@ -5,13 +5,13 @@ title Tweak Charge Schedule
 
 ' Slide
 PickBus --> CalculateSlide
-CalculateSlide : Valid "play" with start \n and end charging times
+CalculateSlide : Valid "play" with start \nand end charging times
 
 CalculateSlide --> PickRandomOption
 
 ' Region
 PickBus --> FindOpenRegion
-FindOpenRegion : Determine any other \nvalid regions exist
+FindOpenRegion : Determine if any other \nvalid regions exist
 
 FindOpenRegion --> PickRandomOption
 PickRandomOption : Either pick

@@ -29,9 +29,9 @@ mod yaml_loader
     {
         let yaml = yaml_loader::load_yaml("./src/yaml/schedule.yaml");
 
-        assert_eq!(yaml[0]["time_horizon"].as_i64().unwrap(), 24);
-        assert_eq!(yaml[0]["final_charge"].as_f64().unwrap(), 0.95);
-        assert_eq!(yaml[0]["initial_charge"]["max"].as_f64().unwrap(), 0.95);
-        assert_eq!(yaml[0]["initial_charge"]["min"].as_f64().unwrap(), 0.90);
+        assert_eq!(yaml["time_horizon"].as_i64().unwrap(), 24);
+        assert_eq!(yaml["final_charge"].as_f64().unwrap(), 0.95);
+        assert_eq!(yaml["initial_charge"]["max"].as_f64().unwrap(), 0.95);
+        assert_eq!(yaml["initial_charge"]["min"].as_f64().unwrap(), 0.90);
     }
 }

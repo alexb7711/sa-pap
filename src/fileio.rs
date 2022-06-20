@@ -45,7 +45,7 @@ pub mod yaml_loader
     /// # Output
     /// * `yaml`: Vec<Yaml> object
     ///
-    pub fn load_yaml(config_path: &str) -> Vec<Yaml>
+    pub fn load_yaml(config_path: &str) -> Yaml
     {
         // Parse file as String
         let text: std::io::Result<String> = crate::fileio::yaml_loader::create_yaml_string(&config_path);
@@ -57,6 +57,6 @@ pub mod yaml_loader
             Err(error) => panic!("Problem opening the file: {:?}", error),
         };
 
-        return yaml;
+        return yaml[0].clone();
     }
 }

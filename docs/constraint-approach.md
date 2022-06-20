@@ -76,7 +76,7 @@ Now that a method of calculating the fitness of a schedule has been established,
 $$
 \begin{array}{ll}
 	p_i \geq u_j \;||\; p_j \geq u_i                                   & \text{Valid time}                                                        \\
-	q_i \;!= q_j                                                         & \text{Valid position}                                                    \\
+	q_i = q_j                                                          & \text{Valid position}                                                    \\
 	p_i + u_i = c_i                                                    & \text{Valid depart time (TODO: redundant?)}                              \\
 	a_i \leq u_i \leq (T-p_i)                                          & \text{Arrival time < initial charge time < maximum initial charge time}  \\
 	c_i \leq \tau_i                                                    & \text{Detatch time should be less than or equal to departure time}       \\

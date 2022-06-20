@@ -14,7 +14,7 @@ fn main()
     // Create schedule generator
     let rg: RouteGenerator = RouteGenerator::new("./src/yaml/schedule.yaml");
 
-    println!("{:?}", rg.config[0]["time_horizon"].as_i64().unwrap())
+    println!("{:?}", rg.config["time_horizon"].as_i64().unwrap())
 
     // Create solution generator and tweaker
 
