@@ -21,7 +21,7 @@ fn main()
     let load_from_file: bool = bool_util::i64_to_bool(gen_config["load_from_file"].clone().into_i64().unwrap());
     let mut rg: RouteGenerator = RouteGenerator::new(load_from_file, "./src/yaml/schedule.yaml");
 
-    RouteGenerator::run(&mut rg);
+    rg.run();
 
     // Create solution generator and tweaker
 

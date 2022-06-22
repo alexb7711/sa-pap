@@ -15,9 +15,9 @@ pub use crate::util::traits::Generator;
 #[allow(dead_code)]
 #[derive(Default)]
 /// Defines the structure that contains the route data
-struct RouteEvent
+pub struct RouteEvent
 {
-    // pub 
+    id: i16,
 }
 
 //===============================================================================
@@ -27,11 +27,11 @@ struct RouteEvent
 pub struct RouteGenerator
 {
     // PUBLIC
+    pub route: Vec<RouteEvent>,
 
     // PRIVATE
     config: Yaml,
     load_from_file: bool,
-    route: Vec<RouteEvent>,
 }
 
 //===============================================================================
@@ -55,9 +55,10 @@ impl RouteGenerator
         // Create new RouteGenerator
         let rg = RouteGenerator
         {
+            route: Vec::new(),
+
             config: yaml_loader::load_yaml(config_path),
             load_from_file: load_from_file,
-            route: Vec::new(),
         };
 
         // Return Route Generator
@@ -76,13 +77,14 @@ impl RouteGenerator
     /// # Output
     /// * NONE
     ///
-    fn create_route_struct(&mut self)
+    fn create_route_struct(self: &mut RouteGenerator)
     {
         // Variables
         let visits: usize = self.config["buses"]["num_visit"].as_i64().unwrap() as usize;
 
         // Reserve memory for all visits
-        self.route.reserve(visits);
+        self.route.reserve_exact(visits);
+        println!("Visits: {}\nCapacity: {}", visits, self.route.capacity());
     }
 
     //---------------------------------------------------------------------------
@@ -94,7 +96,7 @@ impl RouteGenerator
     /// # Output
     /// * `route_schedule`: The routes that the buses must adhere to
     ///
-    fn generate_routes(&mut self)
+    fn generate_routes(self: &mut RouteGenerator)
     {}
 }
 
@@ -111,7 +113,7 @@ impl Generator for RouteGenerator
     /// # Output
     /// * `route_schedule`: The routes that the buses must adhere to
     ///
-    fn run(&mut self)
+    fn run(self: &mut RouteGenerator)
     {
         // If load from file
         if self.load_from_file
