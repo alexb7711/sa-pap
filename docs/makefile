@@ -2,10 +2,10 @@
 
 ##===============================================================================
 # Variables
-IMGDIR = ./img
 UMLDIR = ./uml
 SRC   := $(wildcard *.md)
-PNG   := $(wildcard $(IMGDIR)/*.png)
+UML   := $(wildcard $(UMLDIR)/*.puml)
+PNG   := $(patsubst %.puml, %.png, $(UML))
 PDF   := $(patsubst %.md, %.pdf, $(SRC))
 
 ##===============================================================================
@@ -36,3 +36,8 @@ clean:
 #
 %.pdf: %.md
 	pandoc --pdf-engine=xelatex "$<" -o $@
+
+##-------------------------------------------------------------------------------
+#
+%.png: %.puml
+	@
