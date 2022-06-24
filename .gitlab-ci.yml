@@ -21,7 +21,6 @@ test:
     - rustc --version
     - cargo --version
     - cargo test --verbose
-    - cd docs && make
 
 pages:
   stage: doc
