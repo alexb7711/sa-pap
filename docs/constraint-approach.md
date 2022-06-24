@@ -134,7 +134,7 @@ $$
 ## Cooling Equation (Experimental)
 There are three basic types of cooling equations as shown in Fig \ref{fig:cool}.
 
-![Cooling equations \label{fig:cool}](uml/cool-func.png)
+![Cooling equations \label{fig:cool}](uml/cool-func.jpg)
 
 # Generation Mechanism(s)
 For the case of the bus generation, three generation mechanism shall be used.

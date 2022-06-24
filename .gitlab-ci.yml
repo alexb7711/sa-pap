@@ -10,11 +10,10 @@ stages:
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/cargo
   APT_CACHE_DIR: $CI_PROJECT_DIR/apt
-  DEPENDENCIES: pandoc plantuml
 
 before_script:
   - apt-get update
-  - apt-get install -o dir::cache::archives="$APT_CACHE_DIR" -y "$DEPENDENCIES"
+  - apt-get install -o dir::cache::archives="$APT_CACHE_DIR" -y pandoc plantuml
 
 test:
   stage: test
