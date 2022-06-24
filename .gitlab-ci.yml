@@ -21,13 +21,14 @@ test:
     - rustc --version
     - cargo --version
     - cargo test --verbose
+    - cd docs && make
 
 pages:
   stage: doc
   script:
     - cargo doc --no-deps
     - mv target/doc public
-    - cd docs && make
+    - echo '<meta http-equiv="refresh" content="0; url={{sa_pap}}">' > public/index.html
   only:
     - master
 
