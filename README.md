@@ -6,7 +6,10 @@
 * [pandoc](https://pandoc.org/)
 * [PlantUML](https://pandoc.org/)
 
-# Build Program
+# Build/Test/Run Program
+* Build: `cargo build`
+* Test: `cargo test`
+* Run: `cargo run`
 
 # Building Documentation
 
