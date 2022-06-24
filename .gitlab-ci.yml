@@ -10,10 +10,11 @@ stages:
 variables:
   CARGO_HOME: $CI_PROJECT_DIR/cargo
   APT_CACHE_DIR: $CI_PROJECT_DIR/apt
+  DEPENDENCIES: pandoc plantuml
 
 before_script:
   - apt-get update
-  - apt-get install -o dir::cache::archives="$APT_CACHE_DIR" # -y {{ DEPENDENCIES }}
+  - apt-get install -o dir::cache::archives="$APT_CACHE_DIR" -y "$DEPENDENCIES"
 
 test:
   stage: test
@@ -27,10 +28,7 @@ pages:
   script:
     - cargo doc --no-deps
     - mv target/doc public
-    - echo '<meta http-equiv="refresh" content="0; url={{sa_pap}}">' > public/index.html
-  artifacts:
-    paths:
-      - public
+    - cd docs && make
   only:
     - master
 
