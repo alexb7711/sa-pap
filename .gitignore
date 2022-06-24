@@ -2,5 +2,6 @@ target/
 
 *.utxt
 *.pdf
+*.png
 
 Cargo.lock
