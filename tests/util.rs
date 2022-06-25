@@ -63,3 +63,48 @@ mod test_bool_util
         assert!(!bool_util::i64_to_bool(0));
     }
 }
+
+//===============================================================================
+//
+#[cfg(test)]
+mod test_rand_utils
+{
+    //---------------------------------------------------------------------------
+    // Import modules
+    use sa_pap::util::rand_utils;
+
+    //---------------------------------------------------------------------------
+    //
+    fn get_vec_size(vec: &Vec<i64>) -> usize
+    {
+        return vec.len();
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    fn get_vec_count(vec: &Vec<i64>) -> i64
+    {
+        return vec.iter().sum();
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_rand_route_count()
+    {
+        // Test objects
+        let a = rand_utils::rand_route_count(1 , 10);
+        let b = rand_utils::rand_route_count(10, 100);
+        let c = rand_utils::rand_route_count(30, 400);
+
+        // Test each object length
+        assert_eq!(get_vec_size(&a), 1);
+        assert_eq!(get_vec_size(&b), 10);
+        assert_eq!(get_vec_size(&c), 30);
+
+        // Test each object sum
+        assert_eq!(get_vec_count(&a), 10);
+        assert_eq!(get_vec_count(&b), 100);
+        assert_eq!(get_vec_count(&c), 400);
+    }
+}
