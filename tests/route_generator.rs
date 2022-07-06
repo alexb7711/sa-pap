@@ -12,9 +12,16 @@ mod test_route_generator
 
     //---------------------------------------------------------------------------
     //
-    fn get_size() -> usize
+    fn get_route_size() -> usize
     {
         return yaml_loader::load_yaml(yaml_path())["buses"]["num_visit"].as_i64().unwrap() as usize;
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    fn get_bus_size() -> usize
+    {
+        return yaml_loader::load_yaml(yaml_path())["buses"]["num_bus"].as_i64().unwrap() as usize;
     }
 
     //---------------------------------------------------------------------------
@@ -33,6 +40,7 @@ mod test_route_generator
 
         rg.run();
 
-        assert_eq!(rg.route.get_mut().capacity(), get_size());
+        assert_eq!(rg.route.get_mut().capacity(), get_route_size());
+        assert_eq!(rg.buses.get_mut().capacity(), get_bus_size());
     }
 }

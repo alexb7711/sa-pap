@@ -13,13 +13,13 @@ use crate::util::rand_utils;
 //===============================================================================
 // Structure for buses
 #[allow(dead_code)]
-#[derive(Default)]
+#[derive(Default,Clone)]
 /// Defines the structure that contains the bus data
 pub struct Bus
 {
-    id             : u16,
     bat_capacity   : f32,
     initial_charge : f32,
+    discharge_rate : f32,
     final_charge   : f32,
 }
 
@@ -30,14 +30,18 @@ pub struct Bus
 /// Defines the structure that contains the route data
 pub struct RouteEvent
 {
+    // Parameters
     arrival_time   : f32,
-    attach_time    : f32,
+    bus            : Bus,
     departure_time : f32,
-    detatch_time   : f32,
-    discharge_rate : f32,
+    discharge      : f32,
     id             : u16,
+    route_time     : f32,
+
+    // Decision variables
+    attach_time    : f32,
+    detatch_time   : f32,
     queue          : u16,
-    route_time     : f32
 }
 
 //===============================================================================
@@ -154,11 +158,12 @@ impl RouteGenerator
                      event_cnt : u16)
     {
         // Variables
-        let mut arrival_old : f32  = 0.0; /* Arrival time of previous visit [hr] */
-        let mut arrival_new : f32  = 0.0; /* Arrival time of next visit [hr]     */
-        let mut depart      : f32  = 0.0; /* Departure time [hr]                 */
-        let mut discharge   : f32  = 0.0; /* Discharge of current route [KWH]    */
+        let mut arrival_new : f32 = 0.0; /* Arrival time of next visit [hr]     */
+        let mut arrival_old : f32;       /* Arrival time of previous visit [hr] */
+        let mut depart      : f32;       /* Departure time [hr]                 */
+        let mut discharge   : f32;       /* Discharge of current route [KWH]    */
 
+        // Loop through each event
         for i in 0..event_cnt
         {
             // Store arrival time
@@ -174,10 +179,10 @@ impl RouteGenerator
             arrival_new = self.next_arrival(i, event_cnt);
 
             // Calculate the amount of discharge
-            discharge = self.calc_discharge(arrival_old, depart);
+            discharge = self.calc_discharge(id, arrival_old, depart);
 
             // Append bus data
-            self.append_bus_data(id, arrival_old, depart, discharge);
+            self.append_bus_data(i as usize, id as usize, arrival_old, depart, discharge);
         }
     }
 
@@ -237,42 +242,75 @@ impl RouteGenerator
     }
 
     //---------------------------------------------------------------------------
-    /// TODO
+    /// Calculate the average discharge of a bus on route in [KWH]
+    ///
+    /// # Input
+    /// * `id`           : Id of the bus
+    /// * `prev_depart`  : Previous departure time [HR]
+    /// * `next_arrival` : Next arrival time [HR]
+    ///
+    /// # Output
+    /// * `discharge`: Average discharge of bus on route in [KWH]
+    ///
     fn calc_discharge(self         : &mut RouteGenerator,
-                      _prev_depart  : f32,
-                      _next_arrival : f32) -> f32
+                      id           : u16,
+                      prev_depart  : f32,
+                      next_arrival : f32) -> f32
     {
         // Variables
-        // let dis_rate: f32 = self.config["
-        return 0.0;
+        let bat_capacity: f32 = self.buses.get_mut()[id as usize].bat_capacity;
+
+        return bat_capacity * (next_arrival - prev_depart);
     }
 
     //---------------------------------------------------------------------------
     /// TODO
     fn append_bus_data(self      : &mut RouteGenerator,
-                       _id        : u16,
-                       _arrival   : f32,
-                       _depart    : f32,
-                       _discharge : f32)
+                       event     : usize,
+                       id        : usize,
+                       arrival   : f32,
+                       depart    : f32,
+                       discharge : f32)
     {
+        // Variables
+        let b : &Bus        = &self.buses.borrow_mut()[id];
+
+        // Populate
+        self.route.borrow_mut().insert(event, RouteEvent::default());
+        self.route.borrow_mut()[event].arrival_time   = arrival;
+        self.route.borrow_mut()[event].bus            = b.clone();
+        self.route.borrow_mut()[event].departure_time = depart;
+        self.route.borrow_mut()[event].discharge      = discharge;
+        self.route.borrow_mut()[event].id             = id as u16;
+        self.route.borrow_mut()[event].route_time     = depart - arrival;
     }
 
     //---------------------------------------------------------------------------
-    /// TODO
+    /// Create the fleet of buses and assign some of their properties
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Ouptut
+    /// * NONE
+    ///
     fn create_buses(self : &mut RouteGenerator)
     {
         // Variables
-        let _num_bus : u16        = self.config["buses"]["num_bus"].as_i64().unwrap() as u16;
-        let _ic      : &Vec<Yaml> = self.config["initial_charge"].as_vec().unwrap();
-        let _fc      : f32        = self.config["final_charge"].as_f64().unwrap() as f32;
+        let bat_capacity : f32        = self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
+        let dis_rat      : f32        = self.config["buses"]["dis_rate"].as_f64().unwrap() as f32;
+        let fc           : f32        = self.config["final_charge"].as_f64().unwrap() as f32;
+        let ic           : &Vec<Yaml> = self.config["initial_charge"].as_vec().unwrap();
+        let num_bus      : u16        = self.config["buses"]["num_bus"].as_i64().unwrap() as u16;
 
-        // for (_b,_id) in std::iter::zip(self.buses.take(), 0.._num_bus)
-        // {
-            // b.id = id;
-            // b.bat_capacity = rand_utils::rand_range(, max_rest)
-            // b.initial_charge =
-            // b.final_charge =
-        // }
+        for b in 0..num_bus as usize
+        {
+            self.buses.get_mut().insert(b, Bus::default());
+            self.buses.get_mut()[b].bat_capacity   = bat_capacity;
+            self.buses.get_mut()[b].discharge_rate = dis_rat;
+            self.buses.get_mut()[b].final_charge   = fc;
+            self.buses.get_mut()[b].initial_charge = rand_utils::rand_range(ic[0].as_f64().unwrap() as f32, ic[1].as_f64().unwrap() as f32);
+        }
     }
 }
 
