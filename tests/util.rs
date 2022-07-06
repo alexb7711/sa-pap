@@ -23,7 +23,7 @@ mod test_yaml_loader
     #[test]
     fn test_valid_load_yaml()
     {
-        yaml_loader::load_yaml("./src/yaml/schedule.yaml");
+        yaml_loader::load_yaml("./src/yaml/schedule-test.yaml");
     }
 
     //---------------------------------------------------------------------------
@@ -31,9 +31,9 @@ mod test_yaml_loader
     #[test]
     fn test_contents()
     {
-        let yaml = yaml_loader::load_yaml("./src/yaml/schedule.yaml");
+        let yaml = yaml_loader::load_yaml("./src/yaml/schedule-test.yaml");
 
-        assert_eq!(yaml["time_horizon"].as_i64().unwrap(), 24);
+        assert_eq!(yaml["time_horizon"].as_i64().unwrap(), 10);
         assert_eq!(yaml["final_charge"].as_f64().unwrap(), 0.95);
         assert_eq!(yaml["initial_charge"][0].as_f64().unwrap(), 0.90);
         assert_eq!(yaml["initial_charge"][1].as_f64().unwrap(), 0.95);
@@ -106,5 +106,23 @@ mod test_rand_utils
         assert_eq!(get_vec_count(&a), 10);
         assert_eq!(get_vec_count(&b), 100);
         assert_eq!(get_vec_count(&c), 400);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_range()
+    {
+        let lower: f32 = 1.0;
+        let upper: f32 = 100.0;
+
+        let mut v: f32 = rand_utils::rand_range(lower, upper);
+        assert!(v >= lower && v <= upper);
+
+        v = rand_utils::rand_range(lower, upper);
+        assert!(v >= lower && v <= upper);
+
+        v = rand_utils::rand_range(lower, upper);
+        assert!(v >= lower && v <= upper);
     }
 }

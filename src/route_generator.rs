@@ -228,7 +228,7 @@ impl RouteGenerator
     /// * `event_cnt`     : Represents total number of visits
     ///
     /// # Output
-    /// *
+    /// * `next_arrival` : Next arrival time for bus `b`
     ///
     fn next_arrival(self          : &mut RouteGenerator,
                     current_visit : u16,
@@ -264,7 +264,18 @@ impl RouteGenerator
     }
 
     //---------------------------------------------------------------------------
-    /// TODO
+    /// Add bus data to the route event vector
+    ///
+    /// # Input
+    /// * `event`     : Event number
+    /// * `id`        : Id of the bus
+    /// * `arrival`   : Arrival time for bus `b`
+    /// * `depart`    : Depart time for bus `b`
+    /// * `discharge` : Amount of discharge for next route
+    ///
+    /// # Output
+    /// * NONE
+    ///
     fn append_bus_data(self      : &mut RouteGenerator,
                        event     : usize,
                        id        : usize,
@@ -346,3 +357,105 @@ impl Generator for RouteGenerator
         }
     }
 }
+
+//===============================================================================
+// TEST PRIVATE METHODS IN ROUTE GENERATOR
+#[cfg(test)]
+mod priv_test_route_gen
+{
+    use super::RouteGenerator;
+
+    //---------------------------------------------------------------------------
+    //
+    fn create_object() -> RouteGenerator
+    {
+        return RouteGenerator::new(false, "./src/yaml/schedule-test.yaml");
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_next_depart()
+    {
+        // Variables
+        let mut rg       : RouteGenerator = create_object();
+        let mut arrival  : f32            = 1.0;
+        let time_horizon : f32            = rg.config["time_horizon"].as_i64().unwrap() as f32;
+
+        // Test 1
+        let mut depart: f32 = rg.next_depart(arrival, false) ;
+        assert_eq!(depart, arrival+0.1);
+
+        // Test 2
+        arrival = 2.0;
+        depart  = rg.next_depart(arrival, false) ;
+        assert_eq!(depart, arrival+0.1);
+
+        // Test 3
+        arrival = 5.0;
+        depart  = rg.next_depart(arrival, false) ;
+        assert_eq!(depart, arrival+0.1);
+
+        // Test 4
+        arrival = 1.0;
+        depart  = rg.next_depart(arrival, true) ;
+        assert_eq!(depart, time_horizon);
+
+        // Test 5
+        arrival = 5.0;
+        depart  = rg.next_depart(arrival, true) ;
+        assert_eq!(depart, time_horizon);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_next_arrival()
+    {
+        let mut rg : RouteGenerator = create_object();
+
+        // Test 1
+        let mut next_arrival: f32 = rg.next_arrival(1, 2);
+        assert_eq!(next_arrival, 5.0);
+
+        // Test 2
+        next_arrival = rg.next_arrival(2, 2);
+        assert_eq!(next_arrival, 10.0);
+
+        // Test 3
+        next_arrival = rg.next_arrival(1, 5);
+        assert_eq!(next_arrival, 2.0);
+
+        // Test 4
+        next_arrival = rg.next_arrival(3, 5);
+        assert_eq!(next_arrival, 6.0);
+
+        // Test 5
+        next_arrival = rg.next_arrival(4, 5);
+        assert_eq!(next_arrival, 8.0);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_calc_discharge()
+    {
+        // let mut rg : RouteGenerator = create_object();
+
+        // Test 1
+
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_append_bus_data()
+    {}
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_create_buses()
+    {}
+}
+

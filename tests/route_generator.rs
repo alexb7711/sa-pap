@@ -1,13 +1,16 @@
 extern crate sa_pap;
 
 //===============================================================================
+/// TEST PUBLIC INTERFACES OF ROUTE_GENERATOR
+
+//===============================================================================
 //
 #[cfg(test)]
 mod test_route_generator
 {
     //---------------------------------------------------------------------------
     // Import modules
-    use sa_pap::route_generator::{RouteGenerator, Generator};
+    use super::sa_pap::route_generator::{RouteGenerator, Generator};
     use sa_pap::util::fileio::yaml_loader;
 
     //---------------------------------------------------------------------------
@@ -28,7 +31,7 @@ mod test_route_generator
     //
     fn yaml_path() -> &'static str
     {
-        return "./src/yaml/schedule.yaml";
+        return "./src/yaml/schedule-test.yaml";
     }
 
     //---------------------------------------------------------------------------
