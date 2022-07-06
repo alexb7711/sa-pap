@@ -35,8 +35,8 @@ mod test_yaml_loader
 
         assert_eq!(yaml["time_horizon"].as_i64().unwrap(), 24);
         assert_eq!(yaml["final_charge"].as_f64().unwrap(), 0.95);
-        assert_eq!(yaml["initial_charge"]["max"].as_f64().unwrap(), 0.95);
-        assert_eq!(yaml["initial_charge"]["min"].as_f64().unwrap(), 0.90);
+        assert_eq!(yaml["initial_charge"][0].as_f64().unwrap(), 0.95);
+        assert_eq!(yaml["initial_charge"][1].as_f64().unwrap(), 0.90);
     }
 }
 
@@ -75,14 +75,14 @@ mod test_rand_utils
 
     //---------------------------------------------------------------------------
     //
-    fn get_vec_size(vec: &Vec<i64>) -> usize
+    fn get_vec_size(vec: &Vec<u16>) -> usize
     {
         return vec.len();
     }
 
     //---------------------------------------------------------------------------
     //
-    fn get_vec_count(vec: &Vec<i64>) -> i64
+    fn get_vec_count(vec: &Vec<u16>) -> u16
     {
         return vec.iter().sum();
     }

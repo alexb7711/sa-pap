@@ -27,12 +27,12 @@ mod test_route_generator
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_invalid_load_yaml()
+    fn test_valid_load_yaml()
     {
         let mut rg: RouteGenerator = RouteGenerator::new(false, yaml_path());
 
         rg.run();
 
-        assert_eq!(rg.route.capacity(), get_size());
+        assert_eq!(rg.route.get_mut().capacity(), get_size());
     }
 }
