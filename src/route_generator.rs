@@ -26,7 +26,7 @@ pub struct Bus
 //===============================================================================
 // Structure for route
 #[allow(dead_code)]
-#[derive(Default)]
+#[derive(Default,Clone)]
 /// Defines the structure that contains the route data
 pub struct RouteEvent
 {
@@ -110,10 +110,10 @@ impl RouteGenerator
         let visits : usize = self.config["buses"]["num_visit"].as_i64().unwrap() as usize;
 
         // Reserve memory for all buses
-        self.buses.borrow_mut().reserve_exact(num_bus);
+        self.buses.borrow_mut().resize(num_bus, Bus::default());
 
         // Reserve memory for all events
-        self.route.borrow_mut().reserve_exact(visits);
+        self.route.borrow_mut().resize(visits, RouteEvent::default());
     }
 
     //---------------------------------------------------------------------------
@@ -258,9 +258,9 @@ impl RouteGenerator
                       next_arrival : f32) -> f32
     {
         // Variables
-        let bat_capacity: f32 = self.buses.get_mut()[id as usize].bat_capacity;
+        let dis_rat: f32 = self.buses.get_mut()[id as usize].discharge_rate;
 
-        return bat_capacity * (next_arrival - prev_depart);
+        return dis_rat * (next_arrival - prev_depart);
     }
 
     //---------------------------------------------------------------------------
@@ -284,10 +284,9 @@ impl RouteGenerator
                        discharge : f32)
     {
         // Variables
-        let b : &Bus        = &self.buses.borrow_mut()[id];
+        let b : &Bus = &self.buses.borrow_mut()[id];
 
         // Populate
-        self.route.borrow_mut().insert(event, RouteEvent::default());
         self.route.borrow_mut()[event].arrival_time   = arrival;
         self.route.borrow_mut()[event].bus            = b.clone();
         self.route.borrow_mut()[event].departure_time = depart;
@@ -316,7 +315,6 @@ impl RouteGenerator
 
         for b in 0..num_bus as usize
         {
-            self.buses.get_mut().insert(b, Bus::default());
             self.buses.get_mut()[b].bat_capacity   = bat_capacity;
             self.buses.get_mut()[b].discharge_rate = dis_rat;
             self.buses.get_mut()[b].final_charge   = fc;
@@ -363,7 +361,7 @@ impl Generator for RouteGenerator
 #[cfg(test)]
 mod priv_test_route_gen
 {
-    use super::RouteGenerator;
+    use super::{RouteGenerator,Generator};
 
     //---------------------------------------------------------------------------
     //
@@ -440,22 +438,92 @@ mod priv_test_route_gen
     #[test]
     fn test_calc_discharge()
     {
-        // let mut rg : RouteGenerator = create_object();
+        let mut rg  : RouteGenerator = create_object();
+        let dis_rat : f32 = rg.config["buses"]["dis_rate"].as_f64().unwrap() as f32;
+
+        rg.run();
 
         // Test 1
+        let mut discharge: f32 = rg.calc_discharge(0,0.0,1.0);
+        assert_eq!(discharge, dis_rat*(1.0));
+        
+        // Test 2
+        discharge = rg.calc_discharge(0,1.0,4.0);
+        assert_eq!(discharge, dis_rat*(3.0));
 
+        // Test 3
+        discharge = rg.calc_discharge(1,1.0,4.0);
+        assert_eq!(discharge, dis_rat*(3.0));
+
+        // Test 4
+        discharge = rg.calc_discharge(1,6.0,10.0);
+        assert_eq!(discharge, dis_rat*(4.0));
     }
 
     //---------------------------------------------------------------------------
     //
     #[test]
     fn test_append_bus_data()
-    {}
+    {
+        let mut rg       : RouteGenerator = create_object();
+        let num_event    : usize = rg.config["buses"]["num_visit"].as_i64().unwrap() as usize;
+        let bat_capacity : f32 = rg.config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
+
+        rg.run();
+
+        // Test 1
+        rg.append_bus_data(0, 0, 0.0, 10.0, 15.0);
+        assert_eq!(rg.route.borrow()[0].arrival_time, 0.0);
+        assert_eq!(rg.route.borrow()[0].departure_time, 10.0);
+        assert_eq!(rg.route.borrow()[0].discharge, 15.0);
+        assert_eq!(rg.route.borrow()[0].bus.bat_capacity, bat_capacity);
+        assert_eq!(rg.route.borrow().len(), num_event);
+
+        // Test 2
+        rg.append_bus_data(100, 0, 0.0, 10.0, 15.0);
+        assert_eq!(rg.route.borrow()[100].arrival_time, 0.0);
+        assert_eq!(rg.route.borrow()[100].departure_time, 10.0);
+        assert_eq!(rg.route.borrow()[100].discharge, 15.0);
+        assert_eq!(rg.route.borrow()[100].bus.bat_capacity, bat_capacity);
+        assert_eq!(rg.route.borrow().len(), num_event);
+
+        // Test 3
+        rg.append_bus_data(30, 0, 0.0, 2.0, 15.4);
+        assert_eq!(rg.route.borrow()[30].arrival_time, 0.0);
+        assert_eq!(rg.route.borrow()[30].departure_time, 2.0);
+        assert_eq!(rg.route.borrow()[30].discharge, 15.4);
+        assert_eq!(rg.route.borrow()[30].bus.bat_capacity, bat_capacity);
+        assert_eq!(rg.route.borrow().len(), num_event);
+    }
 
     //---------------------------------------------------------------------------
     //
     #[test]
     fn test_create_buses()
-    {}
+    {
+        let mut rg       : RouteGenerator = create_object();
+
+        let bat_capacity : f32 = rg.config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
+        let dis_rat      : f32 = rg.config["buses"]["dis_rate"].as_f64().unwrap() as f32;
+        let fc           : f32 = rg.config["final_charge"].as_f64().unwrap() as f32;
+
+        rg.create_buffers();
+        rg.create_buses();
+
+        // Test 1
+        assert_eq!(rg.buses.borrow()[0].bat_capacity, bat_capacity);
+        assert_eq!(rg.buses.borrow()[0].discharge_rate, dis_rat);
+        assert_eq!(rg.buses.borrow()[0].final_charge, fc);
+        
+        // Test 2
+        assert_eq!(rg.buses.borrow()[5].bat_capacity, bat_capacity);
+        assert_eq!(rg.buses.borrow()[5].discharge_rate, dis_rat);
+        assert_eq!(rg.buses.borrow()[5].final_charge, fc);
+
+        // Test 3
+        assert_eq!(rg.buses.borrow()[24].bat_capacity, bat_capacity);
+        assert_eq!(rg.buses.borrow()[24].discharge_rate, dis_rat);
+        assert_eq!(rg.buses.borrow()[24].final_charge, fc);
+    }
 }
 
