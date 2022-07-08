@@ -502,7 +502,6 @@ mod priv_test_route_gen
     fn test_create_buses()
     {
         let mut rg       : RouteGenerator = create_object();
-
         let bat_capacity : f32 = rg.config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
         let dis_rat      : f32 = rg.config["buses"]["dis_rate"].as_f64().unwrap() as f32;
         let fc           : f32 = rg.config["final_charge"].as_f64().unwrap() as f32;
@@ -525,5 +524,12 @@ mod priv_test_route_gen
         assert_eq!(rg.buses.borrow()[24].discharge_rate, dis_rat);
         assert_eq!(rg.buses.borrow()[24].final_charge, fc);
     }
-}
 
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_create_buffers()
+    {
+        //let mut rg : RouteGenerator = create_object();
+    }
+}
