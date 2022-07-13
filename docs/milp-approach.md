@@ -15,9 +15,9 @@ header-includes:
 	\centering
 	\begin{tabular}{l l l l}
 		\toprule
-		\textbf{Variable} & \textbf{Description}                                                                 \\
+		\textbf{Variable} & \textbf{Description}                                                             \\
 		\toprule
-		\multicolumn{1}{l}{Input values}                                                                         \\
+		\multicolumn{1}{l}{Input values}                                                                     \\
 			$B$        & Number of buses in use                                                              \\
 			$I$        & Number of total visits                                                              \\
 			$J(u,e,v)$ & Objective function                                                                  \\
@@ -26,7 +26,7 @@ header-includes:
 			$T$        & Time horizon                                                                        \\
 			$\Tau$     & Temperature                                                                         \\
 		\hline
-		\multicolumn{1}{l}{Input variables}                                                                      \\
+		\multicolumn{1}{l}{Input variables}                                                                  \\
 			$\Delta_i$                  & Discharge of visit over route $i$                                  \\
 			$\Xi_i$                     & Array of ID's for each visit $i$                                   \\
 			$\alpha_i$                  & Initial charge percentage time for visit $i$                       \\
@@ -42,7 +42,7 @@ header-includes:
 			$m_i$                       & Minimum charge allowed on departure of visit $i$                   \\
 			$r_q(v_i, u_i, d_i)$        & Returns charge rate of charger $q$ per unit time [$KW$]            \\
 		\hline
-		\multicolumn{1}{l}{Decision Variables}                                                                   \\
+		\multicolumn{1}{l}{Decision Variables}                                                               \\
 			$\eta_i$     & Initial charge for visit $i$                                                      \\
 			$d_i$        & Detach time from charger for visit $i$                                            \\
 			$s_i$        & Amount of time spent on charger for visit $i$ (service time)                      \\
@@ -63,14 +63,33 @@ within the constraints that the buses have sufficient charge to complete the wor
 Simulated Annealing (SA) shall be introduced and utilized as a means of finding the global optima of the objective function/MILP constraint formulation; however, there are other mechanisms similar to SA that may be utilized.
 
 # Simulated Annealing
-SA is a local search (exploitation oriented) single-solution based (as compared to population based) metaheuristic approach. This model is named after its analogised process where a crystalline solid is headed then allowed to cool very slowly until it achieves its most regular possible crystal lattice configuration [@Henderson] There are five key components to SA:
+SA is a local search (exploitation oriented) single-solution based (as compared to population based) metaheuristic approach in which its main advantage is simplicy [@Gendreau2018-pw]. This model is named after its analogised process where a crystalline solid is headed then allowed to cool very slowly until it achieves its most regular possible crystal lattice configuration [@Henderson]. There are five key components to SA:
 
 * Initial Temperature
 * Cooling schedule (temperature function)
-* Generation mechanism
+* Generation mechanism(s)
 * Acceptance criteria
 * Local search iteration count (temperature change counter)
 
+The initial temerature and cooling schedule are used to regulate the speed at which the solution attempts to converge to the best known solution. When the temperature is high SA encourages exploration, as it cools down (in accordance to the cooling schedule) it begins to encourage local exploitation of the solution [TODO: Put citation].
+
+## Cooling Equation (Experimental)
+There are three basic types of cooling equations as shown in Fig \ref{fig:cool}. The initial temperature in the case of \ref{fig:cool} is set to 500.
+
+![Cooling equations \label{fig:cool}](uml/cool-func.jpg)
+
+## Generation Mechanism(s)
+For the case of the bus generation, three generation mechanism shall be used:
+
+* Route generation (Fig \ref{fig:route}) which utilizes the data from Fig \ref{fig:routeyaml} to generate the routes.
+* Schedule generation (Fig \ref{fig:schedule})
+* Tweak schedule (Fig \ref{fig:tweak})
+
+### Route Generation
+
+## Schedule Generation 
+
+### Tweak Schedule
 
 # Optimization Problem
 
@@ -145,26 +164,12 @@ $$
 \end{array}
 $$
 
-## Cooling Equation (Experimental)
-There are three basic types of cooling equations as shown in Fig \ref{fig:cool}.
-
-![Cooling equations \label{fig:cool}](uml/cool-func.jpg)
-
-# Generation Mechanism(s)
-For the case of the bus generation, three generation mechanism shall be used.
-
-* Route generation (Fig \ref{fig:route}) which utilizes the data from Fig \ref{fig:routeyaml} to generate the routes.
+# References
 
 ![Cooling equations \label{fig:route}](uml/route_generation.png)
 
 ![Route YAML file \label{fig:routeyaml}](uml/schedule_yaml.png)
-	
-* Schedule generation (Fig \ref{fig:schedule})
 
 ![Cooling equations \label{fig:schedule}](uml/charge_solution.png)
 
-* Tweak schedule (Fig \ref{fig:tweak})
-
 ![Cooling equations \label{fig:tweak}](uml/charge_tweak.png)
-
-# References
