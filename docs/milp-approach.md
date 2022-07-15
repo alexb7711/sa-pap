@@ -3,6 +3,7 @@ title: Bus Charging Schedule Simulated Annealing
 author: Alexander Brown
 date: \today
 bibliography: main.bib
+toc: true
 
 header-includes:
 	- \usepackage{booktabs}
@@ -15,18 +16,18 @@ header-includes:
 	\centering
 	\begin{tabular}{l l l l}
 		\toprule
-		\textbf{Variable} & \textbf{Description}                                                             \\
+		\textbf{Variable} & \textbf{Description}                                                                 \\
 		\toprule
-		\multicolumn{1}{l}{Input values}                                                                     \\
+		\multicolumn{1}{l}{Input values}                                                                         \\
 			$B$        & Number of buses in use                                                              \\
 			$I$        & Number of total visits                                                              \\
 			$J(u,e,v)$ & Objective function                                                                  \\
-			$K$        & Local seearch iteration amount                                                      \\
+			$K$        & Local search iteration amount                                                       \\
 			$Q$        & Number of chargers                                                                  \\
 			$T$        & Time horizon                                                                        \\
 			$\Tau$     & Temperature                                                                         \\
 		\hline
-		\multicolumn{1}{l}{Input variables}                                                                  \\
+		\multicolumn{1}{l}{Input variables}                                                                      \\
 			$\Delta_i$                  & Discharge of visit over route $i$                                  \\
 			$\Xi_i$                     & Array of ID's for each visit $i$                                   \\
 			$\alpha_i$                  & Initial charge percentage time for visit $i$                       \\
@@ -42,7 +43,7 @@ header-includes:
 			$m_i$                       & Minimum charge allowed on departure of visit $i$                   \\
 			$r_q(v_i, u_i, d_i)$        & Returns charge rate of charger $q$ per unit time [$KW$]            \\
 		\hline
-		\multicolumn{1}{l}{Decision Variables}                                                               \\
+		\multicolumn{1}{l}{Decision Variables}                                                                   \\
 			$\eta_i$     & Initial charge for visit $i$                                                      \\
 			$d_i$        & Detach time from charger for visit $i$                                            \\
 			$s_i$        & Amount of time spent on charger for visit $i$ (service time)                      \\
@@ -67,29 +68,44 @@ SA is a local search (exploitation oriented) single-solution based (as compared 
 
 * Initial Temperature
 * Cooling schedule (temperature function)
-* Generation mechanism(s)
+* Generation mechanism
 * Acceptance criteria
 * Local search iteration count (temperature change counter)
 
-The initial temerature and cooling schedule are used to regulate the speed at which the solution attempts to converge to the best known solution. When the temperature is high SA encourages exploration, as it cools down (in accordance to the cooling schedule) it begins to encourage local exploitation of the solution [TODO: Put citation].
+The initial temperature and cooling schedule are used to regulate the speed at which the solution attempts to converge to the best known solution. When the temperature is high SA encourages exploration, as it cools down (in accordance to the cooling schedule) it begins to encourage local exploitation of the solution [@Rutenbar_1989; @Henderson].
 
 ## Cooling Equation (Experimental)
-There are three basic types of cooling equations as shown in Fig \ref{fig:cool}. The initial temperature in the case of \ref{fig:cool} is set to 500.
+There are three basic types of cooling equations as shown in Fig \ref{fig:cool}: 
+
+* Linear: $T[n] = \Tau[n-1] -\beta_n$
+* Geometric: $T[n] = \alpha T[n-1]$ (most used in practice according to [@Keller_2019])
+* Exponential: $T[n] = e^{\beta}T[n-1]$
+
+The initial temperature in the case of Fig \ref{fig:cool} the initial temperature $\Tau_0$ is set to $500^\circ\; C$.
 
 ![Cooling equations \label{fig:cool}](uml/cool-func.jpg)
 
-## Generation Mechanism(s)
-For the case of the bus generation, three generation mechanism shall be used:
+## Generation Mechanism
+Generation mechanism in SA are used to generate random solutions to propose to the system. For the case of the bus generation, three generation mechanism shall be used. One of them being to generate a set of bus routes data and the other two used to generate candidate solutions to the bus routes. These routes are defined as follows:
 
-* Route generation (Fig \ref{fig:route}) which utilizes the data from Fig \ref{fig:routeyaml} to generate the routes.
+* Route generation (Fig \ref{fig:route}) which utilizes the data from Fig \ref{fig:routeyaml}
 * Schedule generation (Fig \ref{fig:schedule})
 * Tweak schedule (Fig \ref{fig:tweak})
 
 ### Route Generation
+The objective of route generate a set of metadata about bus routes given the information in Fig \ref{fig:routeyaml}. Specifically, the objective is to generate $I$ amount of routes for $B$ amount of buses. Each visit will have
 
-## Schedule Generation 
+* Initial charge (for first visit only)
+* Arrival time
+* Departure time
+
+This is created by following the "GenerateSchedule" state in the state diagram found ind Figure \ref{fig:route}. In essence the logic is as follows: Generate $B$ random numbers that add up to $I$ visits (with a minimum amount of visits set for each bus). For each bus and for each visit, set a departure time that is greater than the arrival time, set the next arrival time to be $i \cdot \frac{T}{\text{number of bus visits}}$ where $i$ is the $i^{th}$ visit. Finally calculate the amount of discharge from previous arrival to the departure time.
+
+### Schedule Generation
+The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. Given the bus and route data, a list of valid regions (which is a time zone/charger tuple) are found and randomly picked from. The process is depicted in the state digram in Fig \ref{fig:schedule}.
 
 ### Tweak Schedule
+As described in SA, local searches are also employed to try and exploit given solutions. This exploitation method is as follows: pick a bus, calculate both the "slide" amount and find any other valid open regions available. This "slide" is the amount the bus is allows to move forward or backward in time on the same queue without breaking any of the constraints (discussed later). Randomly pick slide or region. This procedure is depicted in Fig \ref{fig:tweak}.
 
 # Optimization Problem
 

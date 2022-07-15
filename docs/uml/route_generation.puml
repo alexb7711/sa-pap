@@ -62,7 +62,7 @@ state GenerateSchedule {
 	Discharge : ArrivalTimeNew - DepartureTime
 	
 	' Loop back around
-	Discharge --> SelectTimes : For each bus
+	Discharge --> SelectTimes : For each bus and for each visit
 
 	' Sort
 	Discharge --> SortByArrivalTime
