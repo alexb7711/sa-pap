@@ -45,7 +45,7 @@ state GenerateSchedule {
 
 	' Final visit
 	ArrivalTimeOld --> FinalVisit
-	FinalVisit: final_visit = True if i == N else False
+	FinalVisit: final_visit = True if j == N else False
 	
 	' Departure time
 	FinalVisit --> DepartureTime
@@ -55,7 +55,7 @@ state GenerateSchedule {
 	' Arrival time new
 	DepartureTime --> ArrivalTimeNew
 	ArrivalTimeNew : - Chunk = T/NumberBusVisits
-	ArrivalTimeNew : - ArrivalTimeNew = i*Chunk (i represents the ith NumberBusVisit)
+	ArrivalTimeNew : - ArrivalTimeNew = j*Chunk (j represents the jth NumberBusVisit)
 
 	' Discharge
 	ArrivalTimeNew --> Discharge
