@@ -8,53 +8,10 @@ toc: true
 header-includes:
 	- \usepackage{booktabs}
 	- \usepackage[a4paper, total={6in, 10in}]{geometry}
+	- \usepackage{tikz}
 ---
 
 ***
-
-\begin{table}
-	\caption{Notation used throughout the paper}
-	\label{tab:variables}
-	\centering
-	\begin{tabular}{l l l l}
-		\toprule
-		\textbf{Variable} & \textbf{Description}                                                                 \\
-		\toprule
-		\multicolumn{1}{l}{Input values}                                                                         \\
-			$B$        & Number of buses in use                                                              \\
-			$I$        & Number of total visits                                                              \\
-			$J(u,e,v)$ & Objective function                                                                  \\
-			$K$        & Local search iteration amount                                                       \\
-			$Q$        & Number of chargers                                                                  \\
-			$T$        & Time horizon (T)                                                                    \\
-			$\Tau$     & Temperature  (Tau)                                                                  \\
-		\hline
-		\multicolumn{1}{l}{Input variables}                                                                      \\
-			$\Delta_i$                  & Discharge of visit over route $i$                                  \\
-			$\Xi_i$                     & Array of ID's for each visit $i$                                   \\
-			$\alpha_i$                  & Initial charge percentage time for visit $i$                       \\
-			$\beta_i$                   & Final charge percentage for bus $i$ at the end of the time horizon \\
-			$\delta_i$                  & Discharge rate for vehicle $i$                                     \\
-			$\epsilon_q(v_i, u_i, d_i)$ & Returns cost of using charger $q$ per unit time                    \\
-			$\pi_k$                     & Local search iteration $k$                                         \\
-			$\xi_i$                     & Array of values indicating the next index visit $i$ will arrive    \\
-			$a_i$                       & Arrival time of visit $i$                                          \\
-			$b_i$                       & ID for bus visit $i$                                               \\
-			$e_i$                       & Time visit $i$ must exit the station                               \\
-			$k_i$                       & Battery capacity for bus $i$                                       \\
-			$m_i$                       & Minimum charge allowed on departure of visit $i$                   \\
-			$r_q(v_i, u_i, d_i)$        & Returns charge rate of charger $q$ per unit time [$KW$]            \\
-		\hline
-		\multicolumn{1}{l}{Decision Variables}                                                                   \\
-			$\eta_i$     & Initial charge for visit $i$                                                      \\
-			$d_i$        & Detach time from charger for visit $i$                                            \\
-			$s_i$        & Amount of time spent on charger for visit $i$ (service time)                      \\
-			$u_i$        & Initial charge time of visit $i$                                                  \\
-			$v_i$        & Assigned queue for visit $i$                                                      \\
-			$p_{dem}(t)$ & Demand cost                                                                       \\
-			\bottomrule
-	\end{tabular}
-\end{table}
 
 This document outlines the simulated annealing approach to the bus charging scheduling problem utilizing Mixed Integer Linear Programming (MILP) constraints as the method of determining feasible charging schedules. The problem statement is as follows: given a set of routes for a fleet of Battery Electric Buses (BEB), generate an optimal charging schedule to minimize:
 
@@ -116,13 +73,69 @@ The objective of route generate a set of metadata about bus routes given the inf
 
 This is created by following the "GenerateSchedule" state in the state diagram found ind \autoref{fig:route}. In essence the logic is as follows: Generate $B$ random numbers that add up to $I$ visits (with a minimum amount of visits set for each bus). For each bus and for each visit, set a departure time that is between the range [min_rest, max_rest] (\autoref{fig:routeyaml}), set the next arrival time to be $j \cdot \frac{T}{\text{number of bus visits}}$ where $j$ is the $j^{th}$ visit for bus $b$. Finally, calculate the amount of discharge from previous arrival to the departure time.
 
+<!-- Generation mechanism algorithm -->
+```C
+```
+
 ### Schedule Generation
 The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. Given the bus and route data, a list of valid regions (which is a time zone/charger tuple) are found and randomly picked from. The process is depicted in the state digram in \autoref{fig:schedule}.
+
+<!-- Generation mechanism algorithm -->
+```C
+```
 
 ### Tweak Schedule
 As described in SA, local searches are also employed to try and exploit a given solution. The method that will be employed to exploit the given solution is as follows: pick a bus, calculate both the "slide" amount and find any other valid open regions available. This "slide" is the amount the bus is allows to move forward or backward in time on the same queue without breaking any of the constraints (discussed later). Randomly pick slide or region. This procedure is depicted in \autoref{fig:tweak}.
 
+<!-- Generation mechanism algorithm -->
+```C
+```
+
 # Optimization Problem
+\begin{table}
+	\caption{Notation used throughout the paper}
+	\label{tab:variables}
+	\centering
+	\begin{tabular}{l l l l}
+		\toprule
+		\textbf{Variable} & \textbf{Description}                                                                 \\
+		\toprule
+		\multicolumn{1}{l}{Input values}                                                                         \\
+			$B$        & Number of buses in use                                                              \\
+			$I$        & Number of total visits                                                              \\
+			$J(u,e,v)$ & Objective function                                                                  \\
+			$K$        & Local search iteration amount                                                       \\
+			$Q$        & Number of chargers                                                                  \\
+			$T$        & Time horizon (T)                                                                    \\
+			$\Tau$     & Temperature  (Tau)                                                                  \\
+		\hline
+		\multicolumn{1}{l}{Input variables}                                                                      \\
+			$\Delta_i$                  & Discharge of visit over route $i$                                  \\
+			$\Xi_i$                     & Array of ID's for each visit $i$                                   \\
+			$\alpha_i$                  & Initial charge percentage time for visit $i$                       \\
+			$\beta_i$                   & Final charge percentage for bus $i$ at the end of the time horizon \\
+			$\delta_i$                  & Discharge rate for vehicle $i$                                     \\
+			$\epsilon_q(v_i, u_i, d_i)$ & Returns cost of using charger $q$ per unit time                    \\
+			$\pi_k$                     & Local search iteration $k$                                         \\
+			$\xi_i$                     & Array of values indicating the next index visit $i$ will arrive    \\
+			$a_i$                       & Arrival time of visit $i$                                          \\
+			$b_i$                       & ID for bus visit $i$                                               \\
+			$e_i$                       & Time visit $i$ must exit the station                               \\
+			$k_i$                       & Battery capacity for bus $i$                                       \\
+			$m_i$                       & Minimum charge allowed on departure of visit $i$                   \\
+			$r_q(v_i, u_i, d_i)$        & Returns charge rate of charger $q$ per unit time [$KW$]            \\
+		\hline
+		\multicolumn{1}{l}{Decision Variables}                                                                   \\
+			$\eta_i$     & Initial charge for visit $i$                                                      \\
+			$d_i$        & Detach time from charger for visit $i$                                            \\
+			$s_i$        & Amount of time spent on charger for visit $i$ (service time)                      \\
+			$u_i$        & Initial charge time of visit $i$                                                  \\
+			$v_i$        & Assigned queue for visit $i$                                                      \\
+			$p_{dem}(t)$ & Demand cost                                                                       \\
+			\bottomrule
+	\end{tabular}
+\end{table}
+
 
 ## Objective Function
 Let $J$ represent the objective function. The objective function has three main considerations:
@@ -138,13 +151,25 @@ $$
 AC(u,d,v) = \sum_{i=1}^I \sum_{q=1}^Q  \epsilon_q(v_i, u_i, d_i)
 $$
 
-Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$. The function $\epsilon(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time $\epsilon_q[v_i](d_i - u_i)$. The power cost can begin to be defined with the consumption cost:
+Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$. The function $\epsilon(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time 
+
+$$
+\epsilon_q[v_i](d_i - u_i)
+$$
+
+The power cost can begin to be defined with the consumption cost:
 
 $$
 PC(u,d,v) = \sum_{i=1}^I \sum_{q=1}^Q r_q(v_i, u_i, d_i)
 $$
 
-where $r_q(v_i, u_i, d_i)$ returns the energy in $KWH$ given the charger index $v_i$ and time spent on the charger $d_i$ ($r_q[v_i](d_i - u_i)$). Peak 15 should also be taken into consideration. P15 is defined as:
+where $r_q(v_i, u_i, d_i)$ returns the energy in $KWH$ given the charger index $v_i$ and time spent on the charger $d_i$ 
+
+$$
+r_q[v_i](d_i - u_i)
+$$
+
+Peak 15 should also be taken into consideration. P15 is defined as:
 
 $$
 p_{15}(t) = 1/15 \int_{t-15}^{t} p(\tau) d\tau
@@ -186,6 +211,8 @@ $$
 	\eta_{\xi_i} \geq \lambda_i                                        & \text{Sufficient charge is supplied to the bus}                          \\
 \end{array}
 $$
+
+<!-- Put example figure here for valid time constraint -->
 
 Note that the last two constraints can only be verified *after* the schedule has been generated as the initial charge for each visit is based from the previous charger selection and charge time.
 
