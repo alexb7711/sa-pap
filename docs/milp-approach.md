@@ -57,14 +57,55 @@ where $\beta$ = 0.01$. The initial temperature in the case of \autoref{fig:cool}
 
 ![Cooling equations \label{fig:cool}](uml/cool-func.jpg)
 
-## Generation Mechanism
-Generation mechanisms in SA are used to generate random solutions to propose. For the case of the bus generation, three generation mechanism shall be used. One of them being to generate a set of bus route data and the other two used to generate candidate solutions to the bus routes. These routes are defined as follows:
+## Generation Mechanisms
+Generation mechanisms in SA are used to generate random solutions to propose. For the case of the bus generation, five generation mechanism shall be used:
+
+* New visit
+* Slide visit
+* New charger
+* New window
+* Remove
+
+These generator mechanisms will in turn be utilized by three wrapper functions. One of them being to generate a set of bus route data and the other two used to generate candidate solutions to the bus routes. These routines are defined as follows:
 
 * Route generation, \autoref{fig:route}, which utilizes the data from \autoref{fig:routeyaml}
 * Schedule generation, \autoref{fig:schedule}
 * Tweak schedule, \autoref{fig:tweak}
 
-### Route Generation
+### Generators
+This section describes and outlines the algorithm pool for the different generator types that are utilized in the wrapper functions.  Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0 W$ will be added to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in [Q,...,Q+b]$. Where $Q$ is the total amount of chargers and $b$ is the bus id value. Furthremore $B$ more queues will be created while buses are on route. The discharge rate for each bus will be placed in each $v_i \in [Q+b,..,Q+2b]$ queue.
+
+#### New visit
+The new visit generator describes the process of moving bus $b$ from the idle queue, $[Q,..,Q+b]$, or discharge queue, $[Q+b,..Q+2b]$, to a valid charging queue, $v_i \in [0,..,Q]$. A list of valid values for $u_i$ and $d_i$ for each charger will be listed and randomly selected using a uniform distribution.
+
+```C
+```
+
+#### Slide visit
+Slide visit is used for buses that have already been scheduled. Because $a_i \leq u_i \leq d_i \leq e_i$ (arrival time is less than initial charge time which is less than the detatch time which is less than the time the bus exists the station), there may be some room to move $u_i$ and $d_i$ within the window  $[a_i, e_i]$. Two new values, $u_i$ and $d_i$ are generated to satisfy $a_i leq u_i \leq d_i \leq e_i$.
+
+```C
+```
+
+#### New charger
+
+```C
+```
+
+#### New window
+
+```C
+```
+
+#### Remove
+
+```C
+```
+
+### Gerator Wrappers
+This section covers the algorithms utilized to select and execute different generation processes for the SA process.
+
+#### Route Generation
 The objective of route generate a set of metadata about bus routes given the information in \autoref{fig:routeyaml}. Specifically, the objective is to generate $I$ routes for $B$ buses. Each visit will have
 
 * Initial charge (for first visit only)
@@ -74,21 +115,18 @@ The objective of route generate a set of metadata about bus routes given the inf
 
 This is created by following the "GenerateSchedule" state in the state diagram found ind \autoref{fig:route}. In essence the logic is as follows: Generate $B$ random numbers that add up to $I$ visits (with a minimum amount of visits set for each bus). For each bus and for each visit, set a departure time that is between the range [min_rest, max_rest] (\autoref{fig:routeyaml}), set the next arrival time to be $j \cdot \frac{T}{\text{number of bus visits}}$ where $j$ is the $j^{th}$ visit for bus $b$. Finally, calculate the amount of discharge from previous arrival to the departure time.
 
-<!-- Generation mechanism algorithm -->
 ```C
 ```
 
-### Schedule Generation
+#### Schedule Generation
 The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. Given the bus and route data, a list of valid regions (which is a time zone/charger tuple) are found and randomly picked from. The process is depicted in the state digram in \autoref{fig:schedule}.
 
-<!-- Generation mechanism algorithm -->
 ```C
 ```
 
-### Tweak Schedule
+#### Tweak Schedule
 As described in SA, local searches are also employed to try and exploit a given solution. The method that will be employed to exploit the given solution is as follows: pick a bus, calculate both the "slide" amount and find any other valid open regions available. This "slide" is the amount the bus is allows to move forward or backward in time on the same queue without breaking any of the constraints (discussed later). Randomly pick slide or region. This procedure is depicted in \autoref{fig:tweak}.
 
-<!-- Generation mechanism algorithm -->
 ```C
 ```
 
@@ -203,13 +241,17 @@ Now that a method of calculating the fitness of a schedule has been established,
 * Bus receives enough charge
 * Departs on time
 
+These set of requirements can be summarized by the constraints that follow:
+
 $$
 \begin{array}{ll}
-	(u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j     & \text{Valid queue position/time}                                         \\
-	a_i \leq u_i \leq (T-s_i)                                          & \text{Arrival time < initial charge time < maximum initial charge time}  \\
-	d_i \leq e_i                                                       & \text{Detatch time should be less than or equal to departure time}       \\
-	\eta_{\xi_i} = \eta_i + \sum_{q=1}^Q r_q(v_i, a_i, e_i) + \Delta_i & \text{Charge constraint (initial and final charges can also be applied)} \\
-	\eta_{\xi_i} \geq \lambda_i                                        & \text{Sufficient charge is supplied to the bus}                          \\
+	(u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j        & \text{Valid queue position/time}                                                        \\
+	a_i \leq u_i \leq (T-s_i)                                             & \text{Arrival time < initial charge time < maximum initial charge time}                 \\
+	d_i \leq e_i                                                          & \text{Detatch time should be less than or equal to departure time}                      \\
+	\eta_{\xi_i} = \eta_i + \sum_{q=1}^Q r_q(v_i, a_i, e_i) + \Delta_i    & \text{Charge constraint}                                                                \\
+	\eta_{\xi_i} \geq \eta_i + \sum_{q=1}^Q r_q(v_i, a_i, e_i) + \Delta_i & \text{Sufficient charge is supplied to the bus}                                         \\
+	\eta_{\xi_i} \geq m_i                                                 & \text{Sufficient charge is supplied to exceed threshold (initial and final charge)}     \\
+	s_i = d_i - u_i 											          & \text{Time spent on charger is equal to the difference of the attach and detatch times} \\ 
 \end{array}
 $$
 
