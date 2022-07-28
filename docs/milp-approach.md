@@ -6,8 +6,9 @@ bibliography: main.bib
 toc: true
 
 header-includes:
-	- \usepackage{booktabs}
 	- \usepackage[a4paper, total={6in, 10in}]{geometry}
+	- \usepackage{booktabs}
+	- \usepackage{subcaption}
 	- \usepackage{tikz}
 ---
 
@@ -204,7 +205,7 @@ Now that a method of calculating the fitness of a schedule has been established,
 
 $$
 \begin{array}{ll}
-	(d_i \geq u_j \text{ or } d_j \geq u_i) \text{ and } v_i = v_j     & \text{Valid time}                                                        \\
+	(u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j     & \text{Valid queue position/time}                                         \\
 	a_i \leq u_i \leq (T-s_i)                                          & \text{Arrival time < initial charge time < maximum initial charge time}  \\
 	d_i \leq e_i                                                       & \text{Detatch time should be less than or equal to departure time}       \\
 	\eta_{\xi_i} = \eta_i + \sum_{q=1}^Q r_q(v_i, a_i, e_i) + \Delta_i & \text{Charge constraint (initial and final charges can also be applied)} \\
@@ -212,9 +213,67 @@ $$
 \end{array}
 $$
 
-<!-- Put example figure here for valid time constraint -->
+Where the valid queue position/time constraint is as defined in [@tutorials_point]. Also note that the last two constraints can only be verified *after* the schedule has been generated as the initial charge for each visit is based from the previous charger selection and charge time.
 
-Note that the last two constraints can only be verified *after* the schedule has been generated as the initial charge for each visit is based from the previous charger selection and charge time.
+\begin{figure}
+\centering
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Valid time position: $u_1 \ngeq d_2$ or $u_2 \geq d_2$}
+    \begin{tikzpicture}
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (2,0);
+        \coordinate (C) at (2.5,0);
+        \coordinate (D) at (4.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red] (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$}
+    \begin{tikzpicture}
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (3.5,0);
+        \coordinate (C) at (1.5,0);
+        \coordinate (D) at (4.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red] (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$}
+    \begin{tikzpicture}
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (4.5,0);
+        \coordinate (C) at (1.0,0);
+        \coordinate (D) at (3.0,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red] (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+\end{figure}
 
 # References
 
