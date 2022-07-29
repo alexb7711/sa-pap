@@ -55,7 +55,7 @@ $$
 
 where $\beta$ = 0.01$. The initial temperature in the case of \autoref{fig:cool} the initial temperature $\Tau_0$ is set to $500^\circ\; C$ and each schedule's final temperature is $1\; C^\circ$.
 
-![Cooling equations \label{fig:cool}](uml/cool-func.jpg)
+![Cooling equations \label{fig:cool}](uml/cool-func.jpg){width=75%}
 
 ## Generation Mechanisms
 Generation mechanisms in SA are used to generate random solutions to propose. For the case of the bus generation, five generation mechanism shall be used:
@@ -63,8 +63,8 @@ Generation mechanisms in SA are used to generate random solutions to propose. Fo
 * New visit
 * Slide visit
 * New charger
-* New window
 * Remove
+* New window
 
 These generator mechanisms will in turn be utilized by three wrapper functions. One of them being to generate a set of bus route data and the other two used to generate candidate solutions to the bus routes. These routines are defined as follows:
 
@@ -73,31 +73,35 @@ These generator mechanisms will in turn be utilized by three wrapper functions. 
 * Tweak schedule, \autoref{fig:tweak}
 
 ### Generators
-This section describes and outlines the algorithm pool for the different generator types that are utilized in the wrapper functions.  Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0 W$ will be added to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in [Q,...,Q+b]$. Where $Q$ is the total amount of chargers and $b$ is the bus id value. Furthremore $B$ more queues will be created while buses are on route. The discharge rate for each bus will be placed in each $v_i \in [Q+b,..,Q+2b]$ queue.
+This section describes and outlines the algorithm pool for the different generator types that are utilized in the wrapper functions.  Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0 W$ will be added to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in \{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id value. Furthremore $B$ more queues will be created while buses are on route. The discharge rate for each bus will be placed in each $v_i \in \{Q+b,..,Q+2b\}$ queue.
 
 #### New visit
-The new visit generator describes the process of moving bus $b$ from the idle queue, $[Q,..,Q+b]$, or discharge queue, $[Q+b,..Q+2b]$, to a valid charging queue, $v_i \in [0,..,Q]$. A list of valid values for $u_i$ and $d_i$ for each charger will be listed and randomly selected using a uniform distribution.
+The new visit generator describes the process of moving bus $b$ from the idle queue, $\{Q,..,Q+b\}$, or discharge queue, $\{Q+b,..Q+2b\}$, to a valid charging queue, $v_i \in \{0,..,Q\}$. A list of valid values for $u_i$ and $d_i$ for each charger will be listed and randomly selected using a uniform distribution.
 
 ```C
+
 ```
 
 #### Slide visit
-Slide visit is used for buses that have already been scheduled. Because $a_i \leq u_i \leq d_i \leq e_i$ (arrival time is less than initial charge time which is less than the detatch time which is less than the time the bus exists the station), there may be some room to move $u_i$ and $d_i$ within the window  $[a_i, e_i]$. Two new values, $u_i$ and $d_i$ are generated to satisfy $a_i leq u_i \leq d_i \leq e_i$.
+Slide visit is used for buses that have already been scheduled. Because $a_i \leq u_i \leq d_i \leq e_i$ (arrival time is less than initial charge time which is less than the detatch time which is less than the time the bus exists the station), there may be some room to move $u_i$ and $d_i$ within the window  $\{a_i, e_i\}$. Two new values, $u_i$ and $d_i$ are are selected with a uniform distribution to satisfy $a_i leq u_i \leq d_i \leq e_i$.
 
 ```C
 ```
 
 #### New charger
-
-```C
-```
-
-#### New window
+Similar to new visit, this generator moves a bus from one queue to another; however, the new charger generator moves a bus from one charger queue to another, $v_i \in \{0,..,Q\}$. A list of chargers to available for the bus to be moved to will be generated and one will be selected at random with a uniform distribution.
 
 ```C
 ```
 
 #### Remove
+The remove generator simply removes a bus from a charger queue and places it in its idle queue, $v_i \in \{Q,...,Q+b\}$.
+
+```C
+```
+
+#### New window
+New window is a combination of the remove and then new visit generators.
 
 ```C
 ```
@@ -132,7 +136,7 @@ As described in SA, local searches are also employed to try and exploit a given 
 
 # Optimization Problem
 \begin{table}
-	\caption{Notation used throughout the paper}
+	\caption{Notation}
 	\label{tab:variables}
 	\centering
 	\begin{tabular}{l l l l}
@@ -261,8 +265,8 @@ Where the valid queue position/time constraint is as defined in [@tutorials_poin
 \centering
 \begin{subfigure}{\textwidth}
     \centering
-    \caption{Valid time position: $u_1 \ngeq d_2$ or $u_2 \geq d_2$}
-    \begin{tikzpicture}
+    \caption{Valid time position: $u_1 \ngeq d_2$ or $u_2 \geq d_2$ and $v_1 = v_2$}
+    \begin{tikzpicture}[scale=2]
         \coordinate (A) at (0,0);
         \coordinate (B) at (2,0);
         \coordinate (C) at (2.5,0);
@@ -280,8 +284,8 @@ Where the valid queue position/time constraint is as defined in [@tutorials_poin
 
 \begin{subfigure}{\textwidth}
     \centering
-    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$}
-    \begin{tikzpicture}
+    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
+    \begin{tikzpicture}[scale=2]
         \coordinate (A) at (0,0);
         \coordinate (B) at (3.5,0);
         \coordinate (C) at (1.5,0);
@@ -299,8 +303,8 @@ Where the valid queue position/time constraint is as defined in [@tutorials_poin
 
 \begin{subfigure}{\textwidth}
     \centering
-    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$}
-    \begin{tikzpicture}
+    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
+    \begin{tikzpicture}[scale=2]
         \coordinate (A) at (0,0);
         \coordinate (B) at (4.5,0);
         \coordinate (C) at (1.0,0);
