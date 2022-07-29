@@ -23,6 +23,8 @@ fn main()
 
     rg.run();
 
+    rg.print_route();
+
     // Create solution generator and tweaker
 
     // Pass schedule generator, solution generator, and solution tweaker
