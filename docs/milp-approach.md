@@ -7,6 +7,7 @@ toc: true
 
 header-includes:
 	- \usepackage[a4paper, total={6in, 10in}]{geometry}
+	- \usepackage{algorithm2e}
 	- \usepackage{booktabs}
 	- \usepackage{subcaption}
 	- \usepackage{tikz}
@@ -76,35 +77,128 @@ These generator mechanisms will in turn be utilized by three wrapper functions. 
 This section describes and outlines the algorithm pool for the different generator types that are utilized in the wrapper functions.  Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0 W$ will be added to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in \{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id value. Furthremore $B$ more queues will be created while buses are on route. The discharge rate for each bus will be placed in each $v_i \in \{Q+b,..,Q+2b\}$ queue.
 
 #### New visit
-The new visit generator describes the process of moving bus $b$ from the idle queue, $\{Q,..,Q+b\}$, or discharge queue, $\{Q+b,..Q+2b\}$, to a valid charging queue, $v_i \in \{0,..,Q\}$. A list of valid values for $u_i$ and $d_i$ for each charger will be listed and randomly selected using a uniform distribution.
+The new visit generator describes the process of moving bus $b$ from the idle queue, $\{Q,..,Q+b\}$, or discharge queue, $\{Q+b,..Q+2b\}$, to a valid charging queue, $v_i \in \{0,..,Q\}$. A list of tuples describing valid time, $u_i$ and $d_i$, for each charger will be listed and randomly selected using a uniform distribution. The algorithm is defined in \autoref{alg:new-visit}.
 
-```C
+<!-- Add description of what the algorithm is doing above, whyt it works, and add tikz image (or reference the other tikz image already created) -->
 
-```
+\begin{algorithm}
+\label{alg:new-visit}
+\caption{New visit algorithm}
+	\Titleofalgo{New Visit}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue and valid time region: $(q,u,d)$}
+
+	\SetKWFunction{Union}{Union}
+	\SetKWFunction{findFreeTime}{findFreeTime}
+
+	valid_visit  $\leftarrow \emptyset$\;
+
+	\For{q $\leftarrow 0$ \KwTo Q}{
+		\For{free_region $\leftarrow$ \KwTo q.free}{
+			\Union{valid_visit, (q,\findFreeTime{free_region, (a,e)})\;
+		}
+	}
+
+	\Return{$\mathbb{U}_{[valid_visit[0],valid_visit[length(valid_visit)]]}}
+\end{algorithm}
+
+Where $U_[a,b]$is the continuous uniform distribtion of $a$ and $b$. the algorithm to find free time is defined in \autoref{alg:find-free-time}.
+
+\begin{algorithm}
+\label{alg:find-free-time}
+\caption{Find free time algorithm searches and returns the available time frames}
+	\Titleofalgo{Find Free Time}
+	\KwIn{Lower and upper bound of available time: $(L,U)$ and arrival and departure time for bus: $(a,e)$}
+	\KwOut{Tuple of initial and final charge times: $(u,d)$}
+
+	\If{$L \leq a$ and $U \geq e$}{
+		u $\leftarrow$ $\mathbb{U}_{[a,e]}$\;
+		d $\leftarrow$ $\mathbb{U}_{[u,e]}$\;
+	}
+	\ElseIf{$L > a$ and $U \geq e$}{
+		u $\leftarrow$ $\mathbb{U}_{[L,e]}$\;
+		d $\leftarrow$ $\mathbb{U}_{[u,e]}$\;
+	}
+	\ElseIf{$L \leq a$ and $U < e$}{
+		u $\leftarrow$ $\mathbb{U}_{[a,U]}$\;
+		d $\leftarrow$ $\mathbb{U}_{[u,U]}$\;
+	}
+	\Else($L > a$ and $U < e$){
+		u $\leftarrow$ $\emptyset$\;
+		d $\leftarrow$ $\mathbb{U}_{[u,U]}$\;
+	}
+
+	\Return{(u,d)}
+\end{algorithm}
 
 #### Slide visit
 Slide visit is used for buses that have already been scheduled. Because $a_i \leq u_i \leq d_i \leq e_i$ (arrival time is less than initial charge time which is less than the detatch time which is less than the time the bus exists the station), there may be some room to move $u_i$ and $d_i$ within the window  $\{a_i, e_i\}$. Two new values, $u_i$ and $d_i$ are are selected with a uniform distribution to satisfy $a_i leq u_i \leq d_i \leq e_i$.
 
-```C
-```
+\begin{algorithm}
+\label{alg:slide-visit}
+\caption{Slide Visit Algorithm}
+	\Titleofalgo{Slide Visit}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue, valid time region: $(u,d)$}
+
+	u $\leftarrow$ $\mathbb{U}_{[a,e]}\;
+	d $\leftarrow$ $\mathbb{U}_{[u,e]}\;
+
+	\Return{(u,d)}
+\end{algorithm}
 
 #### New charger
 Similar to new visit, this generator moves a bus from one queue to another; however, the new charger generator moves a bus from one charger queue to another, $v_i \in \{0,..,Q\}$. A list of chargers to available for the bus to be moved to will be generated and one will be selected at random with a uniform distribution.
 
-```C
-```
+\begin{algorithm}
+\label{alg:new-charger}
+\caption{New Charger Algorithm}
+	\Titleofalgo{New Charger}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue, valid time region: $(q,u,d)$}
+
+	valid_visit  $\leftarrow \emptyset$\;
+
+	\For{q $\leftarrow 0$ \KwTo Q and Q != v}{
+		\For{free_region $\leftarrow$ \KwTo q.free}{
+			\Union{valid_visit, \findFreeTime{free_region, (a,e)}\;
+		}
+	}
+
+	\Return{$\mathbb{U}_{[valid_visit[0],valid_visit[length(valid_visit)]]}}
+\end{algorithm}
 
 #### Remove
 The remove generator simply removes a bus from a charger queue and places it in its idle queue, $v_i \in \{Q,...,Q+b\}$.
 
-```C
-```
+\begin{algorithm}
+	\Titleofalgo{New Visit}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue, time region: $(q,u,d)$}
+
+	v $\leftarrow$ b\;
+	u $\leftarrow$ u\;
+	d $\leftarrow$ d\;
+
+	\Return{(v,u,d)}
+\end{algorithm}
 
 #### New window
 New window is a combination of the remove and then new visit generators.
 
-```C
-```
+\begin{algorithm}
+	\Titleofalgo{New Visit}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue, valid time region: $(q,u,d)$}
+	
+	\SetKWFunction{NewVisit}{NewVisit}
+	\SetKWFunction{Remove}{Remove}
+
+	(v,u,d) = \Remove{b}\;
+	(v,u,d) = \NewVisit{b}\;
+
+	\Return{v,u,d}
+\end{algorithm}
 
 ### Gerator Wrappers
 This section covers the algorithms utilized to select and execute different generation processes for the SA process.
@@ -119,20 +213,29 @@ The objective of route generate a set of metadata about bus routes given the inf
 
 This is created by following the "GenerateSchedule" state in the state diagram found ind \autoref{fig:route}. In essence the logic is as follows: Generate $B$ random numbers that add up to $I$ visits (with a minimum amount of visits set for each bus). For each bus and for each visit, set a departure time that is between the range [min_rest, max_rest] (\autoref{fig:routeyaml}), set the next arrival time to be $j \cdot \frac{T}{\text{number of bus visits}}$ where $j$ is the $j^{th}$ visit for bus $b$. Finally, calculate the amount of discharge from previous arrival to the departure time.
 
-```C
-```
+\begin{algorithm}
+	\Titleofalgo{New Visit}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue, valid time region: $(q,u,d)$}
+\end{algorithm}
 
 #### Schedule Generation
 The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. Given the bus and route data, a list of valid regions (which is a time zone/charger tuple) are found and randomly picked from. The process is depicted in the state digram in \autoref{fig:schedule}.
 
-```C
-```
+\begin{algorithm}
+\end{algorithm}
+	\Titleofalgo{New Visit}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue, valid time region: $(q,u,d)$}
 
 #### Tweak Schedule
 As described in SA, local searches are also employed to try and exploit a given solution. The method that will be employed to exploit the given solution is as follows: pick a bus, calculate both the "slide" amount and find any other valid open regions available. This "slide" is the amount the bus is allows to move forward or backward in time on the same queue without breaking any of the constraints (discussed later). Randomly pick slide or region. This procedure is depicted in \autoref{fig:tweak}.
 
-```C
-```
+\begin{algorithm}
+	\Titleofalgo{New Visit}
+	\KwIn{Bus $b \in B$}
+	\KwOut{Tuple of queue, valid time region: $(q,u,d)$}
+\end{algorithm}
 
 # Optimization Problem
 \begin{table}
@@ -330,3 +433,4 @@ Where the valid queue position/time constraint is as defined in [@tutorials_poin
 ![Charge solution state diagram \label{fig:schedule}](uml/charge_solution.png)
 
 ![Solution tweak state diagram \label{fig:tweak}](uml/charge_tweak.png)
+
