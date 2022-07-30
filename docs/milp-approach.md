@@ -372,24 +372,34 @@ This is created by following the "GenerateSchedule" state in the state diagram f
     }
 \end{algorithm}
 
-Where `discharge-rate` is pulled from YAML data shown in Figure \ref{fig:routeyaml}.
+Where `discharge-rate` is pulled from YAML data shown in \autoref{fig:routeyaml}.
 
 #### Schedule Generation
 The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. Given the bus and route data, a list of valid regions (which is a time zone/charger tuple) are found and randomly picked from. The process is depicted in the state digram in \autoref{fig:schedule}.
 
 \begin{algorithm}[H]
+    \TitleOfAlgo{Schedule Generation}
+    \KwIn{}
+    \KwOut{}
+
+    \Begin
+    {
+
+    }
 \end{algorithm}
-   \TitleOfAlgo{New Visit}
-   \KwIn{Bus $b \in B$}
-   \KwOut{Tuple of queue, valid time region: $(q,u,d)$}
 
 #### Tweak Schedule
 As described in SA, local searches are also employed to try and exploit a given solution. The method that will be employed to exploit the given solution is as follows: pick a bus, calculate both the "slide" amount and find any other valid open regions available. This "slide" is the amount the bus is allows to move forward or backward in time on the same queue without breaking any of the constraints (discussed later). Randomly pick slide or region. This procedure is depicted in \autoref{fig:tweak}.
 
 \begin{algorithm}[H]
-   \TitleOfAlgo{New Visit}
-   \KwIn{Bus $b \in B$}
-   \KwOut{Tuple of queue, valid time region: $(q,u,d)$}
+    \TitleOfAlgo{Tweak Schedule}
+    \KwIn{}
+    \KwOut{}
+
+    \Begin
+    {
+
+    }
 \end{algorithm}
 
 # Optimization Problem
