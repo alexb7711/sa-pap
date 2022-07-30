@@ -1,4 +1,4 @@
-time_horizon: 10     # [hr]
+time_horizon: 10.0   # [hr]
 buses:
   num_bus: 25
   num_visit: 200

@@ -1,53 +1,29 @@
-// Public Crates
+//===============================================================================
+// Declare submodules
+pub mod bus;
+pub mod route_event;
+
+//===============================================================================
+// External Crates
 extern crate yaml_rust;
 
+//===============================================================================
 // Import Crates
 use yaml_rust::Yaml;
-use std::cell::RefCell;
+pub use std::cell::RefCell;
 
+//===============================================================================
 // Import modules
+pub use crate::route_generator::bus::Bus;
+pub use crate::route_generator::route_event::RouteEvent;
 pub use crate::util::traits::Generator;
 use crate::util::fileio::yaml_loader;
 use crate::util::rand_utils;
 
 //===============================================================================
-// Structure for buses
-#[allow(dead_code)]
-#[derive(Default,Clone)]
-/// Defines the structure that contains the bus data
-pub struct Bus
-{
-    bat_capacity   : f32,
-    initial_charge : f32,
-    discharge_rate : f32,
-    final_charge   : f32,
-}
-
-//===============================================================================
-// Structure for route
-#[allow(dead_code)]
-#[derive(Default,Clone)]
-/// Defines the structure that contains the route data
-pub struct RouteEvent
-{
-    // Parameters
-    arrival_time   : f32,
-    bus            : Bus,
-    departure_time : f32,
-    discharge      : f32,
-    id             : u16,
-    route_time     : f32,
-
-    // Decision variables
-    attach_time    : f32,
-    detatch_time   : f32,
-    queue          : u16,
-}
-
-//===============================================================================
 // Structure for RouteGenerator
-#[allow(dead_code)]
 /// Defines the structure that contains data for RouteGenerator to run
+#[allow(dead_code)]
 pub struct RouteGenerator
 {
     // PUBLIC
@@ -91,6 +67,28 @@ impl RouteGenerator
         return rg;
     }
 
+    //---------------------------------------------------------------------------
+    /// Returns a schedule generator
+    ///
+    /// # Input
+    /// * `config_path`: Path to YAML schedule config
+    ///
+    /// # Output
+    /// * `ScheduleGenerator`
+    ///
+    pub fn print_route(self)
+    {
+        for i in 0..self.route.borrow().len()
+        {
+            println!("({}) ID: {} - Arrival: {} - Depart: {}", 
+                     i,
+                     self.route.borrow()[i].id,
+                     self.route.borrow()[i].arrival_time,
+                     self.route.borrow()[i].departure_time);
+        }
+
+    }
+
     //===========================================================================
     // PRIVATE
 
@@ -128,8 +126,9 @@ impl RouteGenerator
     fn generate_routes(self: &mut RouteGenerator)
     {
         // Variables
-        let num_bus   : u16 = self.config["buses"]["num_bus"].as_i64().unwrap() as u16;
-        let num_visit : u16 = self.config["buses"]["num_visit"].as_i64().unwrap() as u16;
+        let num_bus       : u16 = self.config["buses"]["num_bus"].as_i64().unwrap() as u16;
+        let num_visit     : u16 = self.config["buses"]["num_visit"].as_i64().unwrap() as u16;
+        let mut route_idx : u16 = 0;
 
         // Generate number of routes (events) for each bus
         let route_count: Vec<u16> = rand_utils::rand_route_count(num_bus, num_visit);
@@ -137,10 +136,15 @@ impl RouteGenerator
         // Loop through each bus
         for id in 0..num_bus
         {
-            self.create_events(id, route_count[id as usize]);
+            // Create event
+            self.create_events(id, route_count[id as usize], route_idx);
+
+            // Update route index. Minus one to make zero indexed
+            route_idx += route_count[id as usize];
         }
 
         // Sort array of events by arrival time
+        self.route.borrow_mut().sort();
     }
 
     //---------------------------------------------------------------------------
@@ -149,13 +153,15 @@ impl RouteGenerator
     /// # Input
     /// * `id`        : ID of bus being attended to
     /// * `event_cnt` : Number of events by bus `id`
+    /// * `route_idx` : Index to start appending to in route vector
     ///
     /// # Output
-    /// * ``
+    /// * NONE
     ///
     fn create_events(self      : &mut RouteGenerator,
                      id        : u16,
-                     event_cnt : u16)
+                     event_cnt : u16,
+                     route_idx : u16)
     {
         // Variables
         let mut arrival_new : f32 = 0.0; /* Arrival time of next visit [hr]     */
@@ -164,25 +170,28 @@ impl RouteGenerator
         let mut discharge   : f32;       /* Discharge of current route [KWH]    */
 
         // Loop through each event
-        for i in 0..event_cnt
+        for iter in std::iter::zip(route_idx..event_cnt+route_idx, 1..=event_cnt)
         {
+            // Extract iter (TODO: specify the type)
+            let (i, j) = iter;
+
             // Store arrival time
-            arrival_old = arrival_new;
+            arrival_old = arrival_new.clone();
 
             // Check for final visit
-            let final_visit : bool = if i == event_cnt-1 {true} else {false};
+            let final_visit : bool = if j == event_cnt {true} else {false};
 
             // Select departure time (based off old arrival)
             depart = self.next_depart(arrival_old, final_visit);
 
             // Select new arrival time
-            arrival_new = self.next_arrival(i, event_cnt);
+            arrival_new = self.next_arrival(j, event_cnt);
 
             // Calculate the amount of discharge
             discharge = self.calc_discharge(id, arrival_old, depart);
 
             // Append bus data
-            self.append_bus_data(i as usize, id as usize, arrival_old, depart, discharge);
+            self.add_bus_data(i as usize, id as usize, arrival_old, depart, discharge);
         }
     }
 
@@ -206,7 +215,7 @@ impl RouteGenerator
         if final_visit
         {
             // Set the final departure time as the time horizon
-            depart = self.config["time_horizon"].as_i64().unwrap() as f32;
+            depart = self.config["time_horizon"].as_f64().unwrap() as f32;
         }
         else
         {
@@ -235,10 +244,11 @@ impl RouteGenerator
                     event_cnt     : u16) -> f32
     {
         // Variables
-        let time_horizon : f32 = self.config["time_horizon"].as_i64().unwrap() as f32;
+        let time_horizon : f32 = self.config["time_horizon"].as_f64().unwrap() as f32;
         let chunk        : f32 = time_horizon/(event_cnt as f32);
+        let next_arr     : f32 = (current_visit as f32)*chunk;
 
-        return (current_visit as f32)*chunk;
+        return next_arr;
     }
 
     //---------------------------------------------------------------------------
@@ -276,7 +286,7 @@ impl RouteGenerator
     /// # Output
     /// * NONE
     ///
-    fn append_bus_data(self      : &mut RouteGenerator,
+    fn add_bus_data(self      : &mut RouteGenerator,
                        event     : usize,
                        id        : usize,
                        arrival   : f32,
@@ -378,7 +388,7 @@ mod priv_test_route_gen
         // Variables
         let mut rg       : RouteGenerator = create_object();
         let mut arrival  : f32            = 1.0;
-        let time_horizon : f32            = rg.config["time_horizon"].as_i64().unwrap() as f32;
+        let time_horizon : f32            = rg.config["time_horizon"].as_f64().unwrap() as f32;
 
         // Test 1
         let mut depart: f32 = rg.next_depart(arrival, false) ;
@@ -446,7 +456,7 @@ mod priv_test_route_gen
         // Test 1
         let mut discharge: f32 = rg.calc_discharge(0,0.0,1.0);
         assert_eq!(discharge, dis_rat*(1.0));
-        
+
         // Test 2
         discharge = rg.calc_discharge(0,1.0,4.0);
         assert_eq!(discharge, dis_rat*(3.0));
@@ -463,7 +473,7 @@ mod priv_test_route_gen
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_append_bus_data()
+    fn test_add_bus_data()
     {
         let mut rg       : RouteGenerator = create_object();
         let num_event    : usize = rg.config["buses"]["num_visit"].as_i64().unwrap() as usize;
@@ -472,7 +482,7 @@ mod priv_test_route_gen
         rg.run();
 
         // Test 1
-        rg.append_bus_data(0, 0, 0.0, 10.0, 15.0);
+        rg.add_bus_data(0, 0, 0.0, 10.0, 15.0);
         assert_eq!(rg.route.borrow()[0].arrival_time, 0.0);
         assert_eq!(rg.route.borrow()[0].departure_time, 10.0);
         assert_eq!(rg.route.borrow()[0].discharge, 15.0);
@@ -480,7 +490,7 @@ mod priv_test_route_gen
         assert_eq!(rg.route.borrow().len(), num_event);
 
         // Test 2
-        rg.append_bus_data(100, 0, 0.0, 10.0, 15.0);
+        rg.add_bus_data(100, 0, 0.0, 10.0, 15.0);
         assert_eq!(rg.route.borrow()[100].arrival_time, 0.0);
         assert_eq!(rg.route.borrow()[100].departure_time, 10.0);
         assert_eq!(rg.route.borrow()[100].discharge, 15.0);
@@ -488,7 +498,7 @@ mod priv_test_route_gen
         assert_eq!(rg.route.borrow().len(), num_event);
 
         // Test 3
-        rg.append_bus_data(30, 0, 0.0, 2.0, 15.4);
+        rg.add_bus_data(30, 0, 0.0, 2.0, 15.4);
         assert_eq!(rg.route.borrow()[30].arrival_time, 0.0);
         assert_eq!(rg.route.borrow()[30].departure_time, 2.0);
         assert_eq!(rg.route.borrow()[30].discharge, 15.4);
@@ -513,7 +523,7 @@ mod priv_test_route_gen
         assert_eq!(rg.buses.borrow()[0].bat_capacity, bat_capacity);
         assert_eq!(rg.buses.borrow()[0].discharge_rate, dis_rat);
         assert_eq!(rg.buses.borrow()[0].final_charge, fc);
-        
+
         // Test 2
         assert_eq!(rg.buses.borrow()[5].bat_capacity, bat_capacity);
         assert_eq!(rg.buses.borrow()[5].discharge_rate, dis_rat);
@@ -530,6 +540,70 @@ mod priv_test_route_gen
     #[test]
     fn test_create_buffers()
     {
-        //let mut rg : RouteGenerator = create_object();
+        let mut rg : RouteGenerator = create_object();
+
+        rg.create_buffers();
+
+        let visit_len  : usize = rg.config["buses"]["num_visit"].as_i64().unwrap() as usize;
+        let bus_len  : usize = rg.config["buses"]["num_bus"].as_i64().unwrap() as usize;
+
+        assert_eq!(rg.route.borrow().len(), visit_len);
+        assert_eq!(rg.buses.borrow().len(), bus_len);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_generate_routes()
+    {
+        let mut rg : RouteGenerator = create_object();
+
+        rg.create_buffers();
+        rg.generate_routes();
+
+        let visit_len  : usize = rg.config["buses"]["num_visit"].as_i64().unwrap() as usize;
+
+        assert_eq!(rg.route.borrow().len(), visit_len);
+
+        // Test 1
+        assert!(rg.route.borrow()[0].departure_time != 0.0);
+        assert!(rg.route.borrow()[5].departure_time != 0.0);
+        assert!(rg.route.borrow()[100].departure_time != 0.0);
+
+        // Test 2
+        assert!(rg.route.borrow()[0].queue == 0);
+        assert!(rg.route.borrow()[5].queue == 0);
+        assert!(rg.route.borrow()[100].queue == 0);
+
+        // Test 3
+        assert!(rg.route.borrow()[0].route_time > 0.0);
+        assert!(rg.route.borrow()[5].route_time > 0.0);
+        assert!(rg.route.borrow()[100].route_time > 0.0);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_create_events()
+    {
+        let mut rg : RouteGenerator = create_object();
+
+        rg.create_buffers();
+        rg.create_buses();
+
+        // Test 1
+        rg.create_events(0, 1, 0);
+        assert_eq!(rg.route.borrow()[0].id, 0);
+        assert!(rg.route.borrow()[0].departure_time > 0.0);
+
+        // Test 2
+        rg.create_events(1, 2, 1);
+        assert_eq!(rg.route.borrow()[1].id, 1);
+        assert!(rg.route.borrow()[0].departure_time > 0.0);
+
+        // Test 2
+        rg.create_events(7, 1, 56);
+        assert_eq!(rg.route.borrow()[56].id, 7);
+        assert!(rg.route.borrow()[0].departure_time > 0.0);
     }
 }

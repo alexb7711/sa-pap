@@ -1,7 +1,7 @@
-time_horizon: 24     # [hr]
+time_horizon: 24.0     # [hr]
 buses:
-  num_bus: 25
-  num_visit: 200
+  num_bus: 5
+  num_visit: 20
   bus_length: 1
   bat_capacity: 387.78 # [KWh]
   max_charge: 1        # [0-1]
