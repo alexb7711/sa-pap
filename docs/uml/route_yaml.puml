@@ -1,0 +1,36 @@
+@startyaml
+
+title Schedule Parameters
+
+' Time horizon information
+time_horizon: int (24)                 # [hr]
+
+' Schedule information
+schedule:
+  num_bus: int (45)
+  num_visit: int (250)
+  bat_capacity: float (387.78)         # [KWh]
+  max_charge: int (1)                  # [0-1]
+  min_charge: float (0.25)             # [0-1]
+  dis_rate: float (3.0)                # [Kw]
+  max_rest: float (0.5)                # [hr]
+  min_rest: float (0.25)               # [hr]
+  max_route: float (0.75)              # [hr]
+  min_route: float (0.15)              # [hr]
+
+' Bus initial/final charge information
+initial_charge:
+  max: float (0.95)                    # [0-1]
+  min: float (0.90)                    # [0-1]
+final_charge: float (0.95)             # [0-1]
+
+' Charger information
+chargers:
+  slow:
+    num: int (7)
+    rate: float (100.0)                # [Kw]
+  fast:
+    num: int (4)
+    rate: float (400.0)                # [Kw]
+
+@endyaml

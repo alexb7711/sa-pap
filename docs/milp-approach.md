@@ -131,11 +131,12 @@ The new visit generator describes the process of moving bus $b$ from the idle qu
     \TitleOfAlgo{New Visit}
     \KwIn{Bus $b \in B$}
     \KwOut{Tuple of queue and valid time region: $(v,u,d)$}
+
+    \SetKwFunction{Union}{Union}
+    \SetKwFunction{findFreeTime}{findFreeTime}
+
     \Begin
     {
-        \SetKwFunction{Union}{Union}
-        \SetKwFunction{findFreeTime}{findFreeTime}
-
         valid-visit  $ \leftarrow \emptyset $ \;
 
         \For{q $\leftarrow 0$ \KwTo Q}
@@ -278,10 +279,100 @@ The objective of route generate a set of metadata about bus routes given the inf
 This is created by following the "GenerateSchedule" state in the state diagram found ind \autoref{fig:route}. In essence the logic is as follows: Generate $B$ random numbers that add up to $I$ visits (with a minimum amount of visits set for each bus). For each bus and for each visit, set a departure time that is between the range [min_rest, max_rest] (\autoref{fig:routeyaml}), set the next arrival time to be $j \cdot \frac{T}{\text{number of bus visits}}$ where $j$ is the $j^{th}$ visit for bus $b$. Finally, calculate the amount of discharge from previous arrival to the departure time.
 
 \begin{algorithm}[H]
-   \TitleOfAlgo{New Visit}
-   \KwIn{Bus $b \in B$}
-   \KwOut{Tuple of queue, valid time region: $(q,u,d)$}
+\label{alg:route-generation}
+\caption{Route generation algorithm}
+    \TitleOfAlgo{Route Generation}
+    \KwIn{Route YAML metadata}
+    \KwOut{Array of route events}
+
+    \SetKwFunction{Union}{Union}
+    \SetKwFunction{NumBusVisits}{NumBusVisits}
+    \SetKwFunction{DepartureTime}{DepartureTime}
+    \SetKwFunction{ArrivalTimeNew}{ArrivalTimeNew}
+    \SetKwFunction{Discharge}{Discharge}
+    \SetKwFunction{SortByArrival}{SortByArrival}
+
+    \Begin
+    {
+        arrival-new $\leftarrow$ 0.0\;
+        arrival-old $\leftarrow$ 0.0\;
+        departure-time $\leftarrow$ 0.0\;
+
+        num-visit $\leftarrow$ \NumBusVisits{B}
+
+        \For{$b \in B$}
+        {
+            \For{$n \in num-visit[b]$}
+            {
+                arrival-old $\leftarrow$ arrival-new\;
+
+                \If{$j = num-visit[b]$}{final-visit = true\;}
+                \Else{final-visit = false\;}
+
+                departure-time $\leftarrow$ \DepartureTime{arrival-old, final-visit}\;
+                arrival-new $\leftarrow$ \ArrivalTimeNew{n,num-visit}\;
+                discharge $\leftarrow$ \Discharge{b, arrival-old, depart}\;
+
+                \Union{route-data, (arrival-old, departure-time, discharge)}\;
+            }
+        }
+
+        \SortByArrival{route-data}\;
+    }
 \end{algorithm}
+
+<!-- Departure Time -->
+\begin{algorithm}[H]
+\label{alg:departure-time}
+\caption{Departure time algorithm}
+    \TitleOfAlgo{DepartureTime}
+    \KwIn{arrival-old and final-visit}
+    \KwOut{Next departure time}
+
+    \Begin
+    {
+        \If{final-visit}
+        {
+            depart $\leftarrow$ T\;
+        }
+        \Else
+        {
+            depart $\leftarrow$ arrival-old + $\mathbb{U}_{[min-rest,max-rest]}$\;
+        }
+
+        \Return{depart}
+    }
+\end{algorithm}
+
+<!-- Arrival Time New -->
+\begin{algorithm}[H]
+\label{alg:arival-time-new}
+\caption{Arrival time new algorithm}
+    \TitleOfAlgo{ArrivalTimeNew}
+    \KwIn{current-visit and total-visit-count}
+    \KwOut{Next arrival time}
+
+    \Begin
+    {
+        \Return{current-visit*$\frac{T}{total-visit-count}$}
+    }
+\end{algorithm}
+
+<!-- Discharge -->
+\begin{algorithm}[H]
+\label{alg:discharge}
+\caption{Discharge algorithm}
+    \TitleOfAlgo{Discharge}
+    \KwIn{bus id, depart-time, next-arrival}
+    \KwOut{Average discharge during next route}
+
+    \Begin
+    {
+        \Return{discharge-rate*(next-arrival-depart-time)}
+    }
+\end{algorithm}
+
+Where `discharge-rate` is pulled from YAML data shown in Figure \ref{fig:routeyaml}.
 
 #### Schedule Generation
 The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. Given the bus and route data, a list of valid regions (which is a time zone/charger tuple) are found and randomly picked from. The process is depicted in the state digram in \autoref{fig:schedule}.

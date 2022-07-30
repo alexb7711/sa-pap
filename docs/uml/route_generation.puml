@@ -45,7 +45,7 @@ state GenerateSchedule {
 
 	' Final visit
 	ArrivalTimeOld --> FinalVisit
-	FinalVisit: final_visit = True if j == N else False
+	FinalVisit: final_visit = True if j == NumberBusVisit[b] else False
 	
 	' Departure time
 	FinalVisit --> DepartureTime
