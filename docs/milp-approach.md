@@ -129,7 +129,7 @@ The new visit generator describes the process of moving bus $b$ from the idle qu
 \label{alg:new-visit}
 \caption{New visit algorithm}
     \TitleOfAlgo{New Visit}
-    \KwIn{Bus $b \in B$}
+    \KwIn{Visit index, route data, Charger data: (visit-index, route-data, charger-data)}
     \KwOut{Tuple of queue and valid time region: $(v,u,d)$}
 
     \SetKwFunction{Union}{Union}
@@ -189,7 +189,7 @@ Slide visit is used for buses that have already been scheduled. Because $a_i \le
 \label{alg:slide-visit}
 \caption{Slide Visit Algorithm}
     \TitleOfAlgo{Slide Visit}
-    \KwIn{Bus $b \in B$}
+    \KwIn{Visit index, route data, Charger data: (visit-index, route-data, charger-data)}
     \KwOut{Tuple of queue, valid time region: $(u,d)$}
 
     \Begin
@@ -208,7 +208,7 @@ Similar to new visit, this generator moves a bus from one queue to another; howe
 \label{alg:new-charger}
 \caption{New Charger Algorithm}
     \TitleOfAlgo{New Charger}
-    \KwIn{Bus $b \in B$}
+    \KwIn{Visit index, route data, Charger data: (visit-index, route-data, charger-data)}
     \KwOut{Tuple of queue, valid time region: $(q,u,d)$}
 
     \Begin
@@ -231,8 +231,10 @@ Similar to new visit, this generator moves a bus from one queue to another; howe
 The remove generator simply removes a bus from a charger queue and places it in its idle queue, $v_i \in \{Q,...,Q+B\}$.
 
 \begin{algorithm}[H]
+\label{alg:remove}
+\caption{Remove algorithm}
     \TitleOfAlgo{New Visit}
-    \KwIn{Bus $b \in B$}
+    \KwIn{Visit index, route data, Charger data: (visit-index, route-data, charger-data)}
     \KwOut{Tuple of queue, time region: $(q,u,d)$}
 
     \Begin
@@ -249,8 +251,10 @@ The remove generator simply removes a bus from a charger queue and places it in 
 New window is a combination of the remove and then new visit generators.
 
 \begin{algorithm}[H]
-    \TitleOfAlgo{New Visit}
-    \KwIn{Bus $b \in B$}
+\label{alg:new-window}
+\caption{New window algorithm}
+    \TitleOfAlgo{New Window}
+    \KwIn{Visit index, route data, Charger data: (visit-index, route-data, charger-data)}
     \KwOut{Tuple of queue, valid time region: $(q,u,d)$}
 
     \Begin
@@ -375,30 +379,54 @@ This is created by following the "GenerateSchedule" state in the state diagram f
 Where `discharge-rate` is pulled from YAML data shown in \autoref{fig:routeyaml}.
 
 #### Schedule Generation
-The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. Given the bus and route data, a list of valid regions (which is a time zone/charger tuple) are found and randomly picked from. The process is depicted in the state digram in \autoref{fig:schedule}.
+The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in B$, then a random route is picked for bus $b$. The new arrival generator is then utilized. This process is repeated for each visit. The process is depicted in the state digram in \autoref{fig:schedule}.
 
 \begin{algorithm}[H]
+\label{alg:schedule-generation}
+\caption{Schedule generation algorithm}
     \TitleOfAlgo{Schedule Generation}
-    \KwIn{}
-    \KwOut{}
+    \KwIn{Route data}
+    \KwOut{Candidate charging schedule}
+
+    \SetKwFunction{Union}{Union}
+    \SetKwFunction{NewVisit}{NewVisit}
 
     \Begin
     {
-
+        schedule $\leftarrow\; \emptyset$
+        \For {i in I}
+        {
+            bus $\leftarrow\; \mathbb{U}_{[0,B]}$\;
+            visit $\leftarrow\; \mathbb{U}_{[0,total-visit-count]}$\;
+            \Union{schedule,\NewVisit{(visit.a, visit.e)}}\;
+        }
+            \Return{schedule}
     }
 \end{algorithm}
 
 #### Tweak Schedule
-As described in SA, local searches are also employed to try and exploit a given solution. The method that will be employed to exploit the given solution is as follows: pick a bus, calculate both the "slide" amount and find any other valid open regions available. This "slide" is the amount the bus is allows to move forward or backward in time on the same queue without breaking any of the constraints (discussed later). Randomly pick slide or region. This procedure is depicted in \autoref{fig:tweak}.
+As described in SA, local searches are also employed to try and exploit a given solution. The method that will be employed to exploit the given solution is as follows: pick a bus, pick a visit, pick a generator. This procedure is depicted in \autoref{fig:tweak}.
 
 \begin{algorithm}[H]
+\label{alg:tweak-schedule}
+\caption{Tweak schedule algorithm}
     \TitleOfAlgo{Tweak Schedule}
-    \KwIn{}
-    \KwOut{}
+    \KwIn{Schedule candidate solution: schedule}
+    \KwOut{Perturbed schedule}
+
+    \SetKwFunction{GeneratorCallback}{GeneratorCallback}
 
     \Begin
     {
+        \For {i in I}
+        {
+            bus $\leftarrow\; \mathbb{U}_{[0,B]}$\;
+            visit $\leftarrow\; \mathbb{U}_{[0,total-visit-count]}$\;
+            generator $\leftarrow\; \mathbb{U}_{[0,generator-count]}$\;
+            schedule $\leftarrow$ \GeneratorCallback[generator]{(visit-index, route-data, charger-data)}\;
+        }
 
+        \Return{schedule}
     }
 \end{algorithm}
 
