@@ -269,7 +269,7 @@ New window is a combination of the remove and then new visit generators.
     }
 \end{algorithm}
 
-### Gerator Wrappers
+### Generator Wrappers
 This section covers the algorithms utilized to select and execute different generation processes for the SA process.
 
 #### Route Generation
@@ -431,6 +431,7 @@ As described in SA, local searches are also employed to try and exploit a given 
 \end{algorithm}
 
 # Optimization Problem
+This sections discusses and formulates the objective functions as well as the MILP constraints. The objective functions are required to allow one to compare candidate solutions against one another. The constraints ensure that candiate solutions are in the feasible region. 
 
 ## Objective Function
 Let $J$ represent the objective function. The objective function has three main considerations:
@@ -442,27 +443,46 @@ Let $J$ represent the objective function. The objective function has three main 
 
 which would be of the form $J = AC(u, d, v) + PC(u, d, v)$. $AC(u, d, v)$ is the assignment cost, and $PC(u, d, v)$ is the power usage cost. The assignment cost can be represented as:
 
+<!-- Don't need to sum over Q because we index into the charger -->
 $$
-AC(u,d,v) = \sum_{i=1}^I \sum_{q=1}^Q  \epsilon_q(v_i, u_i, d_i)
+AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i)
 $$
 
-Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$. The function $\epsilon(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time
+Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$. The function $UsageCost(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time
 
-$$
-\epsilon_q[v_i](d_i - u_i)
-$$
+\begin{algorithm}[H]
+\label{alg:usage-cost}
+\caption{Method describing the calculation for the cost of usage for charger $q$.}
+    \TitleOfAlgo{UsageCost}
+    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
+    \KwOut{Cost of use of charger}
+
+    \Begin
+    {
+        \Return$\epsilon_q$[v_i](d_i - u_i)}
+    }
+\end{algorithm}
 
 The power cost can begin to be defined with the consumption cost:
 
 $$
-PC(u,d,v) = \sum_{i=1}^I \sum_{q=1}^Q r_q(v_i, u_i, d_i)
+PC(u,d,v) = \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
 $$
 
-where $r_q(v_i, u_i, d_i)$ returns the energy in $KWH$ given the charger index $v_i$ and time spent on the charger $d_i$
+where $CunsumptionCost(v_i, u_i, d_i)$ returns the energy in $KWH$ given the charger index $v_i$ and time spent on the charger $d_i$ as shown in \autoref{alg:consumption-cost}.
 
-$$
-r_q[v_i](d_i - u_i)
-$$
+\begin{algorithm}
+label{alg:consumption-cost}
+\caption{Method describing the cunsumption cost for a single visit}
+    \TitleOfAlgo{ConsumptionCost}
+    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
+    \KwOut{Cunsumption cost}
+
+    \Begin
+    {
+        \Return{r_q[v_i](d_i - u_i)}
+    }
+\end{algorithm}
 
 Peak 15 should also be taken into consideration. P15 is defined as:
 
@@ -487,7 +507,6 @@ where $s_r$ is the demand rate. Which, again, retains the largest $p_{15}$ value
 $$
 PC(u,d,v) = p_{dem}(T) + \sum_{i=1}^I \sum_{q=1}^Q r_q(v_i, u_i, d_i)
 $$
-
 
 ## Constraints
 Now that a method of calculating the fitness of a schedule has been established, a method for determining if the schedule is feasible must be determined. Feasible schedule require
@@ -572,6 +591,8 @@ Where the valid queue position/time constraint is as defined in [@tutorials_poin
     \end{tikzpicture}
 \end{subfigure}
 \end{figure}
+
+# Optimization Algorithm
 
 # References
 
