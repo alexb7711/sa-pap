@@ -6,7 +6,7 @@ bibliography: main.bib
 toc: true
 
 header-includes:
-        - \usepackage[a4paper, total={6in, 10in}]{geometry}
+        - \usepackage[a4paper, total={7in, 10in}]{geometry}
         - \usepackage{algorithm2e}
         - \usepackage{booktabs}
         - \usepackage{subcaption}
@@ -59,7 +59,7 @@ where $\beta$ = 0.01$. The initial temperature in the case of \autoref{fig:cool}
 ![Cooling equations \label{fig:cool}](uml/cool-func.jpg){width=75%}
 
 ## Acceptance Criteria
-
+Acceptance criteria describes the method to accept a given candidate solution. In SA, if a new candidate solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA, worse candidate solutions may be accepted as the new solution. The probability of the candidate solution is described by the function $\exp((\text{J(new-sol) - J(old-sol)})/\Tau)$ where J() is the objective functions described in \autoref{sec:objective}.
 
 ## Generation Mechanisms
 Generation mechanisms in SA are used to generate random solutions to propose. For the case of the bus generation, five generation mechanism shall be used:
@@ -98,27 +98,26 @@ This section describes and outlines the algorithm pool for the different generat
            \hline
            \multicolumn{1}{l}{Input variables}                                                                      \\
                    $\Delta_i$                  & Discharge of visit over route $i$                                  \\
-                   $\Xi_i$                     & Array of ID's for each visit $i$                                   \\
                    $\alpha_i$                  & Initial charge percentage time for visit $i$                       \\
                    $\beta_i$                   & Final charge percentage for bus $i$ at the end of the time horizon \\
                    $\delta_i$                  & Discharge rate for vehicle $i$                                     \\
                    $\epsilon_q(v_i, u_i, d_i)$ & Returns cost of using charger $q$ per unit time                    \\
-                   $\pi_k$                     & Local search iteration $k$                                         \\
+                   $\kappa_i$                  & Battery capacity for bus $i$                                       \\
                    $\xi_i$                     & Array of values indicating the next index visit $i$ will arrive    \\
                    $a_i$                       & Arrival time of visit $i$                                          \\
                    $b_i$                       & ID for bus visit $i$                                               \\
                    $e_i$                       & Time visit $i$ must exit the station                               \\
-                   $k_i$                       & Battery capacity for bus $i$                                       \\
+                   $k$                         & Local search iteration $k$                                         \\
                    $m_i$                       & Minimum charge allowed on departure of visit $i$                   \\
                    $r_q(v_i, u_i, d_i)$        & Returns charge rate of charger $q$ per unit time [$KW$]            \\
            \hline
            \multicolumn{1}{l}{Decision Variables}                                                                   \\
                    $\eta_i$     & Initial charge for visit $i$                                                      \\
                    $d_i$        & Detach time from charger for visit $i$                                            \\
+                   $p_{dem}(t)$ & Demand cost                                                                       \\
                    $s_i$        & Amount of time spent on charger for visit $i$ (service time)                      \\
                    $u_i$        & Initial charge time of visit $i$                                                  \\
                    $v_i$        & Assigned queue for visit $i$                                                      \\
-                   $p_{dem}(t)$ & Demand cost                                                                       \\
                    \bottomrule
    \end{tabular}
 \end{table}
@@ -288,7 +287,7 @@ This is created by following the "GenerateSchedule" state in the state diagram f
 \begin{algorithm}[H]
 \label{alg:route-generation}
 \caption{Route generation algorithm}
-    \TitleOfAlgo{Route Generation}
+    \TitleOfAlgo{RouteGeneration}
     \KwIn{Route YAML metadata}
     \KwOut{Array of route events}
 
@@ -387,7 +386,7 @@ The objective of this generator is to generate a candidate solution to the given
 \begin{algorithm}[H]
 \label{alg:schedule-generation}
 \caption{Schedule generation algorithm}
-    \TitleOfAlgo{Schedule Generation}
+    \TitleOfAlgo{ScheduleGeneration}
     \KwIn{Route data}
     \KwOut{Candidate charging schedule}
 
@@ -436,7 +435,8 @@ As described in SA, local searches are also employed to try and exploit a given 
 # Optimization Problem
 This sections discusses and formulates the objective functions as well as the MILP constraints. The objective functions are required to allow one to compare candidate solutions against one another. The constraints ensure that candidate solutions are in the feasible region. 
 
-## Objective Function
+## Objective Function {#sec:objective}
+
 Let $J$ represent the objective function. The objective function has three main considerations:
 
 * Charger assignment
@@ -448,10 +448,10 @@ which would be of the form $J = AC(u, d, v) + PC(u, d, v)$. $AC(u, d, v)$ is the
 
 <!-- Don't need to sum over Q because we index into the charger -->
 $$
-AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i)
+AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i) + ChargePenalty(\eta_i)
 $$
 
-Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$. The function $UsageCost(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time as shown in Algorithm \autoref{alg:usage-cost}.
+Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$. The function $UsageCost(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time as shown in Algorithm \autoref{alg:usage-cost} and $\eta_i$ is the initial charge for visit $i$. The $Pentalty(\eta_i)$ method exponentially punishes the candidate solution if the initial charge for a given visit $i$ is not above a given threshold as described in Algorithm \autoref{alg:charge-penalty}.
 
 \begin{algorithm}[H]
 \label{alg:usage-cost}
@@ -463,6 +463,26 @@ Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is
     \Begin
     {
         \Return{$\epsilon_q[v_i](d_i - u_i)$}
+    }
+\end{algorithm}
+
+\begin{algorithm}[H]
+\label{alg:charge-penalty}
+\caption{Method describing the calculation for the penalty of buses not meeting the required charge threshold.}
+    \TitleOfAlgo{ChargePenalty}
+    \KwIn{Initial charge for visit $i$: $\eta_i$}
+    \KwOut{Penalty}
+
+    \Begin
+    {
+        penalty $\leftarrow$ 0\;
+
+        \If{$m_i \geq \eta_{\xi_i}$}
+        {
+            penalty $\leftarrow\; exp(m_i - \eta_i)$\;
+        }
+
+        \Return{penalty}
     }
 \end{algorithm}
 
@@ -560,19 +580,18 @@ Now that a method of calculating the fitness of a schedule has been established,
 
 These set of requirements can be summarized by the constraints that follow:
 
-$$
-\begin{array}{ll}
-   (u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j        & \text{Valid queue position/time}                                                       \\
-   a_i \leq u_i \leq (T-s_i)                                             & \text{Arrival time < initial charge time < maximum initial charge time}                \\
-   d_i \leq e_i                                                          & \text{Detatch time should be less than or equal to departure time}                     \\
-   \eta_{\xi_i} = \eta_i + \sum_{q=1}^Q r_q(v_i, a_i, e_i) + \Delta_i    & \text{Charge constraint}                                                               \\
-   \eta_{\xi_i} \geq \eta_i + \sum_{q=1}^Q r_q(v_i, a_i, e_i) + \Delta_i & \text{Sufficient charge is supplied to the bus}                                        \\
-   \eta_{\xi_i} \geq m_i                                                 & \text{Sufficient charge is supplied to exceed threshold (initial and final charge)}    \\
-   s_i = d_i - u_i                                                       & \text{Time spent on charger is equal to the difference of the attach and detach times} \\
-\end{array}
-$$
+\begin{align*}
+   (u_i         &\geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j   && \text{Valid queue position/time}                                                       &\\
+   \Delta_i     &= \delta_i(a_{\xi_i} - d_i)                                 && \text{Calculate discharge of bus during route}                                         &\\
+   \eta_{\xi_i} &= \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i && \text{Charge constraint}                                                               &\\
+   \eta_{\xi_i} &\geq \Delta_i                                               && \text{Sufficient charge is supplied to the bus}                                        &\\
+   \kappa_i     &\geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)         && \text{Ensure the bus is not charged over its maximum capacity}                         &\\
+   a_i          &\leq u_i \leq (T-s_i)                                       && \text{Arrival time < initial charge time < maximum initial charge time}                &\\
+   d_i          &\leq e_i                                                    && \text{Detach time should be less than or equal to departure time}                      &\\
+   s_i          &= d_i - u_i                                                 && \text{Time spent on charger is equal to the difference of the attach and detach times} &
+\end{align*}
 
-Where the valid queue position/time constraint is as defined in [@tutorials_point]. Also note that the last two constraints can only be verified *after* the schedule has been generated as the initial charge for each visit is based from the previous charger selection and charge time.
+Where the valid queue position/time constraint is as defined in [@tutorials_point]  Also note that the last two constraints can only be verified *after* the schedule has been generated as the initial charge for each visit is based from the previous charger selection and charge time.
 
 \begin{figure}
 \centering
@@ -635,15 +654,50 @@ Where the valid queue position/time constraint is as defined in [@tutorials_poin
 \end{figure}
 
 # Optimization Algorithm
-This final section combines the generation algorithms and the optimization problem into a single algorithm. The objective is to outline the SA process from start to finish. Algorithm \autoref{alg:route-generation} by generating a random set of bus routes utilizing the route metadata in \autoref{fig:routeyaml}. The initial candidate solution will be each bus placed in its designated idle queue, $v_i \in \{Q,...,Q+B\}$ for the duration of the working day. The initial temperature and cooling schedule will be selected and passed into the SA optimization algorithm. A new candidate solution will be generated. For each step in the cooling schedule will have $\pi_k$ iterations to attempt to find a local maxima given the candidate solution given. Each perturbation to the system is then compared to the current candidate solution. If the new candidate solution is better it is kept; however, if the candidate solution is worse, the solution may still be kept with a probability $P$ (\ref{sec:}).
+This final section combines the generation algorithms and the optimization problem into a single algorithm. The objective is to outline the SA process from start to finish. Algorithm \autoref{alg:route-generation} by generating a random set of bus routes utilizing the route metadata in \autoref{fig:routeyaml}. The initial candidate solution will be each bus placed in its designated idle queue, $v_i \in \{Q,...,Q+B\}$ for the duration of the working day. The initial temperature and cooling schedule will be selected and passed into the SA optimization algorithm. A new candidate solution will be generated. For each step in the cooling schedule will have $k$ iterations to attempt to find a local maxima given the candidate solution given. Each perturbation to the system is then compared to the current candidate solution. If the new candidate solution is better it is kept; however, if the candidate solution is worse, the solution may still be kept with a probability $\exp(\text{del-sol}/\Tau)$. This is summarized in Algorithm \autoref{alg:sa-pap}.
 
 \begin{algorithm}[H]
-\label{alg:new-visit}
-\caption{New visit algorithm}
+\label{alg:sa-pap}
+\caption{Simulated annealing approach to the position allocation problem}
     \TitleOfAlgo{SA PAP}
     \KwIn{Bus route metadata}
     \KwOut{Optimal charging schedule}
 
+    \SetKwFunction{InitTemp}{InitTemp}
+    \SetKwFunction{GetCoolSchedule}{GetCoolSchedule}
+    \SetKwFunction{LoadYaml}{LoadYaml}
+    \SetKwFunction{RouteGeneration}{RouteGeneration}
+    \SetKwFunction{J}{J}
+    \SetKwFunction{ScheduleGeneration}{ScheduleGeneration}
+
+    \Begin
+    {
+        $\Tau$ $\leftarrow$ \InitTemp{}\;
+        $\Tau_{schedule}$ $\leftarrow$ \GetCoolSchedule{}\;
+
+        route-metadata $\leftarrow$ \LoadYaml{file-path}\;
+        routes $\leftarrow$ \RouteGeneration{route-metadata}\;
+
+        best-solution $\leftarrow\; v \in \{Q,...,Q+B\},\; u,d \in \{0,...,T\}$\;
+
+        \ForEach{$\tau_k \in \Tau_{schedule}(\Tau)$}
+        {
+            \ForEach{$k \in K$}
+            {
+                candidate-solution $\leftarrow$ \ScheduleGeneration{routes}\;
+                del-sol $\leftarrow$ \J{candidate-solution} - \J{best-solution}\;
+
+                \If{del-sol $\leq$ 0}
+                {
+                    best-solution $\leftarrow$ candidate-solution
+                }
+                \ElseIf{del-sol $\geq$ 0}
+                {
+                    best-solution $\leftarrow$ candidate-solution with probability $\exp$(del-sol$/\tau_k)$
+                }
+            }
+        }
+    }
 \end{algorithm}
 
 # References

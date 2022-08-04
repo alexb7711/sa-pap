@@ -35,7 +35,7 @@ clean:
 ##-------------------------------------------------------------------------------
 #
 %.pdf: %.md
-	pandoc --citeproc --listings --pdf-engine=xelatex "$<" -o $@
+	pandoc --citeproc --number-sections --listings --pdf-engine=xelatex "$<" -o $@
 
 ##-------------------------------------------------------------------------------
 #
