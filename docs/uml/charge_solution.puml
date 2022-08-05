@@ -9,9 +9,7 @@ PickBus --> PickRoute
 PickRoute : Pick a random route associated with selected ID
 
 PickRoute --> ListValidRegions
-ListValidRegions : - For each charger: list open time zones in the region [a_i, d_i]
-ListValidRegions : - Determine charge amount for each open region
-ListValidRegions : - Discard invalid options (do not supply enough charge)
+ListValidRegions : Run New Visit generator
 
 ListValidRegions --> PickValidRegion
 PickValidRegion : Randomly select one of the valid regions

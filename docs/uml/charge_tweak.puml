@@ -3,22 +3,17 @@ title Tweak Charge Schedule
 
 [*] --> PickBus : Given charge schedule
 
-' Slide
-PickBus --> CalculateSlide
-CalculateSlide : Valid "play" with start \nand end charging times
+' Pick generator
+PickBus --> PickGenerator
+PickGenerator : - New visit
+PickGenerator : - Slide visit
+PickGenerator : - New charger
+PickGenerator : - Remove
+PickGenerator : - New window
 
-CalculateSlide --> PickRandomOption
+' Execute selected generator
+PickGenerator --> ExecuteGenerator
 
-' Region
-PickBus --> FindOpenRegion
-FindOpenRegion : Determine if any other \nvalid regions exist
-
-FindOpenRegion --> PickRandomOption
-PickRandomOption : Either pick
-PickRandomOption : - Random slide amount (if available)
-PickRandomOption : - Random region (if available)
-
-PickRandomOption --> PickBus : For each bus
-PickRandomOption --> [*] : New charge schedule
+ExecuteGenerator --> [*]
 
 @enduml

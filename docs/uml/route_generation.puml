@@ -51,7 +51,7 @@ state GenerateSchedule {
 	FinalVisit --> DepartureTime
 	DepartureTime : - if not final visit: select a departure time between [min_rest,max_rest]
 	DepartureTime : - else: set departure time as time horizon (T)
-	
+
 	' Arrival time new
 	DepartureTime --> ArrivalTimeNew
 	ArrivalTimeNew : - Chunk = T/NumberBusVisits
@@ -66,6 +66,14 @@ state GenerateSchedule {
 
 	' Sort
 	Discharge --> SortByArrivalTime
+	
+	' Check feasibility
+	SortByArrivalTime --> IsScheduleFeasible
+	IsScheduleFeasible : Determine if the generated candidate solution is feasible
+
+	' While loop
+	IsScheduleFeasible --> NumberBusVisits : While the schedule is not feasible
+	
 }
 
 ' End
