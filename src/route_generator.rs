@@ -80,7 +80,7 @@ impl RouteGenerator
     {
         for i in 0..self.route.borrow().len()
         {
-            println!("({}) ID: {} - Arrival: {} - Depart: {}", 
+            println!("({}) ID: {} - Arrival: {} - Depart: {}",
                      i,
                      self.route.borrow()[i].id,
                      self.route.borrow()[i].arrival_time,

@@ -5,7 +5,7 @@ use std::cmp::Ordering;
 //===============================================================================
 /// Structure for buses
 ///
-/// Defines the structure that contains the bus data. 
+/// Defines the structure that contains the bus data.
 ///
 /// * [Sorting structs](rust-lang-nursery.github.iol/rust-cookbook/algorithms/sorting.html)
 /// * [Implementation for partial equality](rosettacode.org/wiki/Sort_an_array_of_composite_structures#Rust)
@@ -26,25 +26,25 @@ impl PartialEq for Bus
 {
     //--------------------------------------------------------------------------
     /// Tests for `self` and `other` values to be equal by using `==` operator.
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
     /// * `bool`: True if all items match
-    /// 
+    ///
     fn eq(&self, other: &Self) -> bool
     {
         return (self.initial_charge == other.initial_charge) &&
                (self.discharge_rate == other.discharge_rate);
     }
-    
+
     //--------------------------------------------------------------------------
     /// Tests for `self` and `other` values to be not equal by using `==` operator.
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
     /// * `bool`: True if no items match
     ///
@@ -66,12 +66,12 @@ impl PartialOrd for Bus
 {
     //--------------------------------------------------------------------------
     /// Returns an ordering between `self` and `other` values if one exists.
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
-    /// * `Option<Ordring>`: An ordering of the objects if one exists
+    /// * `Option<Ordering>`: An ordering of the objects if one exists
     ///
     fn partial_cmp(&self, other: &Self) -> Option<Ordering>
     {
@@ -82,13 +82,13 @@ impl PartialOrd for Bus
 //===============================================================================
 //
 impl Ord for Bus
-{    
+{
     //--------------------------------------------------------------------------
     /// Returns an `Ordering` between `self` and `other`
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
     /// * `Option<Ordring>`: An ordering of the objects if one exists
     ///
