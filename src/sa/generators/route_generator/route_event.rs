@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 
 //=========================================================================
 // Import modules
-pub use crate::route_generator::bus::Bus;
+pub use crate::sa::generators::route_generator::bus::Bus;
 
 //===============================================================================
 /// Structure for route
@@ -38,13 +38,13 @@ impl PartialEq for RouteEvent
 {
     //--------------------------------------------------------------------------
     /// Tests for `self` and `other` values to be equal by using `==` operator.
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
     /// * `bool`: True if all items match
-    /// 
+    ///
     fn eq(&self, other: &Self) -> bool
     {
         return self.arrival_time == other.arrival_time;
@@ -52,10 +52,10 @@ impl PartialEq for RouteEvent
 
     //--------------------------------------------------------------------------
     /// Tests for `self` and `other` values to be not equal by using `==` operator.
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
     /// * `bool`: True if no items match
     ///
@@ -76,10 +76,10 @@ impl PartialOrd for RouteEvent
 {
     //--------------------------------------------------------------------------
     /// Returns an ordering between `self` and `other` values if one exists.
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
     /// * `Option<Ordring>`: An ordering of the objects if one exists
     ///
@@ -95,10 +95,10 @@ impl Ord for RouteEvent
 {
     //--------------------------------------------------------------------------
     /// Returns an `Ordering` between `self` and `other`
-    /// 
+    ///
     /// # INPUT
     /// * `other`: Object to be comparing to
-    /// 
+    ///
     /// # OUTPUT
     /// * `Option<Ordring>`: An ordering of the objects if one exists
     ///

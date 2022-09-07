@@ -14,15 +14,15 @@ pub use std::cell::RefCell;
 
 //===============================================================================
 // Import modules
-pub use crate::route_generator::bus::Bus;
-pub use crate::route_generator::route_event::RouteEvent;
-pub use crate::util::traits::Generator;
+pub use crate::sa::generators::route_generator::route_event::RouteEvent;     // Keep public for testing
+use crate::sa::generators::Generator;
+use crate::sa::generators::route_generator::bus::Bus;
 use crate::util::fileio::yaml_loader;
 use crate::util::rand_utils;
 
 //===============================================================================
-// Structure for RouteGenerator
 /// Defines the structure that contains data for RouteGenerator to run
+//
 #[allow(dead_code)]
 pub struct RouteGenerator
 {
@@ -60,7 +60,7 @@ impl RouteGenerator
             buses: RefCell::new(Vec::new()),
 
             config: yaml_loader::load_yaml(config_path),
-            load_from_file: load_from_file,
+            load_from_file,
         };
 
         // Return Route Generator

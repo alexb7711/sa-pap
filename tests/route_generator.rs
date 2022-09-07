@@ -12,7 +12,8 @@ mod test_route_generator
     // Import modules
     use sa_pap::util::fileio::yaml_loader;
     use std::cell::Ref;
-    use super::sa_pap::route_generator::{RouteGenerator, Generator, RouteEvent};
+    use super::sa_pap::sa::generators::Generator;
+    use super::sa_pap::sa::generators::route_generator::{RouteGenerator, RouteEvent};
 
     //---------------------------------------------------------------------------
     //
