@@ -148,7 +148,7 @@ impl TempFunc
     ///
     fn autorun(self: &mut TempFunc)
     {
-        while self.exec_cool_schedule().is_some() {}
+        while let Some(_) = self.exec_cool_schedule() {}
     }
 
     //---------------------------------------------------------------------------
