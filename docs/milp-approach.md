@@ -461,7 +461,7 @@ This is created by following the "GenerateSchedule" state in the state diagram f
 \label{alg:departure-time}
 \caption{Departure time algorithm}
     \TitleOfAlgo{DepartureTime}
-    \KwIn{Previous arrival and final visit flag :(arrival-old and final-visit)}
+    \KwIn{Previous arrival and final visit flag: (arrival-old and final-visit)}
     \KwOut{Next departure time: (depart)}
 
     \Begin
@@ -534,7 +534,7 @@ As described in SA, local searches are also employed to try and exploit a given 
 \end{algorithm}
 
 # Optimization Problem
-This sections discusses and formulates the objective functions as well as the MILP constraints. The objective functions are required to allow comparisons between candidate solutions. The constraints ensure that candidate solutions are in the feasible region. 
+This sections discusses and formulates the objective functions as well as the MILP constraints. The objective functions are required to allow comparisons between candidate solutions. The constraints ensure that candidate solutions are in the feasible region.
 
 ## Objective Function {#sec:objective}
 
@@ -581,7 +581,7 @@ Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is
 
         \If{$m \kappa_i \geq \eta_{\xi_i}$}
         {
-            penalty $\leftarrow\; exp(m_i - \eta_i)$\;
+            penalty $\leftarrow\; exp(m - \eta_i)$\;
         }
 
         \Return{penalty}
