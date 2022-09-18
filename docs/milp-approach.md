@@ -531,7 +531,7 @@ The objective of this generator is to generate a candidate solution to the given
 \end{algorithm}
 
 #### Tweak Schedule
-As described in SA, local searches are also employed to try and exploit a given solution. The method that will be employed to exploit the given solution is as follows: pick a bus, pick a visit, pick a generator. This state diagram is depicted in \autoref{fig:tweak} and outlined in Algorithm \autoref{alg:tweak-schedule}.
+As described in SA, local searches are also employed to try and exploit a given solution [@radosavljevic2018metaheuristic]. The method that will be employed to exploit the given solution is as follows: pick a bus, pick a visit, pick a generator. This state diagram is depicted in \autoref{fig:tweak} and outlined in Algorithm \autoref{alg:tweak-schedule}.
 
 \begin{algorithm}[H]
 \label{alg:tweak-schedule}
