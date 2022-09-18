@@ -33,7 +33,7 @@ SA is a local search (exploitation oriented) single-solution based (as compared 
 * Acceptance criteria
 * Local search iteration count (temperature change counter)
 
-The initial temperature and cooling schedule are used to regulate the speed at which the solution attempts to converge to the best known solution. When the temperature is high SA encourages exploration. As it cools down (in accordance to the cooling schedule), it begins to encourage local exploitation of the solution [@Rutenbar_1989; @Henderson].
+The initial temperature and cooling schedule are used to regulate the speed at which the solution attempts to converge to the best known solution. When the temperature is high, SA encourages exploration. As it cools down (in accordance to the cooling schedule), it begins to encourage local exploitation of the solution [@Rutenbar_1989; @Henderson].
 
 ## Cooling Equation (Experimental)
 There are three basic types of cooling equations as shown in \autoref{fig:cool}. A linear cooling schedule is defined by
@@ -59,25 +59,19 @@ where $\beta$ = 0.01$ in \autoref{fig:cool}. The initial temperature, $T_0$, in 
 ![Cooling equations \label{fig:cool}](uml/cool-func.jpg){width=75%}
 
 ## Acceptance Criteria {#sec:acceptance}
-Acceptance criteria describes the method to accept or reject a given candidate solution. In SA, if a new candidate solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA, worse candidate solutions may be accepted as the new solution. The probability of accepting the candidate solution is described by the function $\exp((\text{J(new-sol) - J(old-sol)})/\Tau)$ where J() is the objective functions described in \autoref{sec:objective}.
+Acceptance criteria describes the method to accept or reject a given candidate solution. In SA, if a new candidate solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA, worse candidate solutions may be accepted as the new solution. The probability of accepting the candidate solution is described by the function $\exp(\frac{J(new-sol) - J(old-sol)}{\Tau})$ where $J()$ is the objective functions described in \autoref{sec:objective}.
 
-## Generation Mechanisms
-Generation mechanisms in SA are used to generate random solutions to propose to the system. For the case of the bus generation, five generation mechanism shall be used:
+## Decision variables
+Given a set of route metadata, initial charge at the start of the day, arrival times, discharge amounts, etc., a charging solution must be generated. The key information required, known as the decision variables, are:
 
-* New visit
-* Slide visit
-* New charger
-* Remove
-* New window
+- $\eta_i$: initial charges for each visit $i$
+- $d_i$   : detach time from the charger for each visit $i$
+- $p_dem$ : The demand cost for the working day
+- $u_i$   : Initial charge time of visit $i$
+- $s_i$   : Service time of the charger ($s_i = d_i - u_d$)
+- $v_i$   : Assigned charger for visit $i$
 
-These generator mechanisms will in turn be utilized by three wrapper functions. One of them being to generate a set of bus route data and the other two used to generate candidate solutions to the bus routes. These routines are defined as follows:
-
-* Route generation, \autoref{fig:route}, which utilizes route metadata as shown \autoref{fig:routeyaml}
-* Schedule generation, \autoref{fig:schedule}
-* Tweak schedule, \autoref{fig:tweak}
-
-### Generators
-This section describes and outlines the algorithm pool for the different generator types that are utilized in the wrapper functions.  Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0\; KW$ will be added to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in \{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id.
+In \autoref{sec:generators} all but $p_dem$ and $eta_i$ will be defined. $p_dem$ will be defined in \autoref{sec:objective}, and $\eta_i$ will be defined in \autoref{sec:constraints}. All the variables are defined in \autoref{tab:variables}.
 
 \begin{table}[h]
    \caption{Notation}
@@ -103,7 +97,7 @@ This section describes and outlines the algorithm pool for the different generat
                    $\delta_i$   & Discharge rate for vehicle $i$                                     \\
                    $\epsilon_q$ & Cost of using charger $q$                                          \\
                    $\kappa_i$   & Battery capacity for bus $i$                                       \\
-                   $\xi_i$      & Array of values indicating the next index visit $i$ will arrive    \\
+                   $\xi_i$      & Value indicating the next index visit $i$ will arrive              \\
                    $a_i$        & Arrival time of visit $i$                                          \\
                    $b_i$        & ID for bus visit $i$                                               \\
                    $e_i$        & Time visit $i$ must exit the station                               \\
@@ -122,6 +116,24 @@ This section describes and outlines the algorithm pool for the different generat
    \end{tabular}
 \end{table}
 
+## Generation Mechanisms {#sec:generators}
+Generation mechanisms in SA are used to generate random solutions to propose to the optimizer. For the case of the bus generation, five generation mechanism shall be used:
+
+* New visit
+* Slide visit
+* New charger
+* Remove
+* New window
+
+These generator mechanisms will in turn be utilized by three wrapper functions. One of them being to generate a set of bus route data and the other two used to generate candidate solutions to the bus routes. These routines are defined as follows:
+
+* Route generation, \autoref{fig:route}, which utilizes route metadata as shown \autoref{fig:routeyaml}
+* Schedule generation, \autoref{fig:schedule}
+* Tweak schedule, \autoref{fig:tweak}
+
+### Generators
+This section describes and outlines the algorithm pool for the different generator types that are utilized in the wrapper functions.  Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0\; KW$ will be added to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in \{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id.
+
 #### New visit
 The new visit generator describes the process of moving bus $b$ from the idle queue, $v_i \in \{Q,..,Q+b\}$ to a valid charging queue, $v_i \in \{0,..,Q\}$. A list of tuples describing valid time, $u_i$ and $d_i$, for each charger will be listed and randomly selected using a uniform distribution. The algorithm is defined in Algorithm \autoref{alg:new-visit}.
 
@@ -129,7 +141,7 @@ The new visit generator describes the process of moving bus $b$ from the idle qu
 \label{alg:new-visit}
 \caption{New visit algorithm}
     \TitleOfAlgo{New Visit}
-    \KwIn{Visit index, route data, Charger data: (i, route-data, charger-data)}
+    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
     \KwOut{Tuple of queue and valid time region: $(v,u,d)$}
 
     \SetKwFunction{Union}{Union}
@@ -137,27 +149,29 @@ The new visit generator describes the process of moving bus $b$ from the idle qu
 
     \Begin
     {
-        valid-visit  $ \leftarrow \emptyset $ \;
+        $a$          $\leftarrow$ route-data[$i$].$a$\;
+        $e$          $\leftarrow$ route-data[$i$].$e$\;
+        valid-visit  $\leftarrow \emptyset$      \;
 
         \For{q $\leftarrow 0$ \KwTo Q}
         {
-                \For{free-region $ \leftarrow $ \KwTo q}
+                \For{free-region $ \leftarrow $ \KwTo charger-data[$q$]}
                 {
-                        \Union{valid-visit, (q,\findFreeTime{free-region, (a,e)})}\;
+                        \Union{valid-visit, ($q$,\findFreeTime{free-region, ($a$,$e$)})}\;
                 }
         }
 
-        \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)]]}$}
+        \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
     }
 \end{algorithm}
 
-Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, `route-data` is the data generated in `RouteGeneration` (described in \autoref{sec:route-gen}), and `charger-data` time intervals allocated to buses. The algorithm to find free time is defined in Algorithm \autoref{alg:find-free-time}. The cases are depicted in \autoref{fig:find-free}.
+Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, `route-data` is the data generated in `RouteGeneration` (described in \autoref{sec:route-gen}), and `charger-data` are the time intervals allocated to buses. The algorithm to find free time is defined in Algorithm \autoref{alg:find-free-time}. The cases are depicted in \autoref{fig:find-free}.
 
 \begin{figure}
 \centering
 \begin{subfigure}{\textwidth}
     \centering
-    \caption{Valid position: $a_1 \leq u_1 \leq d_1 \leq d_1$}
+    \caption{Valid position: $a_1 \leq u_1 \leq d_1 \leq e_1$}
     \begin{tikzpicture}[scale=2]
         \coordinate (A) at (0,0);
         \coordinate (B) at (1.5,0);
@@ -172,8 +186,8 @@ Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, 
 
         \node[circle,fill=blue,radius=0.15]                     at (A) {};
         \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_1$] at (D) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
         \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
         \node[circle,fill=blue,radius=0.15]                     at (F) {};
     \end{tikzpicture}
@@ -183,7 +197,7 @@ Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, 
 
 \begin{subfigure}{\textwidth}
     \centering
-    \caption{Valid position: $L \leq u_1 \leq d_1 \leq d_1$}
+    \caption{Valid position: $L \leq u_1 \leq d_1 \leq e_1$}
     \begin{tikzpicture}[scale=2]
         \coordinate (A) at (0,0);
         \coordinate (B) at (2.5,0);
@@ -198,8 +212,8 @@ Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, 
 
         \node[circle,fill=blue,radius=0.15]                     at (A) {};
         \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_1$] at (D) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
         \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
         \node[circle,fill=blue,radius=0.15]                     at (F) {};
     \end{tikzpicture}
@@ -224,8 +238,8 @@ Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, 
 
         \node[circle,fill=blue,radius=0.15]                     at (A) {};
         \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_1$] at (D) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
         \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
         \node[circle,fill=blue,radius=0.15]                     at (F) {};
     \end{tikzpicture}
@@ -247,8 +261,8 @@ Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, 
 
         \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (A) {};
         \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_1$] at (D) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
     \end{tikzpicture}
 \end{subfigure}
 
@@ -281,7 +295,7 @@ Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, 
 \label{alg:find-free-time}
 \caption{Find free time algorithm searches and returns the available time frames}
     \TitleOfAlgo{Find Free Time}
-    \KwIn{Lower and upper bound of available time: $(L,U)$ and arrival and departure time for bus: $(a,e)$}
+    \KwIn{Lower and upper bound of available time and arrival and departure time for bus: $(L,U,a,e)$}
     \KwOut{Tuple of initial and final charge times: $(u,d)$}
 
     \Begin
@@ -314,33 +328,38 @@ Slide visit is used for buses that have already been scheduled. Because $a_i \le
 \label{alg:slide-visit}
 \caption{Slide Visit Algorithm}
     \TitleOfAlgo{Slide Visit}
-    \KwIn{Visit index, route data, Charger data: (i, route-data, charger-data)}
+    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
     \KwOut{Tuple of queue, valid time region: $(v,u,d)$}
 
     \Begin
     {
-        u $\leftarrow$ $\mathbb{U}_{[a,e]}$\;
-        d $\leftarrow$ $\mathbb{U}_{[u,e]}$\;
+        $a \leftarrow$ route-data[$i$].$a$\;
+        $e \leftarrow$ route-data[$i$].$e$\;
+        $u \leftarrow$ $\mathbb{U}_{[a,e]}$\;
+        $d \leftarrow$ $\mathbb{U}_{[u,e]}$\;
 
         \Return{(v,d)}
     }
 \end{algorithm}
 
 #### New charger
-Similar to new visit, this generator moves a bus from one queue to another; however, the new charger generator moves a bus from one charger queue to another, $v_i \in \{0,..,Q\}$. A list of chargers to available for the bus to be moved to will be generated and one will be selected at random with a uniform distribution.
+Similar to new visit, this generator moves a bus from one queue to another; however, the new charger generator moves a bus from one charger queue to another, $v_i \in \{0,..,Q\}$. A new charger will be selected at random with a uniform distribution.
 
 \begin{algorithm}[H]
 \label{alg:new-charger}
 \caption{New Charger Algorithm}
     \TitleOfAlgo{New Charger}
-    \KwIn{Visit index, route data, Charger data: (i, route-data, charger-data)}
+    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
     \KwOut{Tuple of queue, valid time region: $(v,u,d)$}
 
     \Begin
     {
+       $a \leftarrow$ route-data[$i$].$a$\;
+       $e \leftarrow$ route-data[$i$].$e$\;
+       $v \leftarrow$ route-data[$i$].$v$\;
        valid-visit  $\leftarrow \emptyset$\;
 
-       \For{q $\leftarrow 0$ \KwTo Q and Q != v}
+       \For{$q\; \leftarrow 0$ \KwTo $Q$ and $q \neq v$}
        {
                \For{free-region $\leftarrow$ \KwTo q.free}
                {
@@ -348,7 +367,7 @@ Similar to new visit, this generator moves a bus from one queue to another; howe
                }
        }
 
-       \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)]]}$}
+       \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
     }
 \end{algorithm}
 
@@ -359,16 +378,17 @@ The remove generator simply removes a bus from a charger queue and places it in 
 \label{alg:remove}
 \caption{Remove algorithm}
     \TitleOfAlgo{New Visit}
-    \KwIn{Visit index, route data, Charger data: (i, route-data, charger-data)}
+    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
     \KwOut{Tuple of queue, time region: $(v,u,d)$}
 
     \Begin
     {
-       v $\leftarrow$ Q+b\;
-       u $\leftarrow$ u\;
-       d $\leftarrow$ d\;
 
-       \Return{(v,u,d)}
+       $v \leftarrow Q+b$                \;
+       $u \leftarrow$ route-data[$i$].$u$\;
+       $d \leftarrow$ route-data[$i$].$d$\;
+
+       \Return{$(v,u,d)$}
     }
 \end{algorithm}
 
@@ -379,7 +399,7 @@ New window is a combination of the remove and then new visit generators (\autore
 \label{alg:new-window}
 \caption{New window algorithm}
     \TitleOfAlgo{New Window}
-    \KwIn{Visit index, route data, Charger data: (i, route-data, charger-data)}
+    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
     \KwOut{Tuple of queue, valid time region: $(v,u,d)$}
 
     \Begin
@@ -387,10 +407,13 @@ New window is a combination of the remove and then new visit generators (\autore
         \SetKwFunction{NewVisit}{NewVisit}
         \SetKwFunction{Remove}{Remove}
 
-        (v,u,d) = \Remove{v,u,d}\;
-        (v,u,d) = \NewVisit{v,u,d}\;
+         $v \leftarrow$ route-data[$i$].$v$\;
+         $u \leftarrow$ route-data[$i$].$u$\;
+         $d \leftarrow$ route-data[$i$].$d$\;
+        $(v,u,d)$ = \Remove{$v,u,d$}\;
+        $(v,u,d)$ = \NewVisit{$v,u,d$}\;
 
-        \Return{v,u,d}
+        \Return{$(v,u,d)$}
     }
 \end{algorithm}
 
@@ -398,7 +421,8 @@ New window is a combination of the remove and then new visit generators (\autore
 This section covers the algorithms utilized to select and execute different generation processes for the SA process.
 
 #### Route Generation {#sec:route-gen}
-The objective of route generate a set of metadata about bus routes given the information in \autoref{fig:routeyaml}. Specifically, the objective is to generate $I$ routes for $B$ buses. Each visit will have
+The objective of route generation is to create a set of metadata about bus routes given the information in
+\autoref{fig:routeyaml}. Specifically, the objective is to generate $I$ routes for $B$ buses. Each visit will have
 
 * Initial charge (for first visit only)
 * Arrival time
@@ -442,9 +466,8 @@ This is created by following the "GenerateSchedule" state in the state diagram f
                     \Else{final-visit = false\;}
 
                     departure-time $\leftarrow$ \DepartureTime{arrival-old, final-visit}\;
-                    arrival-new $\leftarrow$ current-visit*$\frac{T}{total-visit-count}$
-                    discharge $\leftarrow$ discharge-rate*(next-arrival-depart-time)
-
+                    arrival-new $\leftarrow$ current-visit*$\frac{T}{total-visit-count}$\;
+                    discharge $\leftarrow$ discharge-rate*(next-arrival-depart-time)    \;
                     \Union{route-data, (arrival-old, departure-time, discharge)}\;
                 }
             }
@@ -496,7 +519,7 @@ The objective of this generator is to generate a candidate solution to the given
 
     \Begin
     {
-        schedule $\leftarrow\; \emptyset$
+        schedule $\leftarrow\; \emptyset$\;
         \For {i in I}
         {
             bus $\leftarrow\; \mathbb{U}_{[0,B]}$\;
@@ -544,7 +567,6 @@ Let $J$ represent the objective function. The objective function has four main c
 * Demand cost
 * Consumption cost
 * Sufficient charge
-<!-- * Temperature TODO: Find reference -->
 
 Suppose the objective function is of the form $J = AC(u, d, v) + PC(u, d, v)$. $AC(u, d, v)$ is the assignment cost, and $PC(u, d, v)$ is the power usage cost. The assignment cost can be represented as:
 
@@ -588,10 +610,12 @@ Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is
     }
 \end{algorithm}
 
-Where $m$ is the minimum charge percentage allowed at each visit and $\kappa_i$ is the battery capacity. The power cost can begin to be defined with the consumption cost:
+Where $m$ is the minimum charge percentage allowed at each visit and $\kappa_i$ is the battery capacity.
+
+The power cost can begin to be defined with the consumption cost:
 
 $$
-PC(u,d,v) = \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
+PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
 $$
 
 where $ConsumptionCost(v_i, u_i, d_i)$ returns the energy in $KWH$ given the charger index $v_i$ and time spent on the charger $d_i$ as shown in Algorithm \autoref{alg:consumption-cost}.
@@ -605,7 +629,7 @@ where $ConsumptionCost(v_i, u_i, d_i)$ returns the energy in $KWH$ given the cha
 
     \Begin
     {
-        \Return{$r_q[v_i](d_i - u_i)$}
+        \Return{$r[v_i](d_i - u_i)$}
     }
 \end{algorithm}
 
@@ -636,7 +660,7 @@ where $s_r$ is the demand rate. Which, again, retains the largest $p_{15}$ value
     \KwIn{Candidate solution: (schedule)}
     \KwOut{Demand cost: (p-dem)}
 
-    \SetKwFunction{Int}{Int}
+    \SetKwFunction{Integrate}{Integrate}
     \SetKwFunction{Union}{Union}
 
     \Begin
@@ -645,7 +669,7 @@ where $s_r$ is the demand rate. Which, again, retains the largest $p_{15}$ value
 
         \For{dt $\leftarrow 0$ \KwTo T}
         {
-            \Union{p15, \Int{schedule,(dt,dt+15)}}
+            \Union{p15, \Integrate{schedule,(dt,dt+15)}}
         }
 
         p-old $\leftarrow$ p-new $\leftarrow$ p-dem $\leftarrow$ p-fix\;
@@ -687,7 +711,6 @@ These set of requirements can be summarized by the constraints that follow:
    (u_i         &\geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j   && \text{Valid queue position/time}                                                       &\\
    \Delta_i     &= \delta_i(a_{\xi_i} - d_i)                                 && \text{Calculate discharge of bus during route}                                         &\\
    \eta_{\xi_i} &= \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i && \text{Charge constraint}                                                               &\\
-   \eta_{\xi_i} &\geq \Delta_i                                               && \text{Sufficient charge is supplied to the bus}                                        &\\
    \kappa_i     &\geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)         && \text{Ensure the bus is not charged over its maximum capacity}                         &\\
    a_i          &\leq u_i \leq (T-s_i)                                       && \text{Arrival time < initial charge time < maximum initial charge time}                &\\
    d_i          &\leq e_i                                                    && \text{Detach time should be less than or equal to departure time}                      &\\
@@ -780,7 +803,7 @@ This final section combines the generation algorithms and the optimization probl
 
     \Begin
     {
-        $\Tau$ $\leftarrow$ \InitTemp{}\;
+        $\Tau_0$ $\leftarrow$ \InitTemp{}\;
         $\Tau_{schedule}$ $\leftarrow$ \GetCoolSchedule{}\;
 
         route-metadata $\leftarrow$ \LoadYaml{file-path}\;
@@ -788,7 +811,7 @@ This final section combines the generation algorithms and the optimization probl
 
         best-solution $\leftarrow$ v \in \ScheduleGeneration{routes}\;
 
-        \ForEach{$\tau_k \in \Tau_{schedule}(\Tau)$}
+        \ForEach{$\Tau \in \Tau_{schedule}(\Tau_0)$}
         {
             candidate-solution $\leftarrow$ \ScheduleGeneration{routes}\;
 
