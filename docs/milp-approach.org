@@ -3,24 +3,362 @@
 #+EMAIL: A01704744@usu.edu
 #+LANGUAGE: en
 
+#+LATEX_CLASS: article
+
 # Custom commands
 #+latex_header: \newcommand{\T}{\mathcal{T}}
 #+latex_header: \newcommand{\Tau}{T}
+#+latex_header: \usepackage{lipsum}
 
-This document outlines the simulated annealing (SA) approach to the bus
-charging scheduling problem utilizing Mixed Integer Linear Programming (MILP) constraints as the method of determining
-feasible charging schedules. The problem statement is as follows: given a set of routes for a fleet of Battery Electric
-Buses (BEB), generate an optimal charging schedule to minimize:
+# * Abstract
+#
+# #+begin_export latex
+# \begin{abstract}
+# \lipsum[1-2]
+# \end{abstract}
+# #+end_export
 
-- Consumption cost (amount of electricity used over a certain time)
-- Demand cost (rate at which electricity is being used)
+* Introduction
+This document outlines the simulated annealing (SA) approach to the bus charging scheduling problem utilizing Mixed
+Integer Linear Programming (MILP) constraints as the method of determining feasible charging schedules. The problem
+statement is as follows: given a set of routes for a fleet of Battery Electric Buses (BEB), generate an optimal charging
+schedule to minimize the consumption cost (amount of electricity used over a certain time) and the demand cost (rate at
+which electricity is being used) within the constraints that the buses must maintain sufficient charge to complete the working
+day and do not have any delays in their respective routes.
 
-within the constraints that the buses have sufficient charge to complete the working day and do not have any delays in
-their respective routes.
+Simulated Annealing (SA) shall be introduced and utilized as a means of finding the global optimum. The SA algorithm
+shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints to ensure validity of the proposed
+charging schedules. A set of objective functions describing consumption cost and demand cost, as stated above, shall be
+minimized as to reduce power consumption and total cost of using the BEBs.
 
-Simulated Annealing (SA) shall be introduced and utilized as a means of finding the global optima of the objective
-function/MILP constraint formulation; however, there are other metaheuristic mechanisms similar to SA that may be
-utilized.
+* Optimization Problem
+:PROPERTIES:
+:CUSTOM_ID: optimization-problem
+:END:
+This sections introduces the problem in the form of the objective functions as well MILP constraints. The objective
+functions is required to allow comparisons between candidate solutions. In the context of this formulation, the
+objective function is broken down into two major components as alluded in the introduction: consumption cost and demand
+cost. The constraints ensure that candidate solutions are in the feasible region. They are composed of decision
+variables and input variables which are unknown variables that are manipulated in the attempt to optimize the objective
+functions and predefined input variables that are defined by the state of the system, respectively. Furthermore, the decision
+variables have components that are directly and indirectly manipulated.
+
+#+name: tab:variables
+#+caption: Table of variables used in the paper.
+| *Variable*         | *Description*                                                      |
+|--------------------+--------------------------------------------------------------------|
+| Input constants    |                                                                    |
+| $B$                | Number of buses in use                                             |
+| $I$                | Number of total visits                                             |
+| $J(v,u,d)$         | Objective function                                                 |
+| $K$                | Local search iteration amount                                      |
+| $Q$                | Number of chargers                                                 |
+| $\T$               | Time horizon                                                       |
+| $\Tau$             | Temperature                                                        |
+|--------------------+--------------------------------------------------------------------|
+| Input variables    |                                                                    |
+| $\Delta_i$         | Discharge of visit over route $i$                                  |
+| $\alpha_i$         | Initial charge percentage time for visit $i$                       |
+| $\beta_i$          | Final charge percentage for bus $i$ at the end of the time horizon |
+| $\delta_i$         | Discharge rate for vehicle $i$                                     |
+| $\epsilon_q$       | Cost of using charger $q$                                          |
+| $\kappa_i$         | Battery capacity for bus $i$                                       |
+| $\xi_i$            | Value indicating the next index visit $i$ will arrive              |
+| $a_i$              | Arrival time of visit $i$                                          |
+| $b_i$              | ID for bus visit $i$                                               |
+| $e_i$              | Time visit $i$ must exit the station                               |
+| $k$                | Local search iteration $k$                                         |
+| $m$                | Minimum charge percentage allowed for each visit                   |
+| $r_q$              | Charge rate of charger $q$                                         |
+|--------------------+--------------------------------------------------------------------|
+| Decision Variables |                                                                    |
+| $\eta_i$           | Initial charge for visit $i$                                       |
+| $d_i$              | Detach time from charger for visit $i$                             |
+| $p_{dem}(t)$       | Demand cost                                                        |
+| $s_i$              | Amount of time spent on charger for visit $i$ (service time)       |
+| $u_i$              | Initial charge time of visit $i$                                   |
+| $v_i$              | Assigned queue for visit $i$                                       |
+|--------------------+--------------------------------------------------------------------|
+
+** Parameter Definitions
+*** Input Constants
+*** Input Variables
+The input values of any MILP system are defined prior to the solving of the system. They define initial conditions,
+known state properties, etc.
+
+*** Decision Variables
+:PROPERTIES:
+:CUSTOM_ID: decision-variables
+:END:
+Given a set of route metadata, initial charge at the start of the day, arrival times, discharge amounts, etc., a
+charging solution must be generated. The key information required, known as the decision variables, are:
+
+- \(\eta_i\): initial charges for each visit \(i\)
+- \(d_i\) : detach time from the charger for each visit \(i\)
+- \(p_dem\) : The demand cost for the working day
+- \(u_i\) : Initial charge time of visit \(i\)
+- \(s_i\) : Service time of the charger (\(s_i = d_i - u_d\))
+- \(v_i\) : Assigned charger for visit \(i\)
+
+In section [[#sec:generators]] all but \(p_dem\) and \(eta_i\) will be defined. \(p_dem\) will be defined in section
+[[#sec:objective]], and \(\eta_i\) will be defined in [[#sec:constraints]]. All the variables are defined in table
+[[tab:variables]].
+** Objective Function
+:PROPERTIES:
+:CUSTOM_ID: sec:objective
+:END:
+Let \(J\) represent the objective function. The objective function has
+four main considerations:
+
+- Charger assignment
+- Demand cost
+- Consumption cost
+- Sufficient charge
+
+Suppose the objective function is of the form
+\(J = AC(u, d, v) + PC(u, d, v)\). \(AC(u, d, v)\) is the assignment
+cost, and \(PC(u, d, v)\) is the power usage cost. The assignment cost
+can be represented as:
+
+\[
+AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i) + ChargePenalty(\eta_i)
+\]
+
+Where \(v_i\) is the charger index, \(u_i\) is the initial charge time,
+and \(d_i\) is the detach time for visit \(i\). The function
+\(UsageCost(v,u,d)\) returns the cost of using charger \(q\) multiplied
+by the usage time as shown in Algorithm [[alg:usage-cost]] and
+\(\eta_i\) is the initial charge for visit \(i\). The
+\(ChargePenalty(\eta_i)\) method exponentially punishes the candidate
+solution if the initial charge for a specified visit \(i\) is not above
+a given threshold as described in Algorithm
+[[alg:charge-penalty]].
+
+#+NAME: alg:usage-cost
+\begin{algorithm}[H]
+\label{alg:usage-cost}
+\caption{Method describing the calculation for the cost of usage for charger $q$.}
+    \TitleOfAlgo{UsageCost}
+    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
+    \KwOut{Cost of use of charger}
+
+    \Begin
+    {
+        \Return{$\epsilon_q[v_i](d_i - u_i)$}
+    }
+\end{algorithm}
+
+#+NAME: alg:charge-penalty
+\begin{algorithm}[H]
+\label{alg:charge-penalty}
+\caption{Method describing the calculation for the penalty of buses not meeting the required charge threshold.}
+    \TitleOfAlgo{ChargePenalty}
+    \KwIn{Initial charge for visit $i$: $\eta_i$}
+    \KwOut{Penalty}
+
+    \Begin
+    {
+        penalty $\leftarrow$ 0\;
+
+        \If{$m \kappa_i \geq \eta_{\xi_i}$}
+        {
+            penalty $\leftarrow\; exp(m - \eta_i)$\;
+        }
+
+        \Return{penalty}
+    }
+\end{algorithm}
+
+Where \(m\) is the minimum charge percentage allowed at each visit and
+\(\kappa_i\) is the battery capacity.
+
+The power cost can begin to be defined with the consumption cost:
+
+\[
+PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
+\]
+
+where \(ConsumptionCost(v_i, u_i, d_i)\) returns the energy in \(KWH\)
+given the charger index \(v_i\) and time spent on the charger \(d_i\) as
+shown in Algorithm [[alg:consumption-cost]].
+
+#+NAME: alg:consumption-cost
+\begin{algorithm}[H]
+\label{alg:consumption-cost}
+\caption{Method describing the consumption cost for a single visit}
+    \TitleOfAlgo{ConsumptionCost}
+    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
+    \KwOut{Consumption cost}
+
+    \Begin
+    {
+        \Return{$r[v_i](d_i - u_i)$}
+    }
+\end{algorithm}
+Peak 15 should also be taken into consideration. Peak 15 is defined as:
+
+\[
+p_{15}(t) = 1/15 \int_{t-15}^{t} p(\tau) d\tau
+\]
+
+which represents the energy used over the last 15 minutes. Because worst
+case must be assumed to always ensure enough power is supplied
+
+\[
+p_{max}(t) = \text{max}_{\tau\in [0,t]}p_{15}(\tau)
+\]
+
+Which retains the largest \(p_{15}\) found. The demand charge is then
+determined by
+
+\[
+p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
+\]
+
+where \(s_r\) is the demand rate. Which, again, retains the largest
+\(p_{15}\) value with a starting, fixed value of \(p_{fix}\). To
+calculate this numerically, an integration algorithm is required to
+iteratively calculate the \(p_{15}(t)\). In turn, \(p_{dem}(T)\) can be
+defined. This process is defined in Algorithm [[alg:demand-cost]].
+
+#+NAME: alg:demand-cost
+\begin{algorithm}[H]
+\label{alg:demand-cost}
+\caption{Algorithm to calculate the demand cost.}
+    \TitleOfAlgo{DemandCost}
+    \KwIn{Candidate solution: (schedule)}
+    \KwOut{Demand cost: (p-dem)}
+
+    \SetKwFunction{Integrate}{Integrate}
+    \SetKwFunction{Union}{Union}
+
+    \Begin
+    {
+        p15 $\leftarrow\; \emptyset$\;
+
+        \For{dt $\leftarrow 0$ \KwTo T}
+        {
+            \Union{p15, \Integrate{schedule,(dt,dt+15)}}
+        }
+
+        p-old $\leftarrow$ p-new $\leftarrow$ p-dem $\leftarrow$ p-fix\;
+
+        \ForEach{element p in p15}
+        {
+            p-old $\leftarrow$ p-new\;
+            p-new $\leftarrow$ p\;
+
+            \If{p-new > p-old}
+            {
+                p-dem $\leftarrow$ p-new\;
+                p-old $\leftarrow$ p-new\;
+            }
+        }
+
+        \Return{p-dem}
+    }
+\end{algorithm}
+From this we can write:
+
+\[
+PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I ConsumptionCost(v_i, u_i, d_i)
+\]
+
+** Constraints
+:PROPERTIES:
+:CUSTOM_ID: sec:constraints
+:END:
+Now that a method of calculating the fitness of a schedule has been
+established, a method for determining the feasibility of a schedule must
+be established. Feasible schedules require
+
+- No overlap in time
+- No overlap in space
+- Bus receives enough charge
+- Bus is not overcharged
+- Departs on time
+
+These set of requirements can be summarized by the constraints that
+follow:
+
+| (u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j           | Valid queue position/time                                                       |
+| \Delta_i = \delta_i(a_{\xi_i} - d_i)                                     | Calculate discharge of bus during route                                         |
+| \eta_{\xi_i} = \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i | Charge constraint                                                               |
+| \kappa_i \geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)             | Ensure the bus is not charged over its maximum capacity                         |
+| a_i \leq u_i \leq (T-s_i)                                                | Arrival time < initial charge time < maximum initial charge time                |
+| d_i \leq e_i                                                             | Detach time should be less than or equal to departure                           |
+| s_i = d_i - u_i                                                          | Time spent on charger is equal to the difference of the attach and detach times |
+
+Where the valid queue position/time constraint is as defined in
+\cite{tutorials_point} and depicted in [[fig:valid-queue]]. Also
+note that the \(\eta\) constraints can only be verified /after/ the
+schedule has been generated as the initial charge for each visit is
+based from the previous charger selection and charge time.
+
+#+NAME: fig:valid-queue
+\begin{figure}
+\centering
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Valid time position: $u_1 \ngeq d_2$ or $u_2 \geq d_2$ and $v_1 = v_2$}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (2,0);
+        \coordinate (C) at (2.5,0);
+        \coordinate (D) at (4.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red] (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (3.5,0);
+        \coordinate (C) at (1.5,0);
+        \coordinate (D) at (4.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red] (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (4.5,0);
+        \coordinate (C) at (1.0,0);
+        \coordinate (D) at (3.0,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red] (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\caption{Set of possible collisions between two buses in the same queue.}
+\label{fig:valid-queue}
+
+\end{figure}
 
 * Simulated Annealing
 
@@ -43,23 +381,24 @@ the cooling schedule), it begins to encourage local exploitation of the solution
 :PROPERTIES:
 :CUSTOM_ID: cooling-equation-experimental
 :END:
-There are three basic types of cooling equations as shown in \autoref{fig:cool}. A linear cooling schedule is defined by
+There are three basic types of cooling equations as shown in [[fig:cool]]. A linear cooling schedule is defined by
 
 \[ \Tau[n] = \Tauau[n-1] -\Delta_0 \]
 
-with \(\Tau[0] = \Tau_0\) and \(\Delta_0 = 1/2\; C^\circ\) in \autoref{fig:cool}. A geometric cooling schedule is mostly used
+with \(\Tau[0] = \Tau_0\) and \(\Delta_0 = 1/2\; C^\circ\) in [[fig:cool]]. A geometric cooling schedule is mostly used
 in practice \cite{Keller_2019}. It is defined by
 
 \[ \Tau[n] = \alpha \Tau[n-1] \]
 
-where \(\alpha = 0.995\) in \autoref{fig:cool}. An Exponential cooling schedule is defined by the difference equation is
+where \(\alpha = 0.995\) in [[fig:cool]]. An Exponential cooling schedule is defined by the difference equation is
 define as
 
 \[ \Tau[n] = e^{\beta}\Tau[n-1] \]
 
-where \(\beta\) = 0.01$ in \autoref{fig:cool}. The initial temperature, \(T_0\), in the case of \autoref{fig:cool}, is
+where \(\beta\) = 0.01$ in [[fig:cool]]. The initial temperature, \(T_0\), in the case of [[fig:cool]], is
 set to \(500^\circ\; C\) and each schedule's final temperature is \(1\; C^\circ\).
 
+#+name: fig:cool
 #+caption: Cooling equations \label{fig:cool}
 [[file:uml/cool-func.jpg]]
 
@@ -71,68 +410,8 @@ Acceptance criteria describes the method to accept or reject a given candidate s
 solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA,
 worse candidate solutions may be accepted as the new solution. The probability of accepting the candidate solution is
 described by the function \(\exp(\frac{J(new-sol) - J(old-sol)}{\Tau})\) where \(J()\) is the objective functions
-described in \autoref{sec:objective}.
+described in [[#sec:objective]].
 
-** Decision variables
-:PROPERTIES:
-:CUSTOM_ID: decision-variables
-:END:
-Given a set of route metadata, initial charge at the start of the day, arrival times, discharge amounts, etc., a
-charging solution must be generated. The key information required, known as the decision variables, are:
-
-- \(\eta_i\): initial charges for each visit \(i\)
-- \(d_i\) : detach time from the charger for each visit \(i\)
-- \(p_dem\) : The demand cost for the working day
-- \(u_i\) : Initial charge time of visit \(i\)
-- \(s_i\) : Service time of the charger (\(s_i = d_i - u_d\))
-- \(v_i\) : Assigned charger for visit \(i\)
-
-In \autoref{sec:generators} all but \(p_dem\) and \(eta_i\) will be defined. \(p_dem\) will be defined in
-\autoref{sec:objective}, and \(\eta_i\) will be defined in \autoref{sec:constraints}. All the variables are defined in
-\autoref{tab:variables}.
-
-\begin{table}[H]
-   \caption{Notation}
-   \label{tab:variables}
-   \centering
-   \begin{tabular}{l l l l}
-           \toprule
-           \textbf{Variable} & \textbf{Description}                                                  \\
-           \toprule
-           \multicolumn{1}{l}{Input values}                                                          \\
-                   $B$        & Number of buses in use                                               \\
-                   $I$        & Number of total visits                                               \\
-                   $J(v,u,d)$ & Objective function                                                   \\
-                   $K$        & Local search iteration amount                                        \\
-                   $Q$        & Number of chargers                                                   \\
-                   $\T$       & Time horizon                                                         \\
-                   $\Tau$     & Temperature                                                          \\
-           \hline
-           \multicolumn{1}{l}{Input variables}                                                       \\
-                   $\Delta_i$   & Discharge of visit over route $i$                                  \\
-                   $\alpha_i$   & Initial charge percentage time for visit $i$                       \\
-                   $\beta_i$    & Final charge percentage for bus $i$ at the end of the time horizon \\
-                   $\delta_i$   & Discharge rate for vehicle $i$                                     \\
-                   $\epsilon_q$ & Cost of using charger $q$                                          \\
-                   $\kappa_i$   & Battery capacity for bus $i$                                       \\
-                   $\xi_i$      & Value indicating the next index visit $i$ will arrive              \\
-                   $a_i$        & Arrival time of visit $i$                                          \\
-                   $b_i$        & ID for bus visit $i$                                               \\
-                   $e_i$        & Time visit $i$ must exit the station                               \\
-                   $k$          & Local search iteration $k$                                         \\
-                   $m$          & Minimum charge percentage allowed for each visit                   \\
-                   $r_q$        & Charge rate of charger $q$                                         \\
-           \hline
-           \multicolumn{1}{l}{Decision Variables}                                                    \\
-                   $\eta_i$     & Initial charge for visit $i$                                       \\
-                   $d_i$        & Detach time from charger for visit $i$                             \\
-                   $p_{dem}(t)$ & Demand cost                                                        \\
-                   $s_i$        & Amount of time spent on charger for visit $i$ (service time)       \\
-                   $u_i$        & Initial charge time of visit $i$                                   \\
-                   $v_i$        & Assigned queue for visit $i$                                       \\
-                   \bottomrule
-   \end{tabular}
-\end{table}
 ** Generation Mechanisms
 :PROPERTIES:
 :CUSTOM_ID: sec:generators
@@ -150,10 +429,10 @@ These generator mechanisms will in turn be utilized by three wrapper functions. 
 bus route data and the other two used to generate candidate solutions to the bus routes. These routines are defined as
 follows:
 
-- Route generation, \autoref{fig:route}, which utilizes route metadata
-  as shown \autoref{fig:routeyaml}
-- Schedule generation, \autoref{fig:schedule}
-- Tweak schedule, \autoref{fig:tweak}
+- Route generation, [[fig:route]], which utilizes route metadata
+  as shown [[fig:routeyaml]]
+- Schedule generation, [[fig:schedule]]
+- Tweak schedule, [[fig:tweak]]
 
 *** Generators
 :PROPERTIES:
@@ -171,8 +450,9 @@ to the array of valid chargers. When a bus is not to be placed on a charger, it 
 The new visit generator describes the process of moving bus \(b\) from the idle queue, \(v_i \in \{Q,..,Q+b\}\) to a
 valid charging queue, \(v_i \in \{0,..,Q\}\). A list of tuples describing valid time, \(u_i\) and \(d_i\), for each
 charger will be listed and randomly selected using a uniform distribution. The algorithm is defined in Algorithm
-\autoref{alg:new-visit}.
+[[alg:new-visit]].
 
+#+name: alg:new-visit
 \begin{algorithm}[H]
 \label{alg:new-visit}
 \caption{New visit algorithm}
@@ -202,10 +482,11 @@ charger will be listed and randomly selected using a uniform distribution. The a
 \end{algorithm}
 
 Where \(\mathbb{U}_[a,b]\) is the continuous uniform distribution of \(a\) and \(b\), =route-data= is the data generated
-in =RouteGeneration= (described in \autoref{sec:route-gen}), and =charger-data= are the time intervals allocated to
-buses. The algorithm to find free time is defined in Algorithm \autoref{alg:find-free-time}. The cases are depicted in
-\autoref{fig:find-free}.
+in =RouteGeneration= (described in [[#sec:route-gen]]), and =charger-data= are the time intervals allocated to
+buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. The cases are depicted in
+[[fig:find-free]].
 
+#+name: fig:find-free
 \begin{figure}
 \centering
 \begin{subfigure}{\textwidth}
@@ -329,6 +610,8 @@ buses. The algorithm to find free time is defined in Algorithm \autoref{alg:find
 \caption{Outlines the different cases that requested time and charger allocated time can overlap}
 \label{fig:find-free}
 \end{figure}
+
+#+name: alg:find-free-time
 \begin{algorithm}[H]
 \label{alg:find-free-time}
 \caption{Find free time algorithm searches and returns the available time frames}
@@ -368,6 +651,7 @@ is less than initial charge time which is less than the detatch time which is le
 station), there may be some room to move \(u_i\) and \(d_i\) within the window \([a_i, e_i]\). Two new values, \(u_i\)
 and \(d_i\) are are selected with a uniform distribution to satisfy \(a_i \leq u_i \leq d_i \leq e_i\).
 
+#+name: alg:slide-visit
 \begin{algorithm}[H]
 \label{alg:slide-visit}
 \caption{Slide Visit Algorithm}
@@ -394,6 +678,7 @@ Similar to new visit, this generator moves a bus from one queue to another; howe
 bus from one charger queue to another, \(v_i \in \{0,..,Q\}\). A new charger will be selected at random with a uniform
 distribution.
 
+#+name: alg:new-charger
 \begin{algorithm}[H]
 \label{alg:new-charger}
 \caption{New Charger Algorithm}
@@ -427,6 +712,7 @@ distribution.
 The remove generator simply removes a bus from a charger queue and places it in its idle queue, \(v_i \in
 \{Q,...,Q+B\}\).
 
+#+name:alg:remove
 \begin{algorithm}[H]
 \label{alg:remove}
 \caption{Remove algorithm}
@@ -449,8 +735,9 @@ The remove generator simply removes a bus from a charger queue and places it in 
 :CUSTOM_ID: sec:new-visit
 :END:
 New window is a combination of the remove and then new visit generators
-(\autoref{sec:remove} and \autoref{sec:new-visit}).
+([[#sec:remove]] and [[#sec:new-visit]]).
 
+#+name: alg:new-window
 \begin{algorithm}[H]
 \label{alg:new-window}
 \caption{New window algorithm}
@@ -485,7 +772,7 @@ different generation processes for the SA process.
 :CUSTOM_ID: sec:route-gen
 :END:
 The objective of route generation is to create a set of metadata about
-bus routes given the information in \autoref{fig:routeyaml}.
+bus routes given the information in [[fig:routeyaml]].
 Specifically, the objective is to generate \(I\) routes for \(B\) buses.
 Each visit will have
 
@@ -495,15 +782,16 @@ Each visit will have
 - Final charge (for finial visit only)
 
 This is created by following the "GenerateSchedule" state in the state
-diagram found ind \autoref{fig:route}. In essence the logic is as
+diagram found in [[fig:route]]. In essence the logic is as
 follows: Generate \(B\) random numbers that add up to \(I\) visits (with
 a minimum amount of visits set for each bus). For each bus and for each
 visit, set a departure time that is between the range [min_rest,
-max_rest] (\autoref{fig:routeyaml}), set the next arrival time to be
+max_rest] ([[fig:routeyaml]]), set the next arrival time to be
 \(j \cdot \frac{T}{\text{number-of-bus-visits}}\) where \(j\) is the
 \(j^{th}\) visit for bus \(b\). Finally, calculate the amount of
 discharge from previous arrival to the departure time.
 
+#+name: alg:route-generation
 \begin{algorithm}[H]
 \label{alg:route-generation}
 \caption{Route generation algorithm}
@@ -552,10 +840,7 @@ discharge from previous arrival to the departure time.
     }
 \end{algorithm}
 
-#+begin_html
-  <!-- Departure Time -->
-#+end_html
-
+#+name: alg:departure-time
 \begin{algorithm}[H]
 \label{alg:departure-time}
 \caption{Departure time algorithm}
@@ -578,9 +863,9 @@ discharge from previous arrival to the departure time.
     }
 \end{algorithm}
 Where =discharge-rate= is read from YAML data shown in
-\autoref{fig:routeyaml}, the =Feasible= method is used to determine if
+[[fig:routeyaml]], the =Feasible= method is used to determine if
 the generated schedule is valid (conditions covered in
-\autoref{sec:constraints}).
+[[#sec:constraints]]).
 
 **** Schedule Generation
 :PROPERTIES:
@@ -592,9 +877,10 @@ given the route schedule data that was previous generated. A bus is
 picked at random, \(b \in B\), then a random route is picked for bus
 \(b\). The new arrival generator is then utilized. This process is
 repeated for each visit. The state diagram is depicted in the state
-digram in \autoref{fig:schedule} and outlined in Algorithm
-\autoref{alg:schedule-generation}.
+digram in [[fig:schedule]] and outlined in Algorithm
+[[alg:schedule-generation]].
 
+#+name: alg:schedule-generation
 \begin{algorithm}[H]
 \label{alg:schedule-generation}
 \caption{Schedule generation algorithm}
@@ -617,6 +903,7 @@ digram in \autoref{fig:schedule} and outlined in Algorithm
             \Return{schedule}
     }
 \end{algorithm}
+
 **** Tweak Schedule
 :PROPERTIES:
 :CUSTOM_ID: tweak-schedule
@@ -625,9 +912,10 @@ As described in SA, local searches are also employed to try and exploit
 a given solution \cite{radosavljevic2018metaheuristic}. The method that
 will be employed to exploit the given solution is as follows: pick a
 bus, pick a visit, pick a generator. This state diagram is depicted in
-\autoref{fig:tweak} and outlined in Algorithm
-\autoref{alg:tweak-schedule}.
+[[fig:tweak]] and outlined in Algorithm
+[[alg:tweak-schedule]].
 
+#+name: alg:tweak-schedule
 \begin{algorithm}[H]
 \label{alg:tweak-schedule}
 \caption{Tweak schedule algorithm}
@@ -650,265 +938,6 @@ bus, pick a visit, pick a generator. This state diagram is depicted in
         \Return{schedule}
     }
 \end{algorithm}
-* Optimization Problem
-:PROPERTIES:
-:CUSTOM_ID: optimization-problem
-:END:
-This sections discusses and formulates the objective functions as well
-as the MILP constraints. The objective functions are required to allow
-comparisons between candidate solutions. The constraints ensure that
-candidate solutions are in the feasible region.
-
-** Objective Function
-:PROPERTIES:
-:CUSTOM_ID: sec:objective
-:END:
-Let \(J\) represent the objective function. The objective function has
-four main considerations:
-
-- Charger assignment
-- Demand cost
-- Consumption cost
-- Sufficient charge
-
-Suppose the objective function is of the form
-\(J = AC(u, d, v) + PC(u, d, v)\). \(AC(u, d, v)\) is the assignment
-cost, and \(PC(u, d, v)\) is the power usage cost. The assignment cost
-can be represented as:
-
-\[
-AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i) + ChargePenalty(\eta_i)
-\]
-
-Where \(v_i\) is the charger index, \(u_i\) is the initial charge time,
-and \(d_i\) is the detach time for visit \(i\). The function
-\(UsageCost(v,u,d)\) returns the cost of using charger \(q\) multiplied
-by the usage time as shown in Algorithm \autoref{alg:usage-cost} and
-\(\eta_i\) is the initial charge for visit \(i\). The
-\(ChargePenalty(\eta_i)\) method exponentially punishes the candidate
-solution if the initial charge for a specified visit \(i\) is not above
-a given threshold as described in Algorithm
-\autoref{alg:charge-penalty}.
-
-\begin{algorithm}[H]
-\label{alg:usage-cost}
-\caption{Method describing the calculation for the cost of usage for charger $q$.}
-    \TitleOfAlgo{UsageCost}
-    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
-    \KwOut{Cost of use of charger}
-
-    \Begin
-    {
-        \Return{$\epsilon_q[v_i](d_i - u_i)$}
-    }
-\end{algorithm}
-\begin{algorithm}[H]
-\label{alg:charge-penalty}
-\caption{Method describing the calculation for the penalty of buses not meeting the required charge threshold.}
-    \TitleOfAlgo{ChargePenalty}
-    \KwIn{Initial charge for visit $i$: $\eta_i$}
-    \KwOut{Penalty}
-
-    \Begin
-    {
-        penalty $\leftarrow$ 0\;
-
-        \If{$m \kappa_i \geq \eta_{\xi_i}$}
-        {
-            penalty $\leftarrow\; exp(m - \eta_i)$\;
-        }
-
-        \Return{penalty}
-    }
-\end{algorithm}
-Where \(m\) is the minimum charge percentage allowed at each visit and
-\(\kappa_i\) is the battery capacity.
-
-The power cost can begin to be defined with the consumption cost:
-
-\[
-PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
-\]
-
-where \(ConsumptionCost(v_i, u_i, d_i)\) returns the energy in \(KWH\)
-given the charger index \(v_i\) and time spent on the charger \(d_i\) as
-shown in Algorithm \autoref{alg:consumption-cost}.
-
-\begin{algorithm}[H]
-\label{alg:consumption-cost}
-\caption{Method describing the consumption cost for a single visit}
-    \TitleOfAlgo{ConsumptionCost}
-    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
-    \KwOut{Consumption cost}
-
-    \Begin
-    {
-        \Return{$r[v_i](d_i - u_i)$}
-    }
-\end{algorithm}
-Peak 15 should also be taken into consideration. Peak 15 is defined as:
-
-\[
-p_{15}(t) = 1/15 \int_{t-15}^{t} p(\tau) d\tau
-\]
-
-which represents the energy used over the last 15 minutes. Because worst
-case must be assumed to always ensure enough power is supplied
-
-\[
-p_{max}(t) = \text{max}_{\tau\in [0,t]}p_{15}(\tau)
-\]
-
-Which retains the largest \(p_{15}\) found. The demand charge is then
-determined by
-
-\[
-p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
-\]
-
-where \(s_r\) is the demand rate. Which, again, retains the largest
-\(p_{15}\) value with a starting, fixed value of \(p_{fix}\). To
-calculate this numerically, an integration algorithm is required to
-iteratively calculate the \(p_{15}(t)\). In turn, \(p_{dem}(T)\) can be
-defined. This process is defined in Algorithm \autoref{alg:demand-cost}.
-
-\begin{algorithm}[H]
-\label{alg:demand-cost}
-\caption{Algorithm to calculate the demand cost.}
-    \TitleOfAlgo{DemandCost}
-    \KwIn{Candidate solution: (schedule)}
-    \KwOut{Demand cost: (p-dem)}
-
-    \SetKwFunction{Integrate}{Integrate}
-    \SetKwFunction{Union}{Union}
-
-    \Begin
-    {
-        p15 $\leftarrow\; \emptyset$\;
-
-        \For{dt $\leftarrow 0$ \KwTo T}
-        {
-            \Union{p15, \Integrate{schedule,(dt,dt+15)}}
-        }
-
-        p-old $\leftarrow$ p-new $\leftarrow$ p-dem $\leftarrow$ p-fix\;
-
-        \ForEach{element p in p15}
-        {
-            p-old $\leftarrow$ p-new\;
-            p-new $\leftarrow$ p\;
-
-            \If{p-new > p-old}
-            {
-                p-dem $\leftarrow$ p-new\;
-                p-old $\leftarrow$ p-new\;
-            }
-        }
-
-        \Return{p-dem}
-    }
-\end{algorithm}
-From this we can write:
-
-\[
-PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I ConsumptionCost(v_i, u_i, d_i)
-\]
-
-** Constraints
-:PROPERTIES:
-:CUSTOM_ID: sec:constraints
-:END:
-Now that a method of calculating the fitness of a schedule has been
-established, a method for determining the feasibility of a schedule must
-be established. Feasible schedules require
-
-- No overlap in time
-- No overlap in space
-- Bus receives enough charge
-- Bus is not overcharged
-- Departs on time
-
-These set of requirements can be summarized by the constraints that
-follow:
-
-| (u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j           | Valid queue position/time                                                       |
-| \Delta_i = \delta_i(a_{\xi_i} - d_i)                                     | Calculate discharge of bus during route                                         |
-| \eta_{\xi_i} = \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i | Charge constraint                                                               |
-| \kappa_i \geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)             | Ensure the bus is not charged over its maximum capacity                         |
-| a_i \leq u_i \leq (T-s_i)                                                | Arrival time < initial charge time < maximum initial charge time                |
-| d_i \leq e_i                                                             | Detach time should be less than or equal to departure                           |
-| s_i = d_i - u_i                                                          | Time spent on charger is equal to the difference of the attach and detach times |
-
-Where the valid queue position/time constraint is as defined in
-\cite{tutorials_point} and depicted in \autoref{fig:valid-queue}. Also
-note that the \(\eta\) constraints can only be verified /after/ the
-schedule has been generated as the initial charge for each visit is
-based from the previous charger selection and charge time.
-
-\begin{figure}
-\centering
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Valid time position: $u_1 \ngeq d_2$ or $u_2 \geq d_2$ and $v_1 = v_2$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (2,0);
-        \coordinate (C) at (2.5,0);
-        \coordinate (D) at (4.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red] (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (3.5,0);
-        \coordinate (C) at (1.5,0);
-        \coordinate (D) at (4.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red] (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (4.5,0);
-        \coordinate (C) at (1.0,0);
-        \coordinate (D) at (3.0,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red] (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\caption{Set of possible collisions between two buses in the same queue.}
-\label{fig:valid-queue}
-
-\end{figure}
-
 * Optimization Algorithm
 :PROPERTIES:
 :CUSTOM_ID: optimization-algorithm
@@ -916,8 +945,8 @@ based from the previous charger selection and charge time.
 This final section combines the generation algorithms and the
 optimization problem into a single algorithm. The objective is to
 outline the SA process from start to finish. Algorithm
-\autoref{alg:route-generation} generates a set of bus routes utilizing
-the route metadata in \autoref{fig:routeyaml}. The initial temperature
+[[alg:route-generation]] generates a set of bus routes utilizing
+the route metadata in [[fig:routeyaml]]. The initial temperature
 and cooling schedule will be selected and passed into the SA
 optimization algorithm. A new candidate solution will be generated. For
 each step in the cooling schedule will have \(K\) iterations to attempt
@@ -925,9 +954,10 @@ to find a local maxima. Each perturbation to the system is then compared
 to the current candidate solution. If the new candidate solution is
 better it is kept; however, if the candidate solution is worse, the
 solution may still be kept with a probability
-\(\exp(\text{del-sol}/\Tau)\) as described in \autoref{sec:acceptance}.
-This process is summarized in Algorithm \autoref{alg:sa-pap}.
+\(\exp(\text{del-sol}/\Tau)\) as described in [[#sec:acceptance]].
+This process is summarized in Algorithm [[alg:sa-pap]].
 
+#+name: alg:sa-pap
 \begin{algorithm}[H]
 \label{alg:sa-pap}
 \caption{Simulated annealing approach to the position allocation problem}
@@ -979,21 +1009,25 @@ This process is summarized in Algorithm \autoref{alg:sa-pap}.
 \bibliographystyle{plain}
 \bibliography{main}
 
+#+name: fig:route
 #+caption: Route generation state diagram\label{fig:route}
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
 [[file:uml/route_generation.png]]
 
+#+name: fig:routeyaml
 #+caption: Route YAML file with example data\label{fig:routeyaml}
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
 [[file:uml/route_yaml.png]]
 
+#+name: fig:schedule
 #+caption: Charge solution state diagram \label{fig:schedule}
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
 [[file:uml/charge_solution.png]]
 
+#+name: fig:tweak
 #+caption: Solution tweak state diagram \label{fig:tweak}
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.2\textwidth

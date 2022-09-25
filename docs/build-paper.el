@@ -7,6 +7,22 @@
 ;; Load the publishing project
 (require 'ox-publish)
 
+;; Create new `article' class for `org-latex-classes'
+(with-eval-after-load 'ox-latex
+(add-to-list 'org-latex-classes
+             '("article"
+               "\\documentclass[11pt,a4paper,final]{article}
+\\usepackage[a4paper, total={7in, 10in}]{geometry}
+\\usepackage{algorithm2e}
+\\usepackage{booktabs}
+\\usepackage{subcaption}
+\\usepackage{graphicx}
+\\usepackage{tikz}"
+               ("\\section{%s}" . "\\section{%s}")
+               ("\\subsection{%s}" . "\\subsection{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection{%s}")
+               ("\\subsubsubsection{%s}" . "\\subsubsubsection{%s}"))))
+
 ;; Define the publishing project
 (setq org-publish-project-alist
       (list                                                                     ; List for all projects
