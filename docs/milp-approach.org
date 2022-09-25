@@ -6,8 +6,6 @@
 # Custom commands
 #+latex_header: \newcommand{\T}{\mathcal{T}}
 #+latex_header: \newcommand{\Tau}{T}
-# latex_header: \usepackage{showframe}
-
 
 This document outlines the simulated annealing (SA) approach to the bus
 charging scheduling problem utilizing Mixed Integer Linear Programming (MILP) constraints as the method of determining

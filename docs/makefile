@@ -3,10 +3,10 @@
 ##===============================================================================
 # Variables
 UMLDIR = ./uml
-SRC   := $(wildcard *.md)
+SRC   := $(wildcard *.org)
 UML   := $(wildcard $(UMLDIR)/*.puml)
 PNG   := $(patsubst %.puml, %.png, $(UML))
-PDF   := $(patsubst %.md, %.pdf, $(SRC))
+PDF   := $(patsubst %.org, %.pdf, $(SRC))
 
 ##===============================================================================
 # Recipes
@@ -34,8 +34,8 @@ clean:
 
 ##-------------------------------------------------------------------------------
 #
-%.pdf: %.md
-	pandoc --citeproc --number-sections --listings --pdf-engine=xelatex "$<" -o $@
+%.pdf: %.org
+	emacs -Q --script build-paper.el
 
 ##-------------------------------------------------------------------------------
 #
