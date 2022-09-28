@@ -3,15 +3,17 @@
 #+EMAIL: A01704744@usu.edu
 #+LANGUAGE: en
 
+# Document options
+#+OPTIONS: tex:t
+
+# LaTex Configuration
 #+LATEX_CLASS: article
 
-# Custom commands
 #+latex_header: \newcommand{\T}{\mathcal{T}}
 #+latex_header: \newcommand{\Tau}{T}
 #+latex_header: \usepackage{lipsum}
 
 # * Abstract
-
 # #+begin_export latex
 # \begin{abstract}
 # \lipsum[1-2]
@@ -30,6 +32,9 @@ Simulated Annealing (SA) shall be introduced and utilized as a means of finding 
 shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints to ensure validity of the proposed
 charging schedules. A set of objective functions describing consumption cost and demand cost, as stated above, shall be
 minimized as to reduce power consumption and total cost of using the BEBs.
+
+* Problem Description
+Given a set of bus arrivals to a charging station $i= \{1,...,I\} \in \mathbb{Z} with a set of chargers to be queued $q = \{1,...,Q\} \in \mathbb{Z} where the bus is idetified by a identificaiton number $b = \{1,...,B\}$ \in \mathbb{Z}$.
 
 * Optimization Problem
 :PROPERTIES:
