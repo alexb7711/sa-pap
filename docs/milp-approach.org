@@ -11,7 +11,7 @@
 #+latex_header: \usepackage{lipsum}
 
 # * Abstract
-#
+
 # #+begin_export latex
 # \begin{abstract}
 # \lipsum[1-2]
@@ -135,6 +135,7 @@ a given threshold as described in Algorithm
 [[alg:charge-penalty]].
 
 #+NAME: alg:usage-cost
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:usage-cost}
 \caption{Method describing the calculation for the cost of usage for charger $q$.}
@@ -147,8 +148,10 @@ a given threshold as described in Algorithm
         \Return{$\epsilon_q[v_i](d_i - u_i)$}
     }
 \end{algorithm}
+#+end_export
 
 #+NAME: alg:charge-penalty
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:charge-penalty}
 \caption{Method describing the calculation for the penalty of buses not meeting the required charge threshold.}
@@ -168,6 +171,7 @@ a given threshold as described in Algorithm
         \Return{penalty}
     }
 \end{algorithm}
+#+end_export
 
 Where \(m\) is the minimum charge percentage allowed at each visit and
 \(\kappa_i\) is the battery capacity.
@@ -183,6 +187,7 @@ given the charger index \(v_i\) and time spent on the charger \(d_i\) as
 shown in Algorithm [[alg:consumption-cost]].
 
 #+NAME: alg:consumption-cost
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:consumption-cost}
 \caption{Method describing the consumption cost for a single visit}
@@ -195,6 +200,8 @@ shown in Algorithm [[alg:consumption-cost]].
         \Return{$r[v_i](d_i - u_i)$}
     }
 \end{algorithm}
+#+end_export
+
 Peak 15 should also be taken into consideration. Peak 15 is defined as:
 
 \[
@@ -222,6 +229,7 @@ iteratively calculate the \(p_{15}(t)\). In turn, \(p_{dem}(T)\) can be
 defined. This process is defined in Algorithm [[alg:demand-cost]].
 
 #+NAME: alg:demand-cost
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:demand-cost}
 \caption{Algorithm to calculate the demand cost.}
@@ -258,6 +266,8 @@ defined. This process is defined in Algorithm [[alg:demand-cost]].
         \Return{p-dem}
     }
 \end{algorithm}
+#+end_export
+
 From this we can write:
 
 \[
@@ -296,6 +306,7 @@ schedule has been generated as the initial charge for each visit is
 based from the previous charger selection and charge time.
 
 #+NAME: fig:valid-queue
+#+begin_export latex
 \begin{figure}
 \centering
 \begin{subfigure}{\textwidth}
@@ -357,11 +368,10 @@ based from the previous charger selection and charge time.
 
 \caption{Set of possible collisions between two buses in the same queue.}
 \label{fig:valid-queue}
-
 \end{figure}
+#+end_export
 
 * Simulated Annealing
-
 SA is a local search (exploitation oriented) single-solution based (as compared to population based) metaheuristic
 approach in which its main advantage is simply \cite{Gendreau2018-pw}. This model is named after its analogised process
 where a crystalline solid is heated then allowed to cool very slowly until it achieves its most regular possible crystal
@@ -453,6 +463,7 @@ charger will be listed and randomly selected using a uniform distribution. The a
 [[alg:new-visit]].
 
 #+name: alg:new-visit
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:new-visit}
 \caption{New visit algorithm}
@@ -480,6 +491,7 @@ charger will be listed and randomly selected using a uniform distribution. The a
         \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
     }
 \end{algorithm}
+#+end_export
 
 Where \(\mathbb{U}_[a,b]\) is the continuous uniform distribution of \(a\) and \(b\), =route-data= is the data generated
 in =RouteGeneration= (described in [[#sec:route-gen]]), and =charger-data= are the time intervals allocated to
@@ -487,6 +499,7 @@ buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-t
 [[fig:find-free]].
 
 #+name: fig:find-free
+#+begin_export latex
 \begin{figure}
 \centering
 \begin{subfigure}{\textwidth}
@@ -610,8 +623,10 @@ buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-t
 \caption{Outlines the different cases that requested time and charger allocated time can overlap}
 \label{fig:find-free}
 \end{figure}
+#+end_export
 
 #+name: alg:find-free-time
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:find-free-time}
 \caption{Find free time algorithm searches and returns the available time frames}
@@ -641,6 +656,7 @@ buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-t
         \Return{(u,d)}
     }
 \end{algorithm}
+#+end_export
 
 **** Slide visit
 :PROPERTIES:
@@ -652,6 +668,7 @@ station), there may be some room to move \(u_i\) and \(d_i\) within the window \
 and \(d_i\) are are selected with a uniform distribution to satisfy \(a_i \leq u_i \leq d_i \leq e_i\).
 
 #+name: alg:slide-visit
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:slide-visit}
 \caption{Slide Visit Algorithm}
@@ -669,6 +686,7 @@ and \(d_i\) are are selected with a uniform distribution to satisfy \(a_i \leq u
         \Return{(v,d)}
     }
 \end{algorithm}
+#+end_export
 
 **** New charger
 :PROPERTIES:
@@ -679,6 +697,7 @@ bus from one charger queue to another, \(v_i \in \{0,..,Q\}\). A new charger wil
 distribution.
 
 #+name: alg:new-charger
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:new-charger}
 \caption{New Charger Algorithm}
@@ -704,6 +723,7 @@ distribution.
        \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
     }
 \end{algorithm}
+#+end_export
 
 **** Remove
 :PROPERTIES:
@@ -713,6 +733,7 @@ The remove generator simply removes a bus from a charger queue and places it in 
 \{Q,...,Q+B\}\).
 
 #+name:alg:remove
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:remove}
 \caption{Remove algorithm}
@@ -730,6 +751,8 @@ The remove generator simply removes a bus from a charger queue and places it in 
        \Return{$(v,u,d)$}
     }
 \end{algorithm}
+#+end_export
+
 **** New window
 :PROPERTIES:
 :CUSTOM_ID: sec:new-visit
@@ -738,6 +761,7 @@ New window is a combination of the remove and then new visit generators
 ([[#sec:remove]] and [[#sec:new-visit]]).
 
 #+name: alg:new-window
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:new-window}
 \caption{New window algorithm}
@@ -759,6 +783,7 @@ New window is a combination of the remove and then new visit generators
         \Return{$(v,u,d)$}
     }
 \end{algorithm}
+#+end_export
 
 *** Generator Wrappers
 :PROPERTIES:
@@ -792,6 +817,7 @@ max_rest] ([[fig:routeyaml]]), set the next arrival time to be
 discharge from previous arrival to the departure time.
 
 #+name: alg:route-generation
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:route-generation}
 \caption{Route generation algorithm}
@@ -839,8 +865,10 @@ discharge from previous arrival to the departure time.
 
     }
 \end{algorithm}
+#+end_export
 
 #+name: alg:departure-time
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:departure-time}
 \caption{Departure time algorithm}
@@ -862,6 +890,8 @@ discharge from previous arrival to the departure time.
         \Return{depart}
     }
 \end{algorithm}
+#+end_export
+
 Where =discharge-rate= is read from YAML data shown in
 [[fig:routeyaml]], the =Feasible= method is used to determine if
 the generated schedule is valid (conditions covered in
@@ -881,6 +911,7 @@ digram in [[fig:schedule]] and outlined in Algorithm
 [[alg:schedule-generation]].
 
 #+name: alg:schedule-generation
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:schedule-generation}
 \caption{Schedule generation algorithm}
@@ -903,6 +934,7 @@ digram in [[fig:schedule]] and outlined in Algorithm
             \Return{schedule}
     }
 \end{algorithm}
+#+end_export
 
 **** Tweak Schedule
 :PROPERTIES:
@@ -916,6 +948,7 @@ bus, pick a visit, pick a generator. This state diagram is depicted in
 [[alg:tweak-schedule]].
 
 #+name: alg:tweak-schedule
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:tweak-schedule}
 \caption{Tweak schedule algorithm}
@@ -938,6 +971,8 @@ bus, pick a visit, pick a generator. This state diagram is depicted in
         \Return{schedule}
     }
 \end{algorithm}
+#+end_export
+
 * Optimization Algorithm
 :PROPERTIES:
 :CUSTOM_ID: optimization-algorithm
@@ -958,6 +993,7 @@ solution may still be kept with a probability
 This process is summarized in Algorithm [[alg:sa-pap]].
 
 #+name: alg:sa-pap
+#+begin_export latex
 \begin{algorithm}[H]
 \label{alg:sa-pap}
 \caption{Simulated annealing approach to the position allocation problem}
@@ -1005,6 +1041,7 @@ This process is summarized in Algorithm [[alg:sa-pap]].
         }
     }
 \end{algorithm}
+#+end_export
 
 \bibliographystyle{plain}
 \bibliography{main}
