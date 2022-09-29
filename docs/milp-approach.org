@@ -463,8 +463,8 @@ to the array of valid chargers. When a bus is not to be placed on a charger, it 
 :PROPERTIES:
 :CUSTOM_ID: new-visit
 :END:
-The new visit generator describes the process of moving bus \(b\) from the idle queue, \(v_i \in \{Q,..,Q+b\}\) to a
-valid charging queue, \(v_i \in \{0,..,Q\}\). A list of tuples describing valid time, \(u_i\) and \(d_i\), for each
+The new visit generator describes the process of moving bus $b$ from the idle queue, $v_i \in \{Q,..,Q+b\}$ to a
+valid charging queue, $v_i \in \{0,..,Q\}$. A list of tuples describing valid time, $u_i$ and $d_i$, for each
 charger will be listed and randomly selected using a uniform distribution. The algorithm is defined in Algorithm
 [[alg:new-visit]].
 
@@ -499,7 +499,7 @@ charger will be listed and randomly selected using a uniform distribution. The a
 \end{algorithm}
 #+end_export
 
-Where \(\mathbb{U}_[a,b]\) is the continuous uniform distribution of \(a\) and \(b\), =route-data= is the data generated
+Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, =route-data= is the data generated
 in =RouteGeneration= (described in [[#sec:route-gen]]), and =charger-data= are the time intervals allocated to
 buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. The cases are depicted in
 [[fig:find-free]].
@@ -668,10 +668,10 @@ buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-t
 :PROPERTIES:
 :CUSTOM_ID: slide-visit
 :END:
-Slide visit is used for buses that have already been scheduled. Because \(a_i \leq u_i \leq d_i \leq e_i\) (arrival time
+Slide visit is used for buses that have already been scheduled. Because $a_i \leq u_i \leq d_i \leq e_i$ (arrival time
 is less than initial charge time which is less than the detatch time which is less than the time the bus exists the
-station), there may be some room to move \(u_i\) and \(d_i\) within the window \([a_i, e_i]\). Two new values, \(u_i\)
-and \(d_i\) are are selected with a uniform distribution to satisfy \(a_i \leq u_i \leq d_i \leq e_i\).
+station), there may be some room to move $u_i$ and $d_i$ within the window $[a_i, e_i]$. Two new values, $u_i$
+and $d_i$ are are selected with a uniform distribution to satisfy $a_i \leq u_i \leq d_i \leq e_i$.
 
 #+name: alg:slide-visit
 #+begin_export latex
@@ -699,7 +699,7 @@ and \(d_i\) are are selected with a uniform distribution to satisfy \(a_i \leq u
 :CUSTOM_ID: new-charger
 :END:
 Similar to new visit, this generator moves a bus from one queue to another; however, the new charger generator moves a
-bus from one charger queue to another, \(v_i \in \{0,..,Q\}\). A new charger will be selected at random with a uniform
+bus from one charger queue to another, $v_i \in \{0,..,Q\}$. A new charger will be selected at random with a uniform
 distribution.
 
 #+name: alg:new-charger
@@ -804,7 +804,7 @@ different generation processes for the SA process.
 :END:
 The objective of route generation is to create a set of metadata about
 bus routes given the information in [[fig:routeyaml]].
-Specifically, the objective is to generate \(I\) routes for \(B\) buses.
+Specifically, the objective is to generate $I$ routes for $B$ buses.
 Each visit will have
 
 - Initial charge (for first visit only)
@@ -814,12 +814,12 @@ Each visit will have
 
 This is created by following the "GenerateSchedule" state in the state
 diagram found in [[fig:route]]. In essence the logic is as
-follows: Generate \(B\) random numbers that add up to \(I\) visits (with
+follows: Generate $B$ random numbers that add up to $I$ visits (with
 a minimum amount of visits set for each bus). For each bus and for each
 visit, set a departure time that is between the range [min_rest,
 max_rest] ([[fig:routeyaml]]), set the next arrival time to be
-\(j \cdot \frac{T}{\text{number-of-bus-visits}}\) where \(j\) is the
-\(j^{th}\) visit for bus \(b\). Finally, calculate the amount of
+$j \cdot \frac{T}{\text{number-of-bus-visits}}$ where $j$ is the
+$j^{th}$ visit for bus $b$. Finally, calculate the amount of
 discharge from previous arrival to the departure time.
 
 #+name: alg:route-generation
@@ -910,8 +910,8 @@ the generated schedule is valid (conditions covered in
 The objective of this generator is to generate a candidate solution to
 the given schedule. To generate a candidate solution the generator is
 given the route schedule data that was previous generated. A bus is
-picked at random, \(b \in B\), then a random route is picked for bus
-\(b\). The new arrival generator is then utilized. This process is
+picked at random, $b \in B$, then a random route is picked for bus
+$b$. The new arrival generator is then utilized. This process is
 repeated for each visit. The state diagram is depicted in the state
 digram in [[fig:schedule]] and outlined in Algorithm
 [[alg:schedule-generation]].
@@ -988,12 +988,12 @@ outline the SA process from start to finish. Algorithm
 the route metadata in [[fig:routeyaml]]. The initial temperature
 and cooling schedule will be selected and passed into the SA
 optimization algorithm. A new candidate solution will be generated. For
-each step in the cooling schedule will have \(K\) iterations to attempt
+each step in the cooling schedule will have $K$ iterations to attempt
 to find a local maxima. Each perturbation to the system is then compared
 to the current candidate solution. If the new candidate solution is
 better it is kept; however, if the candidate solution is worse, the
 solution may still be kept with a probability
-\(\exp(\text{del-sol}/\Tau)\) as described in [[#sec:acceptance]].
+$\exp(\text{del-sol}/\Tau)$ as described in [[#sec:acceptance]].
 This process is summarized in Algorithm [[alg:sa-pap]].
 
 #+name: alg:sa-pap
