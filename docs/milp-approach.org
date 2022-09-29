@@ -35,8 +35,8 @@ charging schedules. A set of objective functions describing consumption cost and
 minimized as to reduce power consumption and total cost of using the BEBs.
 
 * Problem Description
-Given a set of bus arrivals to a charging station $i= \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued $q
-= \{1,...,Q\} \in \mathbb{Z}$ where the bus is idetified by a identificaiton number $b = \{1,...,B\} \in \mathbb{Z}$.
+Given a set of bus arrivals to a charging station $i= \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued 
+$q = \{1,...,Q\} \in \mathbb{Z}$ where the bus is idetified by a identificaiton number $b = \{1,...,B\} \in \mathbb{Z}$.
 
 * Optimization Problem
 :PROPERTIES:
