@@ -114,24 +114,24 @@ In section [[#sec:generators]] all but \(p_dem\) and \(eta_i\) will be defined. 
 :PROPERTIES:
 :CUSTOM_ID: sec:objective
 :END:
-Let \(J\) represent the objective function. The objective function has four main considerations:
+Let $J$ represent the objective function. The objective function has four main considerations:
 
 - Charger assignment
 - Demand cost
 - Consumption cost
 - Sufficient charge
 
-Suppose the objective function is of the form \(J = AC(u, d, v) + PC(u, d, v)\). \(AC(u, d, v)\) is the assignment cost,
-and \(PC(u, d, v)\) is the power usage cost. The assignment cost can be represented as:
+Suppose the objective function is of the form $J = AC(u, d, v) + PC(u, d, v)$. $AC(u, d, v)$ is the assignment cost,
+and $PC(u, d, v)$ is the power usage cost. The assignment cost can be represented as:
 
-\[
+$$
 AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i) + ChargePenalty(\eta_i)
-\]
+$$
 
-Where \(v_i\) is the charger index, \(u_i\) is the initial charge time, and \(d_i\) is the detach time for visit \(i\).
-The function \(UsageCost(v,u,d)\) returns the cost of using charger \(q\) multiplied by the usage time as shown in
-Algorithm [[alg:usage-cost]] and \(\eta_i\) is the initial charge for visit \(i\). The \(ChargePenalty(\eta_i)\) method
-exponentially punishes the candidate solution if the initial charge for a specified visit \(i\) is not above a given
+Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$.
+The function $UsageCost(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time as shown in
+Algorithm [[alg:usage-cost]] and $\eta_i$ is the initial charge for visit $i$. The $ChargePenalty(\eta_i)$ method
+exponentially punishes the candidate solution if the initial charge for a specified visit $i$ is not above a given
 threshold as described in Algorithm [[alg:charge-penalty]].
 
 #+name: alg:usage-cost
@@ -173,17 +173,17 @@ threshold as described in Algorithm [[alg:charge-penalty]].
 \end{algorithm}
 #+end_export
 
-Where \(m\) is the minimum charge percentage allowed at each visit and
-\(\kappa_i\) is the battery capacity.
+Where $m$ is the minimum charge percentage allowed at each visit and
+$\kappa_i$ is the battery capacity.
 
 The power cost can begin to be defined with the consumption cost:
 
-\[
+$$
 PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
-\]
+$$
 
-where \(ConsumptionCost(v_i, u_i, d_i)\) returns the energy in \(KWH\)
-given the charger index \(v_i\) and time spent on the charger \(d_i\) as
+where $ConsumptionCost(v_i, u_i, d_i)$ returns the energy in $KWH$
+given the charger index $v_i$ and time spent on the charger $d_i$ as
 shown in Algorithm [[alg:consumption-cost]].
 
 #+name: alg:consumption-cost
