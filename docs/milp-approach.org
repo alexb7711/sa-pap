@@ -12,6 +12,7 @@
 #+latex_header: \newcommand{\T}{\mathcal{T}}
 #+latex_header: \newcommand{\Tau}{T}
 #+latex_header: \usepackage{lipsum}
+#+latex_header: \usepackage{amsfonts}
 
 # * Abstract
 # #+begin_export latex
@@ -34,7 +35,8 @@ charging schedules. A set of objective functions describing consumption cost and
 minimized as to reduce power consumption and total cost of using the BEBs.
 
 * Problem Description
-Given a set of bus arrivals to a charging station $i= \{1,...,I\} \in \mathbb{Z} with a set of chargers to be queued $q = \{1,...,Q\} \in \mathbb{Z} where the bus is idetified by a identificaiton number $b = \{1,...,B\}$ \in \mathbb{Z}$.
+Given a set of bus arrivals to a charging station $i= \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued $q
+= \{1,...,Q\} \in \mathbb{Z}$ where the bus is idetified by a identificaiton number $b = \{1,...,B\} \in \mathbb{Z}$.
 
 * Optimization Problem
 :PROPERTIES:
@@ -112,34 +114,27 @@ In section [[#sec:generators]] all but \(p_dem\) and \(eta_i\) will be defined. 
 :PROPERTIES:
 :CUSTOM_ID: sec:objective
 :END:
-Let \(J\) represent the objective function. The objective function has
-four main considerations:
+Let \(J\) represent the objective function. The objective function has four main considerations:
 
 - Charger assignment
 - Demand cost
 - Consumption cost
 - Sufficient charge
 
-Suppose the objective function is of the form
-\(J = AC(u, d, v) + PC(u, d, v)\). \(AC(u, d, v)\) is the assignment
-cost, and \(PC(u, d, v)\) is the power usage cost. The assignment cost
-can be represented as:
+Suppose the objective function is of the form \(J = AC(u, d, v) + PC(u, d, v)\). \(AC(u, d, v)\) is the assignment cost,
+and \(PC(u, d, v)\) is the power usage cost. The assignment cost can be represented as:
 
 \[
 AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i) + ChargePenalty(\eta_i)
 \]
 
-Where \(v_i\) is the charger index, \(u_i\) is the initial charge time,
-and \(d_i\) is the detach time for visit \(i\). The function
-\(UsageCost(v,u,d)\) returns the cost of using charger \(q\) multiplied
-by the usage time as shown in Algorithm [[alg:usage-cost]] and
-\(\eta_i\) is the initial charge for visit \(i\). The
-\(ChargePenalty(\eta_i)\) method exponentially punishes the candidate
-solution if the initial charge for a specified visit \(i\) is not above
-a given threshold as described in Algorithm
-[[alg:charge-penalty]].
+Where \(v_i\) is the charger index, \(u_i\) is the initial charge time, and \(d_i\) is the detach time for visit \(i\).
+The function \(UsageCost(v,u,d)\) returns the cost of using charger \(q\) multiplied by the usage time as shown in
+Algorithm [[alg:usage-cost]] and \(\eta_i\) is the initial charge for visit \(i\). The \(ChargePenalty(\eta_i)\) method
+exponentially punishes the candidate solution if the initial charge for a specified visit \(i\) is not above a given
+threshold as described in Algorithm [[alg:charge-penalty]].
 
-#+NAME: alg:usage-cost
+#+name: alg:usage-cost
 #+begin_export latex
 \begin{algorithm}[H]
 \label{alg:usage-cost}
@@ -155,7 +150,7 @@ a given threshold as described in Algorithm
 \end{algorithm}
 #+end_export
 
-#+NAME: alg:charge-penalty
+#+name: alg:charge-penalty
 #+begin_export latex
 \begin{algorithm}[H]
 \label{alg:charge-penalty}
@@ -191,7 +186,7 @@ where \(ConsumptionCost(v_i, u_i, d_i)\) returns the energy in \(KWH\)
 given the charger index \(v_i\) and time spent on the charger \(d_i\) as
 shown in Algorithm [[alg:consumption-cost]].
 
-#+NAME: alg:consumption-cost
+#+name: alg:consumption-cost
 #+begin_export latex
 \begin{algorithm}[H]
 \label{alg:consumption-cost}
@@ -233,7 +228,7 @@ calculate this numerically, an integration algorithm is required to
 iteratively calculate the \(p_{15}(t)\). In turn, \(p_{dem}(T)\) can be
 defined. This process is defined in Algorithm [[alg:demand-cost]].
 
-#+NAME: alg:demand-cost
+#+name: alg:demand-cost
 #+begin_export latex
 \begin{algorithm}[H]
 \label{alg:demand-cost}
@@ -310,7 +305,7 @@ note that the \(\eta\) constraints can only be verified /after/ the
 schedule has been generated as the initial charge for each visit is
 based from the previous charger selection and charge time.
 
-#+NAME: fig:valid-queue
+#+name: fig:valid-queue
 #+begin_export latex
 \begin{figure}
 \centering
@@ -398,7 +393,7 @@ the cooling schedule), it begins to encourage local exploitation of the solution
 :END:
 There are three basic types of cooling equations as shown in [[fig:cool]]. A linear cooling schedule is defined by
 
-\[ \Tau[n] = \Tauau[n-1] -\Delta_0 \]
+\[ \Tau[n] = \Tau[n-1] -\Delta_0 \]
 
 with \(\Tau[0] = \Tau_0\) and \(\Delta_0 = 1/2\; C^\circ\) in [[fig:cool]]. A geometric cooling schedule is mostly used
 in practice \cite{Keller_2019}. It is defined by
@@ -945,11 +940,9 @@ digram in [[fig:schedule]] and outlined in Algorithm
 :PROPERTIES:
 :CUSTOM_ID: tweak-schedule
 :END:
-As described in SA, local searches are also employed to try and exploit
-a given solution \cite{radosavljevic2018metaheuristic}. The method that
-will be employed to exploit the given solution is as follows: pick a
-bus, pick a visit, pick a generator. This state diagram is depicted in
-[[fig:tweak]] and outlined in Algorithm
+As described in SA, local searches are also employed to try and exploit a given solution
+\cite{radosavljevic2018metaheuristic}. The method that will be employed to exploit the given solution is as follows:
+pick a bus, pick a visit, pick a generator. This state diagram is depicted in [[fig:tweak]] and outlined in Algorithm
 [[alg:tweak-schedule]].
 
 #+name: alg:tweak-schedule
@@ -1016,13 +1009,13 @@ This process is summarized in Algorithm [[alg:sa-pap]].
 
     \Begin
     {
-        $\Tau_0$ $\leftarrow$ \InitTemp{}\;
-        $\Tau_{schedule}$ $\leftarrow$ \GetCoolSchedule{}\;
+        $\Tau_0\; \leftarrow$ \InitTemp{}\;
+        $\Tau_{schedule}\; \leftarrow$ \GetCoolSchedule{}\;
 
         route-metadata $\leftarrow$ \LoadYaml{file-path}\;
         routes $\leftarrow$ \RouteGeneration{route-metadata}\;
 
-        best-solution $\leftarrow$ v \in \ScheduleGeneration{routes}\;
+        best-solution $\leftarrow v \in$ \ScheduleGeneration{routes}\;
 
         \ForEach{$\Tau \in \Tau_{schedule}(\Tau_0)$}
         {
@@ -1034,14 +1027,14 @@ This process is summarized in Algorithm [[alg:sa-pap]].
 
                 \If{del-sol $\leq$ 0}
                 {
-                    best-solution $\leftarrow$ candidate-solution
+                   best-solution $\leftarrow$ candidate-solution\;
                 }
                 \ElseIf{del-sol $\geq$ 0}
                 {
-                    best-solution $\leftarrow$ candidate-solution with probability $\exp$(del-sol$/\tau_k)$
+                    best-solution $\leftarrow$ candidate-solution with probability $\exp$(del-sol$\tau_k$)\;
                 }
 
-                schedule $\leftarrow$ \TweakSchedule{schedule}
+                schedule $\leftarrow$ \TweakSchedule{schedule}\;
             }
         }
     }
@@ -1052,25 +1045,25 @@ This process is summarized in Algorithm [[alg:sa-pap]].
 \bibliography{main}
 
 #+name: fig:route
-#+caption: Route generation state diagram\label{fig:route}
+#+caption: Route generation state diagram
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
 [[file:uml/route_generation.png]]
 
 #+name: fig:routeyaml
-#+caption: Route YAML file with example data\label{fig:routeyaml}
+#+caption: Route YAML file with example data
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
 [[file:uml/route_yaml.png]]
 
 #+name: fig:schedule
-#+caption: Charge solution state diagram \label{fig:schedule}
+#+caption: Charge solution state diagram
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
 [[file:uml/charge_solution.png]]
 
 #+name: fig:tweak
-#+caption: Solution tweak state diagram \label{fig:tweak}
+#+caption: Solution tweak state diagram
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.2\textwidth
 [[file:uml/charge_tweak.png]]

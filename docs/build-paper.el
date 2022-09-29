@@ -37,6 +37,9 @@
              :time-stamp-file      nil
              :publishing-function  'org-latex-publish-to-pdf)))
 
+(setq
+ org-latex-prefer-user-labels 1)                                                ; Use user labels, not gereated ones
+
 ;; Generate the site output
 (org-publish-all t)
 

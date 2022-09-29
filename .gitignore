@@ -6,5 +6,9 @@ target/
 *.bbl
 *.tex
 *.*~
+*.aux
+*.log
+*.toc
+*.out
 
 Cargo.lock
