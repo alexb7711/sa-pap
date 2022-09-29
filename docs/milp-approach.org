@@ -100,15 +100,15 @@ known state properties, etc.
 Given a set of route metadata, initial charge at the start of the day, arrival times, discharge amounts, etc., a
 charging solution must be generated. The key information required, known as the decision variables, are:
 
-- \(\eta_i\): initial charges for each visit \(i\)
-- \(d_i\) : detach time from the charger for each visit \(i\)
-- \(p_dem\) : The demand cost for the working day
-- \(u_i\) : Initial charge time of visit \(i\)
-- \(s_i\) : Service time of the charger (\(s_i = d_i - u_d\))
-- \(v_i\) : Assigned charger for visit \(i\)
+- $\eta_i$: initial charges for each visit $i$
+- $d_i$ : detach time from the charger for each visit $i$
+- $p_dem$ : The demand cost for the working day
+- $u_i$ : Initial charge time of visit $i$
+- $s_i$ : Service time of the charger ($s_i = d_i - u_d$)
+- $v_i$ : Assigned charger for visit $i$
 
-In section [[#sec:generators]] all but \(p_dem\) and \(eta_i\) will be defined. \(p_dem\) will be defined in section
-[[#sec:objective]], and \(\eta_i\) will be defined in [[#sec:constraints]]. All the variables are defined in table
+In section [[#sec:generators]] all but $p_dem$ and $eta_i$ will be defined. $p_dem$ will be defined in section
+[[#sec:objective]], and $\eta_i$ will be defined in [[#sec:constraints]]. All the variables are defined in table
 [[tab:variables]].
 ** Objective Function
 :PROPERTIES:
@@ -204,28 +204,28 @@ shown in Algorithm [[alg:consumption-cost]].
 
 Peak 15 should also be taken into consideration. Peak 15 is defined as:
 
-\[
+$$
 p_{15}(t) = 1/15 \int_{t-15}^{t} p(\tau) d\tau
-\]
+$$
 
 which represents the energy used over the last 15 minutes. Because worst
 case must be assumed to always ensure enough power is supplied
 
-\[
+$$
 p_{max}(t) = \text{max}_{\tau\in [0,t]}p_{15}(\tau)
-\]
+$$
 
-Which retains the largest \(p_{15}\) found. The demand charge is then
+Which retains the largest $p_{15}$ found. The demand charge is then
 determined by
 
-\[
+$$
 p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
-\]
+$$
 
-where \(s_r\) is the demand rate. Which, again, retains the largest
-\(p_{15}\) value with a starting, fixed value of \(p_{fix}\). To
+where $s_r$ is the demand rate. Which, again, retains the largest
+$p_{15}$ value with a starting, fixed value of $p_{fix}$. To
 calculate this numerically, an integration algorithm is required to
-iteratively calculate the \(p_{15}(t)\). In turn, \(p_{dem}(T)\) can be
+iteratively calculate the $p_{15}(t)$. In turn, $p_{dem}(T)$ can be
 defined. This process is defined in Algorithm [[alg:demand-cost]].
 
 #+name: alg:demand-cost
@@ -270,9 +270,9 @@ defined. This process is defined in Algorithm [[alg:demand-cost]].
 
 From this we can write:
 
-\[
+$$
 PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I ConsumptionCost(v_i, u_i, d_i)
-\]
+$$
 
 ** Constraints
 :PROPERTIES:
@@ -291,17 +291,17 @@ be established. Feasible schedules require
 These set of requirements can be summarized by the constraints that
 follow:
 
-| (u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j           | Valid queue position/time                                                       |
-| \Delta_i = \delta_i(a_{\xi_i} - d_i)                                     | Calculate discharge of bus during route                                         |
-| \eta_{\xi_i} = \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i | Charge constraint                                                               |
-| \kappa_i \geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)             | Ensure the bus is not charged over its maximum capacity                         |
-| a_i \leq u_i \leq (T-s_i)                                                | Arrival time < initial charge time < maximum initial charge time                |
-| d_i \leq e_i                                                             | Detach time should be less than or equal to departure                           |
-| s_i = d_i - u_i                                                          | Time spent on charger is equal to the difference of the attach and detach times |
+| ($u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j$           | Valid queue position/time                                                       |
+| $\Delta_i = \delta_i(a_{\xi_i} - d_i)$                                     | Calculate discharge of bus during route                                         |
+| $\eta_{\xi_i} = \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i$ | Charge constraint                                                               |
+| $\kappa_i \geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)$             | Ensure the bus is not charged over its maximum capacity                         |
+| $a_i \leq u_i \leq (T-s_i)$                                                | Arrival time < initial charge time < maximum initial charge time                |
+| $d_i \leq e_i$                                                             | Detach time should be less than or equal to departure                           |
+| $s_i = d_i - u_i$                                                          | Time spent on charger is equal to the difference of the attach and detach times |
 
 Where the valid queue position/time constraint is as defined in
 \cite{tutorials_point} and depicted in [[fig:valid-queue]]. Also
-note that the \(\eta\) constraints can only be verified /after/ the
+note that the $\eta$ constraints can only be verified /after/ the
 schedule has been generated as the initial charge for each visit is
 based from the previous charger selection and charge time.
 
@@ -393,20 +393,26 @@ the cooling schedule), it begins to encourage local exploitation of the solution
 :END:
 There are three basic types of cooling equations as shown in [[fig:cool]]. A linear cooling schedule is defined by
 
-\[ \Tau[n] = \Tau[n-1] -\Delta_0 \]
+$$
+\Tau[n] = \Tau[n-1] -\Delta_0
+$$
 
-with \(\Tau[0] = \Tau_0\) and \(\Delta_0 = 1/2\; C^\circ\) in [[fig:cool]]. A geometric cooling schedule is mostly used
+with $\Tau[0] = \Tau_0$ and $\Delta_0 = 1/2\; C^\circ$ in [[fig:cool]]. A geometric cooling schedule is mostly used
 in practice \cite{Keller_2019}. It is defined by
 
-\[ \Tau[n] = \alpha \Tau[n-1] \]
+$$
+\Tau[n] = \alpha \Tau[n-1]
+$$
 
-where \(\alpha = 0.995\) in [[fig:cool]]. An Exponential cooling schedule is defined by the difference equation is
+where $\alpha = 0.995$ in [[fig:cool]]. An Exponential cooling schedule is defined by the difference equation is
 define as
 
-\[ \Tau[n] = e^{\beta}\Tau[n-1] \]
+$$
+\Tau[n] = e^{\beta}\Tau[n-1]
+$$
 
-where \(\beta\) = 0.01$ in [[fig:cool]]. The initial temperature, \(T_0\), in the case of [[fig:cool]], is
-set to \(500^\circ\; C\) and each schedule's final temperature is \(1\; C^\circ\).
+where $\beta = 0.01$ in [[fig:cool]]. The initial temperature, $T_0$, in the case of [[fig:cool]], is
+set to $500^\circ\; C$ and each schedule's final temperature is $1\; C^\circ$.
 
 #+name: fig:cool
 #+caption: Cooling equations \label{fig:cool}
@@ -419,7 +425,7 @@ set to \(500^\circ\; C\) and each schedule's final temperature is \(1\; C^\circ\
 Acceptance criteria describes the method to accept or reject a given candidate solution. In SA, if a new candidate
 solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA,
 worse candidate solutions may be accepted as the new solution. The probability of accepting the candidate solution is
-described by the function \(\exp(\frac{J(new-sol) - J(old-sol)}{\Tau})\) where \(J()\) is the objective functions
+described by the function $\exp(\frac{J(new-sol) - J(old-sol)}{\Tau})$ where $J()$ is the objective functions
 described in [[#sec:objective]].
 
 ** Generation Mechanisms
@@ -449,9 +455,9 @@ follows:
 :CUSTOM_ID: generators
 :END:
 This section describes and outlines the algorithm pool for the different generator types that are utilized in the
-wrapper functions. Note that to satisfy constraints, \(B\) extra dummy chargers with a power of \(0\; KW\) will be added
-to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue \(v_i \in
-\{Q,...,Q+b\}\). Where \(Q\) is the total amount of chargers and \(b\) is the bus id.
+wrapper functions. Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0\; KW$ will be added
+to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in
+\{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id.
 
 **** New visit
 :PROPERTIES:
