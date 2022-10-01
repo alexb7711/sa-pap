@@ -30,24 +30,51 @@ which electricity is being used) within the constraints that the buses must main
 day and do not have any delays in their respective routes.
 
 Simulated Annealing (SA) shall be introduced and utilized as a means of finding the global optimum. The SA algorithm
-shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints to ensure validity of the proposed
-charging schedules. A set of objective functions describing consumption cost and demand cost, as stated above, shall be
-minimized as to reduce power consumption and total cost of using the BEBs.
+shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints derived from the Position Allocation
+Problem (PAP) are set in place to ensure validity of the proposed charging schedules. A set of objective functions
+describing consumption cost and demand cost, as stated above, shall be minimized as to reduce power consumption and
+total cost of using the BEBs.
 
 * Problem Description
-Given a set of bus arrivals to a charging station $i= \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued 
-$q = \{1,...,Q\} \in \mathbb{Z}$ where the bus is idetified by a identificaiton number $b = \{1,...,B\} \in \mathbb{Z}$.
+Given a set of bus arrivals to a charging station $i = \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued $q
+= \{1,...,Q\} \in \mathbb{Z}$ where the bus is identified by an identification number $b = \{1,...,B\} \in \mathbb{Z}$. Each
+bus arrival, $i$, can be represented by a the tuple: $(b_i, a_i, e_i, u_i, d_i, v_i, \eta_i)$, in which the ordered elements denote
+the bus identification number arrival time to the station, departure time from the station, initial charging time,
+charge end time, the charger queue for the bus to be placed into, and the initial State Of Charge (SOC).
+
+It is assumed that each visit occurs over the time horizon $[T_1, T_2]$. The set of all arrivals is represented by the set
+$\mathbb{I} = \{ (b_i, a_i, e_i, u_i, d_i, v_i, \eta_i): b_i \in B, a_i, e_i, u_i, d_i \in [T_1, T_2], v_i \in Q\}$. The concept of
+"arrivals" in derived from the PAP \cite{Qarebagh2019}. This idea of arrivals is useful in the sense that it is easy to describe the state of
+any arbitrary arrival; however, it also assumes that each arrival is unique (i.e. no two bus arrives twice) therefore a
+system must be put in place to track each bus over each arrival. That is why a bus identifier is placed in the tuple,
+and in that way each bus is linked over each arrival.
+
+For each arrival a bus must be placed in a singular queue, $v_i \in Q$. The bus is not allowed to change queues
+mid-charge. The amount of time the bus is allowed to charge is dictated by the scheduled arrival time and required
+departure time, $[a_i, e_i]$. Although an arrival must be placed in a queue, if a bus does not require much charge, or none
+at all, partial charges, or no charging, is allowed. It is not allowed for the bus to charge over its battery capacity
+limit. The battery charging rate is modeled as linear, which remains accurate up to about an SOC of 80% charge \cite{Li2016}.
+
+Each bus arrival, with the exception of the first and last arrival for each bus, has a paired "route" that the bus must
+perform. This route, as one would expect, cause the bus to discharge by some certain amount. This paper assumes an
+average discharge over a period of time allowing an estimation to be calculated for each route, $\Delta_i$. The charge
+supplied while at the station is assumed to supply enough charge for each route (battery charge does not deplete to
+zero) with an additional battery capacity percentage, $m$, acting as a safety factor.
+
+The scheduler's task shall be to schedule the set of arrivals $\mathbb{I}$ to fulfill the minimum charge requirements
+over the time horizon $[T_1, T_2]$ as well as minimize the demand cost, particularly through peak periods, as well as
+minimize over the consumption cost. The functions and constraints are discussed in further detail in section [[#sec:objective]].
 
 * Optimization Problem
 :PROPERTIES:
 :CUSTOM_ID: optimization-problem
 :END:
 This sections introduces the problem in the form of the objective functions as well MILP constraints. The objective
-functions is required to allow comparisons between candidate solutions. In the context of this formulation, the
-objective function is broken down into two major components as alluded in the introduction: consumption cost and demand
-cost. The constraints ensure that candidate solutions are in the feasible region. They are composed of decision
-variables and input variables which are unknown variables that are manipulated in the attempt to optimize the objective
-functions and predefined input variables that are defined by the state of the system, respectively. Furthermore, the decision
+function is required to allow comparisons between candidate solutions. In the context of this formulation, the objective
+function is broken down into two major components as alluded in the introduction: consumption cost and demand cost. The
+constraints ensure that candidate solutions are in the feasible region. They are composed of decision variables and
+input variables which are unknown variables that are manipulated in the attempt to optimize the objective functions and
+predefined input variables that are defined by the state of the system, respectively. Furthermore, the decision
 variables have components that are directly and indirectly manipulated.
 
 #+name: tab:variables
