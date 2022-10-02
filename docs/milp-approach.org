@@ -9,10 +9,12 @@
 # LaTex Configuration
 #+LATEX_CLASS: article
 
-#+latex_header: \newcommand{\T}{\mathcal{T}}
-#+latex_header: \newcommand{\Tau}{T}
-#+latex_header: \usepackage{lipsum}
-#+latex_header: \usepackage{amsfonts}
+#+latex_header: \usepackage{lipsum}                         % Dummy filler text
+#+latex_header: \usepackage{amsfonts}                       % Cool math fonts
+#+latex_header: \setlength\parindent{0pt}                   % No indent for paragraphs
+
+#+latex_header: \newcommand{\T}{\mathcal{T}}                % To make it clear the difference
+#+latex_header: \newcommand{\Tau}{T}                        % between Tau and T
 
 # * Abstract
 # #+begin_export latex
@@ -20,6 +22,11 @@
 # \lipsum[1-2]
 # \end{abstract}
 # #+end_export
+
+#+begin_export latex
+\parskip 3mm                                % Set the vetical space between paragraphs
+\let\ref\autoref                            % Redifine `\ref` as `\autoref` because lazy
+#+end_export
 
 * Introduction
 This document outlines the simulated annealing (SA) approach to the bus charging scheduling problem utilizing Mixed
@@ -31,9 +38,9 @@ day and do not have any delays in their respective routes.
 
 Simulated Annealing (SA) shall be introduced and utilized as a means of finding the global optimum. The SA algorithm
 shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints derived from the Position Allocation
-Problem (PAP) are set in place to ensure validity of the proposed charging schedules. A set of objective functions
-describing consumption cost and demand cost, as stated above, shall be minimized as to reduce power consumption and
-total cost of using the BEBs.
+Problem (PAP). These constraints are set in place to ensure validity of the proposed charging schedules. A set of
+objective functions describing consumption cost and demand cost, as stated above, shall be minimized to reduce power
+consumption and total cost of using the BEBs.
 
 * Problem Description
 Given a set of bus arrivals to a charging station $i = \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued $q
@@ -63,7 +70,7 @@ zero) with an additional battery capacity percentage, $m$, acting as a safety fa
 
 The scheduler's task shall be to schedule the set of arrivals $\mathbb{I}$ to fulfill the minimum charge requirements
 over the time horizon $[T_1, T_2]$ as well as minimize the demand cost, particularly through peak periods, as well as
-minimize over the consumption cost. The functions and constraints are discussed in further detail in section [[#sec:objective]].
+minimize over the consumption cost. The functions and constraints are discussed in further detail in section [[#sec:objective-function]].
 
 * Optimization Problem
 :PROPERTIES:
@@ -72,9 +79,9 @@ minimize over the consumption cost. The functions and constraints are discussed 
 This sections introduces the problem in the form of the objective functions as well MILP constraints. The objective
 function is required to allow comparisons between candidate solutions. In the context of this formulation, the objective
 function is broken down into two major components as alluded in the introduction: consumption cost and demand cost. The
-constraints ensure that candidate solutions are in the feasible region. They are composed of decision variables and
-input variables which are unknown variables that are manipulated in the attempt to optimize the objective functions and
-predefined input variables that are defined by the state of the system, respectively. Furthermore, the decision
+constraints ensure that candidate solutions are in the feasible region. They are composed of a series of equation
+defined by decision variables which are unknown variables that are manipulated in the attempt to optimize the objective
+functions and input variables predefined input variables that are assumed to be known. Furthermore, the decision
 variables have components that are directly and indirectly manipulated.
 
 #+name: tab:variables
@@ -92,11 +99,12 @@ variables have components that are directly and indirectly manipulated.
 |--------------------+--------------------------------------------------------------------|
 | Input variables    |                                                                    |
 | $\Delta_i$         | Discharge of visit over route $i$                                  |
-| $\alpha_i$         | Initial charge percentage time for visit $i$                       |
+| $\alpha_b$         | Initial charge percentage time for bus $b$                         |
 | $\beta_i$          | Final charge percentage for bus $i$ at the end of the time horizon |
-| $\delta_i$         | Discharge rate for vehicle $i$                                     |
+| $\delta_i$         | Discharge rate for vehicle $i$ per mile                            |
 | $\epsilon_q$       | Cost of using charger $q$                                          |
-| $\kappa_i$         | Battery capacity for bus $i$                                       |
+| $\kappa_b$         | Battery capacity for bus $b$                                       |
+| $\rho_i$           | Route distance after visit $i$                                     |
 | $\xi_i$            | Value indicating the next index visit $i$ will arrive              |
 | $a_i$              | Arrival time of visit $i$                                          |
 | $b_i$              | ID for bus visit $i$                                               |
@@ -115,14 +123,47 @@ variables have components that are directly and indirectly manipulated.
 |--------------------+--------------------------------------------------------------------|
 
 ** Parameter Definitions
-*** Input Constants
+This section defines the input variables and decision variables used by the system. The input variables are the
+parameters that are assumed to be known prior to optimizing the system. The decision variables are the values that the
+SA algorithm has the freedom to manipulate. The values produced by the SA algorithm will be interpreted as a candidate
+charging solution. This is further described in [[#sec:simulated-annealing]].
+
 *** Input Variables
 The input values of any MILP system are defined prior to the solving of the system. They define initial conditions,
-known state properties, etc.
+known state properties, etc. Roughly following the order in [[tab:variables]], each variable will be introduced.
+
+$\Delta_i$ is the amount power required to complete the bus route after visit $i$. Because there is no route after the
+last visit, $\Delta_I = 0$. The discharge for visit $i$ is defined by equation \ref{eq:discharge}.
+
+#+begin_export latex
+\begin{equation}
+\label{eq:discharge}
+\Delta_i = \delta_i * \rho_i
+\end{equation}
+#+end_export
+
+Where $\delta_i$ is the amount of energy consumed by the bus per mile and $\rho_i$ is the route mileage after
+visit $i$. As discussed before, since there is no route after the last visit $\rho_I = 0$. $\alpha_b$ is the initial
+SOC percentage of bus $b$ at the beginning of the working day. The initial SOC for bus $b$ can be represented as
+
+#+begin_export latex
+\begin{equation}
+\eta_1 = \alpha_b * \kappa_b \text{.}
+\end{equation}
+#+end_export
+
+Where $\kappa_b$ is the battery capacity for bus $b$, $\eta_1$ is the initial charge for bus visit 1. $\eta_i$ will be
+further discussed in [[#sec:decision-variables]]. $\epsilon_q$ is the cost for assigning a charger to queue $q$. This
+parameter is utilized by the objective function and is further discussed in [[#sec:objective-function]]. $\xi_i$ represents
+the next arrival index for bus $b_i$. In other words, given a set of bus visit IDs $b = \{ 1,2,3,1\}$, $\xi_1 = 4$.
+$a_i$ and $e_i$ are the arrival and departure times of bus visit $i$ to the station, respectively. $k$ represents the
+local iteration search for the SA algorithm. This is further discussed in [[#sec:simulated-annealing]]. Lastly, $r_q$
+represents the rate of charge for the charger in queue $q$. As will be discussed in [[#sec:objective-function]], fast
+chargers and slow chargers relate to high and low costs, $\epsilon_q$, respectively.
 
 *** Decision Variables
 :PROPERTIES:
-:CUSTOM_ID: decision-variables
+:CUSTOM_ID: sec:decision-variables
 :END:
 Given a set of route metadata, initial charge at the start of the day, arrival times, discharge amounts, etc., a
 charging solution must be generated. The key information required, known as the decision variables, are:
@@ -135,11 +176,11 @@ charging solution must be generated. The key information required, known as the 
 - $v_i$ : Assigned charger for visit $i$
 
 In section [[#sec:generators]] all but $p_dem$ and $eta_i$ will be defined. $p_dem$ will be defined in section
-[[#sec:objective]], and $\eta_i$ will be defined in [[#sec:constraints]]. All the variables are defined in table
+[[#sec:objective-function]], and $\eta_i$ will be defined in [[#sec:constraints]]. All the variables are defined in table
 [[tab:variables]].
 ** Objective Function
 :PROPERTIES:
-:CUSTOM_ID: sec:objective
+:CUSTOM_ID: sec:objective-function
 :END:
 Let $J$ represent the objective function. The objective function has four main considerations:
 
@@ -399,6 +440,9 @@ based from the previous charger selection and charge time.
 #+end_export
 
 * Simulated Annealing
+:PROPERTIES:
+:CUSTOM_ID: sec:simulated-annealing
+:END:
 SA is a local search (exploitation oriented) single-solution based (as compared to population based) metaheuristic
 approach in which its main advantage is simply \cite{Gendreau2018-pw}. This model is named after its analogised process
 where a crystalline solid is heated then allowed to cool very slowly until it achieves its most regular possible crystal
@@ -453,7 +497,7 @@ Acceptance criteria describes the method to accept or reject a given candidate s
 solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA,
 worse candidate solutions may be accepted as the new solution. The probability of accepting the candidate solution is
 described by the function $\exp(\frac{J(new-sol) - J(old-sol)}{\Tau})$ where $J()$ is the objective functions
-described in [[#sec:objective]].
+described in [[#sec:objective-function]].
 
 ** Generation Mechanisms
 :PROPERTIES:
