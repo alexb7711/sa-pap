@@ -3,18 +3,20 @@
 #+EMAIL: A01704744@usu.edu
 #+LANGUAGE: en
 
-# Document options
+# Org LaTeX options
 #+OPTIONS: tex:t
 
-# LaTex Configuration
+# LaTeX packages
 #+LATEX_CLASS: article
-
 #+latex_header: \usepackage{lipsum}                         % Dummy filler text
 #+latex_header: \usepackage{amsfonts}                       % Cool math fonts
 #+latex_header: \setlength\parindent{0pt}                   % No indent for paragraphs
 
+# Custom commands
 #+latex_header: \newcommand{\T}{\mathcal{T}}                % To make it clear the difference
 #+latex_header: \newcommand{\Tau}{T}                        % between Tau and T
+#+latex_header: \newcommand{\AC}{AC(u_i, d_i, v_i, \eta_i)} % Set the parameters for AC once
+#+latex_header: \newcommand{\PC}{PC(u_i, d_i, v_i)}         % Set the parameters for PC once
 
 # * Abstract
 # #+begin_export latex
@@ -23,6 +25,7 @@
 # \end{abstract}
 # #+end_export
 
+# More document configuration
 #+begin_export latex
 \parskip 3mm                                % Set the vetical space between paragraphs
 \let\ref\autoref                            % Redifine `\ref` as `\autoref` because lazy
@@ -89,6 +92,7 @@ variables have components that are directly and indirectly manipulated.
 | *Variable*         | *Description*                                                      |
 |--------------------+--------------------------------------------------------------------|
 | Input constants    |                                                                    |
+| $C$                | Penalty method gain factor                                         |
 | $B$                | Number of buses in use                                             |
 | $I$                | Number of total visits                                             |
 | $J(v,u,d)$         | Objective function                                                 |
@@ -115,6 +119,7 @@ variables have components that are directly and indirectly manipulated.
 |--------------------+--------------------------------------------------------------------|
 | Decision Variables |                                                                    |
 | $\eta_i$           | Initial charge for visit $i$                                       |
+| $\psi_i$           | Binary term to enable/disable charge penalty for visit $i$         |
 | $d_i$              | Detach time from charger for visit $i$                             |
 | $p_{dem}(t)$       | Demand cost                                                        |
 | $s_i$              | Amount of time spent on charger for visit $i$ (service time)       |
@@ -181,10 +186,12 @@ are values that the system has direct control over and indirect variables are th
 :PROPERTIES:
 :CUSTOM_ID: sec:direct-decision-variables
 :END:
-Decision variables that are direct are variables that can be immediately chosen by SA. The first two variables are $u_i$
-and $d_i$. They represent the initial and final charging times. These values must remain within range of the arrival
-time and departure time for visit $i$, $[a_i, e_i]$. The last direct decision variable is the queue that bus visit $i$
-can be placed in to charge, $v_i$.
+Decision variables that are direct are variables that can be immediately chosen by SA. The first decision variable
+introduced is $\psi_i$. This value is a boolean decision variable, $\psi_i \in \{0,1\}$, that either enables of disables
+the charge penalty defined in [[#sec:objective-function]]. The next two variables are $u_i$ and $d_i$. They represent the
+initial and final charging times. These values must remain within range of the arrival time and departure time for visit
+$i$, $[a_i, e_i]$. The last direct decision variable is the queue that bus visit $i$ can be placed in to charge, $v_i
+\in q$.
 
 **** Indirect Decision Variables
 :PROPERTIES:
@@ -201,69 +208,36 @@ is calculated at after all the decision variables have been assigned. This is fu
 :PROPERTIES:
 :CUSTOM_ID: sec:objective-function
 :END:
-Let $J$ represent the objective function. The objective function has four main considerations:
+The objective function is used to compare the fitness of different candidate solutions against one another. This
+objective function takes in a set input variables and decision variables to calculate some value of measure. The
+calculated objective function value can either be maximized or minimized. The desired option is dependent on the problem
+to be solved as well as the formulation of said objective function. Let $J$ represent the objective function. The
+objective function for this problem has four main considerations: charger assignment, consumption cost, demand cost,
+peak hours, and sufficient charge.
 
-- Charger assignment
-- Demand cost
-- Consumption cost
-- Sufficient charge
+Suppose the objective function is of the form $J = \AC + \PC$. $\AC$ is the assignment cost, and $\PC$ is the power
+usage cost. The assignment cost represents the costs of assigning a bus to a particular queue as well as the chosen
+charging period, $[u_i, d_i]$ as shown in [[eq:ac]].
 
-Suppose the objective function is of the form $J = AC(u, d, v) + PC(u, d, v)$. $AC(u, d, v)$ is the assignment cost,
-and $PC(u, d, v)$ is the power usage cost. The assignment cost can be represented as:
-
-$$
-AC(u,d,v) = \sum_{i=1}^I UsageCost(v_i, u_i, d_i) + ChargePenalty(\eta_i)
-$$
-
-Where $v_i$ is the charger index, $u_i$ is the initial charge time, and $d_i$ is the detach time for visit $i$.
-The function $UsageCost(v,u,d)$ returns the cost of using charger $q$ multiplied by the usage time as shown in
-Algorithm [[alg:usage-cost]] and $\eta_i$ is the initial charge for visit $i$. The $ChargePenalty(\eta_i)$ method
-exponentially punishes the candidate solution if the initial charge for a specified visit $i$ is not above a given
-threshold as described in Algorithm [[alg:charge-penalty]].
-
-#+name: alg:usage-cost
+#+name: eq:ac
 #+begin_export latex
-\begin{algorithm}[H]
-\label{alg:usage-cost}
-\caption{Method describing the calculation for the cost of usage for charger $q$.}
-    \TitleOfAlgo{UsageCost}
-    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
-    \KwOut{Cost of use of charger}
-
-    \Begin
-    {
-        \Return{$\epsilon_q[v_i](d_i - u_i)$}
-    }
-\end{algorithm}
+\begin{equation}
+\label{eq:ac}
+\AC = \sum_{i=1}^I \epsilon_{v_i}(d_i - u_i) + \frac{1}{2} C \psi_i (\eta_i - m \kappa_i)^{2}
+\end{equation}
 #+end_export
 
-#+name: alg:charge-penalty
-#+begin_export latex
-\begin{algorithm}[H]
-\label{alg:charge-penalty}
-\caption{Method describing the calculation for the penalty of buses not meeting the required charge threshold.}
-    \TitleOfAlgo{ChargePenalty}
-    \KwIn{Initial charge for visit $i$: $\eta_i$}
-    \KwOut{Penalty}
+Where $v_i \in q$ is the charger index, $u_i$ is the initial charge time, $d_i$ is the detach time for visit $i$,
+$\psi_i$ is a binary decision variable, $m$ is the minimum charge percentage allowed, $\kappa_i$ is the battery capacity
+for visit $i$, and $\eta_i$ is the initial charge for visit $i$. The first term in the summation represents the
+calculation of the cost for assigning a bus to queue $q$. The second term is the penalty function that is either enabled
+or disabled by $\psi_i$ which is discussed in [[#sec:constraints]]. This form is the most common form that penalty methods
+are found in \cite{Luenberger2008}. Note that the variables $\psi_i$ and $\eta_i$ are both decision variables that are
+being multiplied together. This is called a bilinear term. Using a traditional MILP solver, this would require
+linearization; however, because SA handles nonlinearities easily these bilinear terms will be ignored TODO: cite
+linearization and SA nonlinear.
 
-    \Begin
-    {
-        penalty $\leftarrow$ 0\;
-
-        \If{$m \kappa_i \geq \eta_{\xi_i}$}
-        {
-            penalty $\leftarrow\; exp(m - \eta_i)$\;
-        }
-
-        \Return{penalty}
-    }
-\end{algorithm}
-#+end_export
-
-Where $m$ is the minimum charge percentage allowed at each visit and
-$\kappa_i$ is the battery capacity.
-
-The power cost can begin to be defined with the consumption cost:
+The power cost can begin to be de,fined with the consumption cost:
 
 $$
 PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
