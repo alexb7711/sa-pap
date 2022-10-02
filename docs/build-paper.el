@@ -15,13 +15,16 @@
 \\usepackage[a4paper, total={7in, 10in}]{geometry}
 \\usepackage{algorithm2e}
 \\usepackage{booktabs}
+\\usepackage{hyperref}
 \\usepackage{subcaption}
 \\usepackage{graphicx}
 \\usepackage{tikz}"
-               ("\\section{%s}" . "\\section{%s}")
-               ("\\subsection{%s}" . "\\subsection{%s}")
-               ("\\subsubsection{%s}" . "\\subsubsection{%s}")
-               ("\\subsubsubsection{%s}" . "\\subsubsubsection{%s}"))))
+              ("\\section{%s}" . "\\section*{%s}")
+              ("\\subsection{%s}" . "\\subsection*{%s}")
+              ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+              ("\\paragraph{%s}" . "\\paragraph*{%s}")
+              ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+
 
 ;; Define the publishing project
 (setq org-publish-project-alist
@@ -38,6 +41,8 @@
              :publishing-function  'org-latex-publish-to-pdf)))
 
 (setq
+ org-export-headline-levels   5                                                 ; Max level that `org' will export a
+                                                                                ; header to LaTeX
  org-latex-prefer-user-labels 1)                                                ; Use user labels, not gereated ones
 
 ;; Generate the site output

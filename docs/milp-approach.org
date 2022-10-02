@@ -123,12 +123,18 @@ variables have components that are directly and indirectly manipulated.
 |--------------------+--------------------------------------------------------------------|
 
 ** Parameter Definitions
+:PROPERTIES:
+:CUSTOM_ID: sec:parameter-definitions
+:END:
 This section defines the input variables and decision variables used by the system. The input variables are the
 parameters that are assumed to be known prior to optimizing the system. The decision variables are the values that the
 SA algorithm has the freedom to manipulate. The values produced by the SA algorithm will be interpreted as a candidate
 charging solution. This is further described in [[#sec:simulated-annealing]].
 
 *** Input Variables
+:PROPERTIES:
+:CUSTOM_ID: sec:input-variables
+:END:
 The input values of any MILP system are defined prior to the solving of the system. They define initial conditions,
 known state properties, etc. Roughly following the order in [[tab:variables]], each variable will be introduced.
 
@@ -165,19 +171,32 @@ chargers and slow chargers relate to high and low costs, $\epsilon_q$, respectiv
 :PROPERTIES:
 :CUSTOM_ID: sec:decision-variables
 :END:
-Given a set of route metadata, initial charge at the start of the day, arrival times, discharge amounts, etc., a
-charging solution must be generated. The key information required, known as the decision variables, are:
+Decision variables are the defined by the optimizer and are therefore unknown prior to running the optimization
+algorithm. In this case the optimizer is SA. Once SA has been ran and each of the decision variables have been
+specified, the fitness of the solution is defined by the objection functions outlined in [[#sec:objective-function]]. The
+variables will be broken into two sections: direct and indirect decision variables. Decision variables that are direct
+are values that the system has direct control over and indirect variables are those that are influenced by the direct.
 
-- $\eta_i$: initial charges for each visit $i$
-- $d_i$ : detach time from the charger for each visit $i$
-- $p_dem$ : The demand cost for the working day
-- $u_i$ : Initial charge time of visit $i$
-- $s_i$ : Service time of the charger ($s_i = d_i - u_d$)
-- $v_i$ : Assigned charger for visit $i$
+**** Direct Decision Variables
+:PROPERTIES:
+:CUSTOM_ID: sec:direct-decision-variables
+:END:
+Decision variables that are direct are variables that can be immediately chosen by SA. The first two variables are $u_i$
+and $d_i$. They represent the initial and final charging times. These values must remain within range of the arrival
+time and departure time for visit $i$, $[a_i, e_i]$. The last direct decision variable is the queue that bus visit $i$
+can be placed in to charge, $v_i$.
 
-In section [[#sec:generators]] all but $p_dem$ and $eta_i$ will be defined. $p_dem$ will be defined in section
-[[#sec:objective-function]], and $\eta_i$ will be defined in [[#sec:constraints]]. All the variables are defined in table
-[[tab:variables]].
+**** Indirect Decision Variables
+:PROPERTIES:
+:CUSTOM_ID: sec:indirect-decision-variables
+:END:
+Indirect decision variables are variables that are dependent on direct decision variables. For example $\eta_i$ is the
+initial charge for visit $i$. These variables are chained together per bus by using the bus identifier, $b$, and next
+index, $\xi_i$. The initial charges must be chained so that the battery charge can be calculated per bus as it is
+charged and discharged over each visit, $[u_i, d_i]$. $p_{dem}$ is the demand cost of the overall charging schedule. It
+is calculated at after all the decision variables have been assigned. This is further described in
+[[#sec:objective-function]].
+
 ** Objective Function
 :PROPERTIES:
 :CUSTOM_ID: sec:objective-function
