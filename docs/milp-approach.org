@@ -234,8 +234,7 @@ calculation of the cost for assigning a bus to queue $q$. The second term is the
 or disabled by $\psi_i$ which is discussed in [[#sec:constraints]]. This form is the most common form that penalty methods
 are found in \cite{Luenberger2008}. Note that the variables $\psi_i$ and $\eta_i$ are both decision variables that are
 being multiplied together. This is called a bilinear term. Using a traditional MILP solver, this would require
-linearization; however, because SA handles nonlinearities easily these bilinear terms will be ignored TODO: cite
-linearization and SA nonlinear.
+linearization \cite{Rodriguez2013}; however, because SA handles nonlinearities easily these bilinear terms will be ignored \cite{Radosavljevic2018-jc}.
 
 The power cost can begin to be de,fined with the consumption cost:
 
