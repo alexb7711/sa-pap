@@ -234,59 +234,54 @@ calculation of the cost for assigning a bus to queue $q$. The second term is the
 or disabled by $\psi_i$ which is discussed in [[#sec:constraints]]. This form is the most common form that penalty methods
 are found in \cite{Luenberger2008}. Note that the variables $\psi_i$ and $\eta_i$ are both decision variables that are
 being multiplied together. This is called a bilinear term. Using a traditional MILP solver, this would require
-linearization \cite{Rodriguez2013}; however, because SA handles nonlinearities easily these bilinear terms will be ignored \cite{Radosavljevic2018-jc}.
+linearization \cite{Rodriguez2013}; however, because SA handles nonlinearities easily these bilinear terms will be
+ignored \cite{Radosavljevic2018-jc}.
 
-The power cost can begin to be de,fined with the consumption cost:
+The power cost contains the demand cost and the consumption cost. can be divided into two
 
-$$
-PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I  ConsumptionCost(v_i, u_i, d_i)
-$$
-
-where $ConsumptionCost(v_i, u_i, d_i)$ returns the energy in $KWH$
-given the charger index $v_i$ and time spent on the charger $d_i$ as
-shown in Algorithm [[alg:consumption-cost]].
-
-#+name: alg:consumption-cost
+#+name: eq:pc
 #+begin_export latex
-\begin{algorithm}[H]
-\label{alg:consumption-cost}
-\caption{Method describing the consumption cost for a single visit}
-    \TitleOfAlgo{ConsumptionCost}
-    \KwIn{Charger assignment, start charge time, end charge time: (v, u, i)}
-    \KwOut{Consumption cost}
+\begin{equation}
+\label{eq:pc}
+\PC = DemandCost(schedule) + \sum_{i=1}^I r[v_i](d_i - u_i)
+\end{equation}
+#+end_export latex
 
-    \Begin
-    {
-        \Return{$r[v_i](d_i - u_i)$}
-    }
-\end{algorithm}
-#+end_export
 
 Peak 15 should also be taken into consideration. Peak 15 is defined as:
 
-$$
-p_{15}(t) = 1/15 \int_{t-15}^{t} p(\tau) d\tau
-$$
+#+name: eq:p15
+#+begin_export latex
+\begin{equation}
+\label{eq:p15}
+p_{15}(t) = 0.25 \int_{t-15}^{t} p(\tau) d\tau
+\end{equation}
+#+end_export
 
-which represents the energy used over the last 15 minutes. Because worst
-case must be assumed to always ensure enough power is supplied
+which represents the energy used over the last 15 minutes. Because worst case must be assumed to always ensure enough
+power is supplied
 
-$$
+#+name: eq:pmax
+#+begin_export latex
+\begin{equation}
+\label{eq:pmax}
 p_{max}(t) = \text{max}_{\tau\in [0,t]}p_{15}(\tau)
-$$
+\begin{equation}
+#+end_export
 
-Which retains the largest $p_{15}$ found. The demand charge is then
-determined by
+Which retains the largest $p_{15}$ found. The demand charge is then determined by
 
-$$
+#+name: eq:pdem
+#+begin_export latex
+\begin{equation}
+\label{eq:pdem}
 p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
-$$
+\begin{equation}
+#+end_export
 
-where $s_r$ is the demand rate. Which, again, retains the largest
-$p_{15}$ value with a starting, fixed value of $p_{fix}$. To
-calculate this numerically, an integration algorithm is required to
-iteratively calculate the $p_{15}(t)$. In turn, $p_{dem}(T)$ can be
-defined. This process is defined in Algorithm [[alg:demand-cost]].
+where $s_r$ is the demand rate. Which, again, retains the largest $p_{15}$ value with a starting, fixed value of
+$p_{fix}$. To calculate this numerically, an integration algorithm is required to iteratively calculate the $p_{15}(t)$.
+In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg:demand-cost]].
 
 #+name: alg:demand-cost
 #+begin_export latex
