@@ -333,24 +333,26 @@ In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg
 :CUSTOM_ID: sec:constraints
 :END:
 Now that a method of calculating the fitness of a schedule has been established, a method for determining the
-feasibility of a schedule must be established. Feasible schedules require
+feasibility of a schedule must be established. Feasible schedules require that the schedule maintain a certain list of 
+properties. These properties are enforced by a set of constraints derived from the MILP PAP TODO: \cite{myself}. 
+The constraints must ensure no overlap temporally or spacially, receives enough charge to complete route after each 
+visit $i$, bus visit $i$ cannot be overcharged, each visit, $i$, departs on time. The aforemention constraints are shown
+in [[eq:constraints]].
 
-- No overlap in time
-- No overlap in space
-- Bus receives enough charge
-- Bus is not overcharged
-- Departs on time
-
-These set of requirements can be summarized by the constraints that
-follow:
-
-| ($u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j$           | Valid queue position/time                                                       |
-| $\Delta_i = \delta_i(a_{\xi_i} - d_i)$                                     | Calculate discharge of bus during route                                         |
-| $\eta_{\xi_i} = \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i$ | Charge constraint                                                               |
-| $\kappa_i \geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)$             | Ensure the bus is not charged over its maximum capacity                         |
-| $a_i \leq u_i \leq (T-s_i)$                                                | Arrival time < initial charge time < maximum initial charge time                |
-| $d_i \leq e_i$                                                             | Detach time should be less than or equal to departure                           |
-| $s_i = d_i - u_i$                                                          | Time spent on charger is equal to the difference of the attach and detach times |
+#+name: eq:constraints
+#+BEGIN_EXPORT latex
+\begin{equation}
+\begin{array}{ll}
+(u_i \geq d_j \text{ or } u_j \geq d_i) \text{ and } v_i = v_j           & Valid queue position/time
+\Delta_i = \delta_i(a_{\xi_i} - d_i)                                     & Calculate discharge of bus during route
+\eta_{\xi_i} = \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i & Charge constraint
+\kappa_i \geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)             & Ensure the bus is not charged over its maximum capacity
+a_i \leq u_i \leq (T-s_i)                                                & Arrival time < initial charge time < maximum initial charge time
+d_i \leq e_i                                                             & Detach time should be less than or equal to departure
+s_i = d_i - u_i                                                          & Time spent on charger is equal to the difference of the attach and detach time
+\end{array}
+\end{equation}
+#+END_EXPORT
 
 Where the valid queue position/time constraint is as defined in \cite{tutorials_point} and depicted in [[fig:valid-queue]].
 Also note that the $\eta$ constraints can only be verified /after/ the schedule has been generated as the initial charge
