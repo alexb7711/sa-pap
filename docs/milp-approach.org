@@ -36,8 +36,8 @@ This document outlines the simulated annealing (SA) approach to the bus charging
 Integer Linear Programming (MILP) constraints as the method of determining feasible charging schedules. The problem
 statement is as follows: given a set of routes for a fleet of Battery Electric Buses (BEB), generate an optimal charging
 schedule to minimize the consumption cost (amount of electricity used over a certain time) and the demand cost (rate at
-which electricity is being used) within the constraints that the buses must maintain sufficient charge to complete the working
-day and do not have any delays in their respective routes.
+which electricity is being used) within the constraints that the buses must maintain sufficient charge to complete the
+working day and do not have any delays in their respective routes.
 
 Simulated Annealing (SA) shall be introduced and utilized as a means of finding the global optimum. The SA algorithm
 shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints derived from the Position Allocation
@@ -59,11 +59,12 @@ any arbitrary arrival; however, it also assumes that each arrival is unique (i.e
 system must be put in place to track each bus over each arrival. That is why a bus identifier is placed in the tuple,
 and in that way each bus is linked over each arrival.
 
-For each arrival a bus must be placed in a singular queue, $v_i \in Q$. The bus is not allowed to change queues
-mid-charge. The amount of time the bus is allowed to charge is dictated by the scheduled arrival time and required
-departure time, $[a_i, e_i]$. Although an arrival must be placed in a queue, if a bus does not require much charge, or none
-at all, partial charges, or no charging, is allowed. It is not allowed for the bus to charge over its battery capacity
-limit. The battery charging rate is modeled as linear, which remains accurate up to about an SOC of 80% charge \cite{Li2016}.
+For each arrival a bus must be placed in a singular queue, $v_i \in Q$. The charger $q$ is assumed to be either a fast
+or slow charger. The bus is not allowed to change queues mid-charge. The amount of time the bus is allowed to charge is
+dictated by the scheduled arrival time and required departure time, $[a_i, e_i]$. Although an arrival must be placed in
+a queue, if a bus does not require much charge, or none at all, partial charges, or no charging, is allowed. It is not
+allowed for the bus to charge over its battery capacity limit. The battery charging rate is modeled as linear, which
+remains accurate up to about an SOC of 80% charge \cite{Li2016}.
 
 Each bus arrival, with the exception of the first and last arrival for each bus, has a paired "route" that the bus must
 perform. This route, as one would expect, cause the bus to discharge by some certain amount. This paper assumes an
@@ -72,8 +73,8 @@ supplied while at the station is assumed to supply enough charge for each route 
 zero) with an additional battery capacity percentage, $m$, acting as a safety factor.
 
 The scheduler's task shall be to schedule the set of arrivals $\mathbb{I}$ to fulfill the minimum charge requirements
-over the time horizon $[T_1, T_2]$ as well as minimize the demand cost, particularly through peak periods, as well as
-minimize over the consumption cost. The functions and constraints are discussed in further detail in section [[#sec:objective-function]].
+over the time horizon $[T_1, T_2]$ as well as minimize the demand cost as well as minimize over the consumption cost.
+The functions and constraints are discussed in further detail in section [[#sec:objective-function]].
 
 * Optimization Problem
 :PROPERTIES:
@@ -212,8 +213,8 @@ The objective function is used to compare the fitness of different candidate sol
 objective function takes in a set input variables and decision variables to calculate some value of measure. The
 calculated objective function value can either be maximized or minimized. The desired option is dependent on the problem
 to be solved as well as the formulation of said objective function. Let $J$ represent the objective function. The
-objective function for this problem has four main considerations: charger assignment, consumption cost, demand cost,
-peak hours, and sufficient charge.
+objective function for this problem has four main considerations: charger assignment, consumption cost, demand cost, and
+sufficient charge.
 
 Suppose the objective function is of the form $J = \AC + \PC$. $\AC$ is the assignment cost, and $\PC$ is the power
 usage cost. The assignment cost represents the costs of assigning a bus to a particular queue as well as the chosen
@@ -237,7 +238,11 @@ being multiplied together. This is called a bilinear term. Using a traditional M
 linearization \cite{Rodriguez2013}; however, because SA handles nonlinearities easily these bilinear terms will be
 ignored \cite{Radosavljevic2018-jc}.
 
-The power cost contains the demand cost and the consumption cost. can be divided into two
+The power cost contains the demand cost and the consumption cost. It can be divided into two components: demand cost and
+the consumption cost. The demand cost quantifies the amount of power being used over a given period and adjust the cost
+accordingly. The consumption cost calculates the total amount of power being consumed by the chargers. The power cost is
+shown in [[eq:pc]]. Note that the demand cost is written as a function. This is because it is calculated post generation of
+the candidate solution.
 
 #+name: eq:pc
 #+begin_export latex
@@ -247,8 +252,7 @@ The power cost contains the demand cost and the consumption cost. can be divided
 \end{equation}
 #+end_export latex
 
-
-Peak 15 should also be taken into consideration. Peak 15 is defined as:
+As stated before, the demand cost is calcated based on 15 minute incements. This cost is also referred to as the peak 15. The peak 15 is repesented by [[eq:p15]].
 
 #+name: eq:p15
 #+begin_export latex
@@ -258,18 +262,19 @@ p_{15}(t) = 0.25 \int_{t-15}^{t} p(\tau) d\tau
 \end{equation}
 #+end_export
 
-which represents the energy used over the last 15 minutes. Because worst case must be assumed to always ensure enough
-power is supplied
+Which represents the energy used over the last 15 minutes. Because worst case must be assumed to always ensure enough
+power is supplied the maximum value found is retained as represented in [[eq:pmax]].
 
 #+name: eq:pmax
 #+begin_export latex
 \begin{equation}
 \label{eq:pmax}
-p_{max}(t) = \text{max}_{\tau\in [0,t]}p_{15}(\tau)
+p_{max}(t) = \text{max}_{\tau \in [0,t]}p_{15}(\tau)
 \begin{equation}
 #+end_export
 
-Which retains the largest $p_{15}$ found. The demand charge is then determined by
+Because the cost has a minimum threshold, a fixed minimum cost is introduced. In a similar manner as $p_{max}$, the
+maximum value is retained.
 
 #+name: eq:pdem
 #+begin_export latex
@@ -279,7 +284,7 @@ p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
 \begin{equation}
 #+end_export
 
-where $s_r$ is the demand rate. Which, again, retains the largest $p_{15}$ value with a starting, fixed value of
+Where $s_r$ is the demand rate. Which, again, retains the largest $p_{15}$ value with a starting, fixed value of
 $p_{fix}$. To calculate this numerically, an integration algorithm is required to iteratively calculate the $p_{15}(t)$.
 In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg:demand-cost]].
 
@@ -323,19 +328,12 @@ In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg
 \end{algorithm}
 #+end_export
 
-From this we can write:
-
-$$
-PC(u,d,v) = DemandCost(schedule) + \sum_{i=1}^I ConsumptionCost(v_i, u_i, d_i)
-$$
-
 ** Constraints
 :PROPERTIES:
 :CUSTOM_ID: sec:constraints
 :END:
-Now that a method of calculating the fitness of a schedule has been
-established, a method for determining the feasibility of a schedule must
-be established. Feasible schedules require
+Now that a method of calculating the fitness of a schedule has been established, a method for determining the
+feasibility of a schedule must be established. Feasible schedules require
 
 - No overlap in time
 - No overlap in space
@@ -354,11 +352,9 @@ follow:
 | $d_i \leq e_i$                                                             | Detach time should be less than or equal to departure                           |
 | $s_i = d_i - u_i$                                                          | Time spent on charger is equal to the difference of the attach and detach times |
 
-Where the valid queue position/time constraint is as defined in
-\cite{tutorials_point} and depicted in [[fig:valid-queue]]. Also
-note that the $\eta$ constraints can only be verified /after/ the
-schedule has been generated as the initial charge for each visit is
-based from the previous charger selection and charge time.
+Where the valid queue position/time constraint is as defined in \cite{tutorials_point} and depicted in [[fig:valid-queue]].
+Also note that the $\eta$ constraints can only be verified /after/ the schedule has been generated as the initial charge
+for each visit is based from the previous charger selection and charge time.
 
 #+name: fig:valid-queue
 #+begin_export latex
@@ -1039,19 +1035,13 @@ pick a bus, pick a visit, pick a generator. This state diagram is depicted in [[
 :PROPERTIES:
 :CUSTOM_ID: optimization-algorithm
 :END:
-This final section combines the generation algorithms and the
-optimization problem into a single algorithm. The objective is to
-outline the SA process from start to finish. Algorithm
-[[alg:route-generation]] generates a set of bus routes utilizing
-the route metadata in [[fig:routeyaml]]. The initial temperature
-and cooling schedule will be selected and passed into the SA
-optimization algorithm. A new candidate solution will be generated. For
-each step in the cooling schedule will have $K$ iterations to attempt
-to find a local maxima. Each perturbation to the system is then compared
-to the current candidate solution. If the new candidate solution is
-better it is kept; however, if the candidate solution is worse, the
-solution may still be kept with a probability
-$\exp(\text{del-sol}/\Tau)$ as described in [[#sec:acceptance]].
+This final section combines the generation algorithms and the optimization problem into a single algorithm. The
+objective is to outline the SA process from start to finish. Algorithm [[alg:route-generation]] generates a set of bus
+routes utilizing the route metadata in [[fig:routeyaml]]. The initial temperature and cooling schedule will be selected and
+passed into the SA optimization algorithm. A new candidate solution will be generated. For each step in the cooling
+schedule will have $K$ iterations to attempt to find a local maxima. Each perturbation to the system is then compared to
+the current candidate solution. If the new candidate solution is better it is kept; however, if the candidate solution
+is worse, the solution may still be kept with a probability $\exp(\text{del-sol}/\Tau)$ as described in [[#sec:acceptance]].
 This process is summarized in Algorithm [[alg:sa-pap]].
 
 #+name: alg:sa-pap
