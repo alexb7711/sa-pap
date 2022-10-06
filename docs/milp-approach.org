@@ -250,7 +250,7 @@ the candidate solution.
 \label{eq:pc}
 \PC = DemandCost(schedule) + \sum_{i=1}^I r[v_i](d_i - u_i)
 \end{equation}
-#+end_export latex
+#+end_export
 
 As stated before, the demand cost is calcated based on 15 minute incements. This cost is also referred to as the peak 15. The peak 15 is repesented by [[eq:p15]].
 
@@ -270,7 +270,7 @@ power is supplied the maximum value found is retained as represented in [[eq:pma
 \begin{equation}
 \label{eq:pmax}
 p_{max}(t) = \text{max}_{\tau \in [0,t]}p_{15}(\tau)
-\begin{equation}
+\end{equation}
 #+end_export
 
 Because the cost has a minimum threshold, a fixed minimum cost is introduced. In a similar manner as $p_{max}$, the
@@ -281,7 +281,7 @@ maximum value is retained.
 \begin{equation}
 \label{eq:pdem}
 p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
-\begin{equation}
+\end{equation}
 #+end_export
 
 Where $s_r$ is the demand rate. Which, again, retains the largest $p_{15}$ value with a starting, fixed value of
@@ -289,7 +289,7 @@ $p_{fix}$. To calculate this numerically, an integration algorithm is required t
 In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg:demand-cost]].
 
 #+name: alg:demand-cost
-#+begin_export latex
+#+BEGIN_EXPORT latex
 \begin{algorithm}[H]
 \label{alg:demand-cost}
 \caption{Algorithm to calculate the demand cost.}
@@ -326,40 +326,100 @@ In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg
         \Return{p-dem}
     }
 \end{algorithm}
-#+end_export
+#+END_EXPORT
 
 ** Constraints
 :PROPERTIES:
 :CUSTOM_ID: sec:constraints
 :END:
 Now that a method of calculating the fitness of a schedule has been established, a method for determining the
-feasibility of a schedule must be established. Feasible schedules require that the schedule maintain a certain list of 
-properties. These properties are enforced by a set of constraints derived from the MILP PAP TODO: \cite{myself}. 
-The constraints must ensure no overlap temporally or spacially, receives enough charge to complete route after each 
-visit $i$, bus visit $i$ cannot be overcharged, each visit, $i$, departs on time. The aforemention constraints are shown
-in [[eq:constraints]].
+feasibility of a schedule must be established. Feasible schedules require that the schedule maintain a certain list of
+properties. These properties are enforced by a set of constraints derived from the MILP PAP TODO: \cite{myself}. The
+constraints must ensure no overlap temporally or spatially, receives enough charge to complete route after each visit
+$i$, bus visit $i$ cannot be over charged, each visit, $i$, departs on time. The aforementioned constraints are shown in
+[[eq:constraints]].
 
 #+name: eq:constraints
-#+BEGIN_EXPORT latex
+#+begin_export latex
+\begin{subequations}
+\label{eq:constraints}
 \begin{equation}
-\begin{array}{ll}
-d_j - u_i < \simga_i^1                                                   & \text{Valid queue position/time} \\
-u_j - d_i < \sigma_i^2                                                   & \text{Valid queue position/time} \\
-v_i - v_j = \sigma_i^3                                                   & \text{Valid queue position/time} \\
-\sigma_i^1 + \sigma_i^2 + \sigma_i^3 \geq 0                              & \text{Valid queue position/time} \\
-\Delta_i = \delta_i(a_{\xi_i} - d_i)                                     & \text{Calculate discharge of bus during route} \\
-\eta_{\xi_i} = \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i) - \Delta_i & \text{Charge constraint} \\
-\kappa_i \geq \eta_i + \text{ConsumptionCost}(v_i, a_i, e_i)             & \text{Ensure the bus is not charged over its maximum capacity} \\
-a_i \leq u_i \leq (T-s_i)                                                & \text{Arrival time $<$ initial charge time $<$ maximum initial charge time} \\
-d_i \leq e_i                                                             & \text{Detach time should be less than or equal to departure} \\
-s_i = d_i - u_i                                                          & \text{Time spent on charger is equal to the difference of the attach and detach time} \\
-\end{array}
+    \label{sq:0}
+    d_j - u_i < \sigma_i^1
 \end{equation}
-#+END_EXPORT
+\begin{equation}
+    \label{sq:1}
+    u_j - d_i < \sigma_i^2
+\end{equation}
+\begin{equation}
+    \label{sq:2}
+    |v_i - v_j| > \sigma_i^3
+\end{equation}
+\begin{equation}
+    \label{sq:3}
+    \sigma_i^1 + \sigma_i^2 + \sigma_i^3 \geq 1
+\end{equation}
+\begin{equation}
+    \label{sq:4}
+    \Delta_i = \delta_i(a_{\xi_i} - d_i)
+\end{equation}
+\begin{equation}
+    \label{sq:5}
+     \eta_{\xi_i} = \eta_i + r_{v_i}(d_i - u_i) - \Delta_i
+\end{equation}
+\begin{equation}
+    \label{sq:6}
+    \kappa_i \geq \eta_i + r_{v_i}(d_i - u_i)
+\end{equation}
+\begin{equation}
+    \label{sq:7}
+    a_i \leq u_i \leq (T-s_i)
+\end{equation}
+\begin{equation}
+    \label{sq:8}
+     d_i \leq e_i
+\end{equation}
+\begin{equation}
+    \label{sq:9}
+    s_i = d_i - u_i
+\end{equation}
+\end{subequations}
+#+end_export
 
-Where the valid queue position/time constraint is as defined in \cite{tutorials_point} and depicted in [[fig:valid-queue]].
-Also note that the $\eta$ constraints can only be verified /after/ the schedule has been generated as the initial charge
-for each visit is based from the previous charger selection and charge time.
+# Org mode is a little silly and does not take normal referencing syntax. This note is for future reference.
+Where the valid queue \ref{sq:1} - \ref{sq:4} define the spatial and temporal constraints of the system. They are
+designed to mimic the rectangle overlapping algorithm in \cite{tutorials_point}. In a more explicit form these
+constraints are written as shown in Algorithm [[alg:spaceandtime]].
+
+#+name: alg:spaceandtime
+#+begin_export latex
+\begin{algorithm}[H]
+\label{alg:spaceandtime}
+\caption{Spatial and temporal constraints of \ref{sq:1} - \ref{sq:4} written in its algorithmic form.}
+    \TitleOfAlgo{Schedule Conflict}
+    \KwIn{Arrival times, departure times, and queues of bus visits $i$ and $j$: (($u_i, d_i, v_i$), ($u_j, d_q, v_i$)) }
+    \KwOut{Boolean: is-collision}
+
+    \Begin
+    {
+        is-collision $\leftarrow$ True\;
+
+        \If{$u_i < d_j$ or $u_j < d_j$ or $v_i \ne v_j$)}
+        {
+            is-collision $\leftarrow$ False\;
+        }
+
+        \Return{is-collision}
+    }
+\end{algorithm}
+#+end_export
+
+Using Algorithm [[alg:spaceandtime]] as a reference, \ref{sq:1} - \ref{sq:2} are show before the "and" and \ref{sq:3} is
+after. To be able to get the "or" as well as the "and" in Algorithm [[alg:spaceandtime]], \ref{sq:4} is introduced. Because
+\ref{sq:1} and \ref{sq:2} cannot occur at the time, but one must be true the only  The
+possible permutations of these constraints are depicted in [[fig:valid-queue]]. Also note that the $\eta$ constraints can
+only be verified /after/ the schedule has been generated as the initial charge for each visit is based from the previous
+charger selection and charge time.
 
 #+name: fig:valid-queue
 #+begin_export latex
