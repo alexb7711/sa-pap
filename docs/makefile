@@ -2,9 +2,9 @@
 
 ##===============================================================================
 # Variables
-UMLDIR = ./uml
+IMGDIR = ./img
 SRC   := $(wildcard *.org)
-UML   := $(wildcard $(UMLDIR)/*.puml)
+UML   := $(wildcard $(IMGDIR)/*.puml)
 PNG   := $(patsubst %.puml, %.png, $(UML))
 PDF   := $(patsubst %.org, %.pdf, $(SRC))
 
@@ -18,7 +18,7 @@ all: png pdf
 ##-------------------------------------------------------------------------------
 #
 png: $(PNG)
-	make -j4 -C $(UMLDIR) png
+	make -j4 -C $(IMGDIR) png
 
 ##-------------------------------------------------------------------------------
 #

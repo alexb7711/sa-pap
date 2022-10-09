@@ -17,6 +17,7 @@
 #+latex_header: \newcommand{\Tau}{T}                        % between Tau and T
 #+latex_header: \newcommand{\AC}{AC(u_i, d_i, v_i, \eta_i)} % Set the parameters for AC once
 #+latex_header: \newcommand{\PC}{PC(u_i, d_i, v_i)}         % Set the parameters for PC once
+#+latex_header: \newcommand{\Not}{\textbf{not }}            % Custom `not' operator
 
 # * Abstract
 # #+begin_export latex
@@ -252,7 +253,8 @@ the candidate solution.
 \end{equation}
 #+end_export
 
-As stated before, the demand cost is calcated based on 15 minute incements. This cost is also referred to as the peak 15. The peak 15 is repesented by [[eq:p15]].
+As stated before, the demand cost is calculated based on 15 minute increments (0.25 hours). This cost is also referred
+to as the peak 15. The peak 15 is represented by [[eq:p15]].
 
 #+name: eq:p15
 #+begin_export latex
@@ -323,8 +325,8 @@ In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg
             }
         }
 
-        \Return{p-dem}
-    }
+        \Return{p-dem}}
+
 \end{algorithm}
 #+END_EXPORT
 
@@ -334,157 +336,73 @@ In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg
 :END:
 Now that a method of calculating the fitness of a schedule has been established, a method for determining the
 feasibility of a schedule must be established. Feasible schedules require that the schedule maintain a certain list of
-properties. These properties are enforced by a set of constraints derived from the MILP PAP TODO: \cite{myself}. The
-constraints must ensure no overlap temporally or spatially, receives enough charge to complete route after each visit
-$i$, bus visit $i$ cannot be over charged, each visit, $i$, departs on time. The aforementioned constraints are shown in
-[[eq:constraints]].
+properties. These properties are enforced by a set of constraints derived from the MILP PAP. The constraints must ensure
+no overlap temporally or spatially, receives enough charge to complete route after each visit $i$, bus visit $i$ cannot
+be over charged, each visit, $i$, departs on time. The aforementioned constraints are shown in [[eq:constraints]].
 
 #+name: eq:constraints
 #+begin_export latex
 \begin{subequations}
 \label{eq:constraints}
 \begin{equation}
-    \label{sq:0}
-    d_j - u_i < \sigma_i^1
+    \label{seq:c0}
+    u_i - d_j - (\sigma_{ij} - 1)T \ge 0
 \end{equation}
 \begin{equation}
-    \label{sq:1}
-    u_j - d_i < \sigma_i^2
+    \label{seq:c1}
+    v_i - v_j - (\psi_{ij} - 1)Q \ge 0
 \end{equation}
 \begin{equation}
-    \label{sq:2}
-    |v_i - v_j| > \sigma_i^3
+    \label{seq:c2}
+    \sigma_{ij} + \sigma_{ji} \le 1
 \end{equation}
 \begin{equation}
-    \label{sq:3}
-    \sigma_i^1 + \sigma_i^2 + \sigma_i^3 \geq 1
+   \label{seq:c3}
+    \psi_{ij} + \psi_{ji} \le 1
 \end{equation}
 \begin{equation}
-    \label{sq:4}
+    \label{seq:c4}
+    \sigma_{ij} + \sigma_{ji} + \psi_{ij} + \psi_{ji} \ge 1
+\end{equation}
+\begin{equation}
+    \label{seq:c5}
     \Delta_i = \delta_i(a_{\xi_i} - d_i)
 \end{equation}
 \begin{equation}
-    \label{sq:5}
+    \label{seq:c6}
      \eta_{\xi_i} = \eta_i + r_{v_i}(d_i - u_i) - \Delta_i
 \end{equation}
 \begin{equation}
-    \label{sq:6}
+    \label{seq:c7}
     \kappa_i \geq \eta_i + r_{v_i}(d_i - u_i)
 \end{equation}
 \begin{equation}
-    \label{sq:7}
-    a_i \leq u_i \leq (T-s_i)
-\end{equation}
-\begin{equation}
-    \label{sq:8}
-     d_i \leq e_i
-\end{equation}
-\begin{equation}
-    \label{sq:9}
-    s_i = d_i - u_i
+    \label{seq:c8}
+    a_i \leq u_i \leq d_i \le e_i \le T
 \end{equation}
 \end{subequations}
 #+end_export
 
 # Org mode is a little silly and does not take normal referencing syntax. This note is for future reference.
-Where the valid queue \ref{sq:1} - \ref{sq:4} define the spatial and temporal constraints of the system. They are
-designed to mimic the rectangle overlapping algorithm in \cite{tutorials_point}. In a more explicit form these
-constraints are written as shown in Algorithm [[alg:spaceandtime]].
+Where the valid queue \ref{seq:c0} - \ref{seq:c4} define the spatial and temporal constraints of the system. These
+constraint enforce that the buses are placed in such a way that only one bus is allowed at a charger at any given time.
+Particularly \ref{seq:c0} determines if the initial charge time of visit $i$ is after the final charge time of visit
+$j$. Similarly, \ref{seq:c1} determines if visit $i$ or visit $j$ scheduled to be on the same queue. \ref{seq:c2}
+describes whether one of the visits come after the other temporally while \ref{seq:c3} describes if the chargers are
+placed in different queues. \ref{seq:c4} pulls all the previous constraints together and verifies that at least one of
+the conditions are true for each visit pair $(i,j)$. The concept of the temporal and spatial constraints can be
+visualized by [[fig:spacial-and-temporal-constr]]. The y-axis represents the possible queues for a bus visit to be placed
+into and the x-axis represents the time that can be reserved for each visit. The shaded rectangles represent time that
+has been scheduled for each bus visit. The set of constraints \ref{seq:c0} - \ref{seq:c4} aim to ensure that these
+shaded rectangles never overlap. \ref{seq:c5} calculates the discharge for the route after visit $i$. \ref{seq:c6}
+calculates the initial charge for the next visit for bus $b_i$. \ref{seq:c7} ensures that the bus is not being over
+charged. \ref{seq:c8} ensures the continuity of the times (i.e. the arrival time is less than the initial charge which
+is less than the detach time which is less than the time the bus exits the station and all must be less than the time
+horizon).
 
-#+name: alg:spaceandtime
+#+name: fig:spacial-and-temporal-constr
 #+begin_export latex
-\begin{algorithm}[H]
-\label{alg:spaceandtime}
-\caption{Spatial and temporal constraints of \ref{sq:1} - \ref{sq:4} written in its algorithmic form.}
-    \TitleOfAlgo{Schedule Conflict}
-    \KwIn{Arrival times, departure times, and queues of bus visits $i$ and $j$: (($u_i, d_i, v_i$), ($u_j, d_q, v_i$)) }
-    \KwOut{Boolean: is-collision}
-
-    \Begin
-    {
-        is-collision $\leftarrow$ True\;
-
-        \If{$u_i < d_j$ or $u_j < d_j$ or $v_i \ne v_j$)}
-        {
-            is-collision $\leftarrow$ False\;
-        }
-
-        \Return{is-collision}
-    }
-\end{algorithm}
-#+end_export
-
-Using Algorithm [[alg:spaceandtime]] as a reference, \ref{sq:1} - \ref{sq:2} are show before the "and" and \ref{sq:3} is
-after. To be able to get the "or" as well as the "and" in Algorithm [[alg:spaceandtime]], \ref{sq:4} is introduced. Because
-\ref{sq:1} and \ref{sq:2} cannot occur at the time, but one must be true the only  The
-possible permutations of these constraints are depicted in [[fig:valid-queue]]. Also note that the $\eta$ constraints can
-only be verified /after/ the schedule has been generated as the initial charge for each visit is based from the previous
-charger selection and charge time.
-
-#+name: fig:valid-queue
-#+begin_export latex
-\begin{figure}
-\centering
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Valid time position: $u_1 \ngeq d_2$ or $u_2 \geq d_2$ and $v_1 = v_2$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (2,0);
-        \coordinate (C) at (2.5,0);
-        \coordinate (D) at (4.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red] (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (3.5,0);
-        \coordinate (C) at (1.5,0);
-        \coordinate (D) at (4.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red] (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Invalid position: $u_1 \ngeq d_2$ or $u_2 \ngeq d_1$ and $v_1 = v_2$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (4.5,0);
-        \coordinate (C) at (1.0,0);
-        \coordinate (D) at (3.0,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red] (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $u_1$] at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $d_1$] at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_2$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_2$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\caption{Set of possible collisions between two buses in the same queue.}
-\label{fig:valid-queue}
-\end{figure}
+\input{img/spacial-temporal-constr.tex}
 #+end_export
 
 * Simulated Annealing
@@ -492,50 +410,64 @@ charger selection and charge time.
 :CUSTOM_ID: sec:simulated-annealing
 :END:
 SA is a local search (exploitation oriented) single-solution based (as compared to population based) metaheuristic
-approach in which its main advantage is simply \cite{Gendreau2018-pw}. This model is named after its analogised process
-where a crystalline solid is heated then allowed to cool very slowly until it achieves its most regular possible crystal
-lattice configuration \cite{Henderson}. There are five key components to SA:
-
-- Initial Temperature
-- Cooling schedule (temperature function)
-- Generation mechanism
-- Acceptance criteria
-- Local search iteration count (temperature change counter)
+approach in which its main advantage is its simplicity both theoretically and in its implementation as well its inherit
+ability to overcome nonlinearities \cite{Gendreau2018-pw, Radosavljevic2018-jc}. This model is named after its
+analogized process where a crystalline solid is heated then allowed to cool very slowly until it achieves its most
+regular possible crystal lattice configuration \cite{Henderson}. There are five key components to SA: initial
+temperature, cooling schedule (temperature function), generation mechanism, acceptance criteria, local search iteration
+count (temperature change counter) \cite{Keller_2019}.
 
 The initial temperature and cooling schedule are used to regulate the speed at which the solution attempts to converge
 to the best known solution. When the temperature is high, SA encourages exploration. As it cools down (in accordance to
-the cooling schedule), it begins to encourage local exploitation of the solution \cite{Rutenbar_1989; @Henderson}.
+the cooling schedule), it begins to encourage local exploitation of the solution \cite{Rutenbar_1989, Henderson}.
 
 ** Cooling Equation (Experimental)
 :PROPERTIES:
 :CUSTOM_ID: cooling-equation-experimental
 :END:
-There are three basic types of cooling equations as shown in [[fig:cool]]. A linear cooling schedule is defined by
+The purpose of the cooling equation (or the temperature schedule) is to determine at which the rate the system begins
+disallowing exploration and begins to attempt to hone in the optimal solution. There are three basic types of cooling
+equations as shown in [[fig:cool]] \cite{Keller_2019}. The different types merely dictate the rate at which we begin
+disallowing exploration. A linear cooling schedule is defined by [[eq:cool0]].
 
-$$
+#+name: eq:cool0
+#+begin_export latex
+\begin{equation}
+\label{eq:cool0}
 \Tau[n] = \Tau[n-1] -\Delta_0
-$$
+\end{equation}
+#+end_export
 
 with $\Tau[0] = \Tau_0$ and $\Delta_0 = 1/2\; C^\circ$ in [[fig:cool]]. A geometric cooling schedule is mostly used
-in practice \cite{Keller_2019}. It is defined by
+in practice \cite{Keller_2019}. It is defined by [[eq:cool1]].
 
-$$
+#+name: eq:cool1
+#+begin_export latex
+\begin{equation}
+\label{eq:cool1}
 \Tau[n] = \alpha \Tau[n-1]
-$$
+\end{equation}
+#+end_export
 
 where $\alpha = 0.995$ in [[fig:cool]]. An Exponential cooling schedule is defined by the difference equation is
-define as
+define as [[eq:cool2]].
 
-$$
+#+name: eq:cool2
+#+begin_export latex
+\begin{equation}
+\label{eq:cool2}
 \Tau[n] = e^{\beta}\Tau[n-1]
-$$
+\end{equation}
+#+end_export
 
 where $\beta = 0.01$ in [[fig:cool]]. The initial temperature, $T_0$, in the case of [[fig:cool]], is
 set to $500^\circ\; C$ and each schedule's final temperature is $1\; C^\circ$.
 
 #+name: fig:cool
+#+ATTR_ORG: :width 200
+#+ATTR_LATEX: :width 0.5\textwidth
 #+caption: Cooling equations \label{fig:cool}
-[[file:uml/cool-func.jpg]]
+[[file:img/cool-func.jpg]]
 
 ** Acceptance Criteria
 :PROPERTIES:
@@ -544,30 +476,41 @@ set to $500^\circ\; C$ and each schedule's final temperature is $1\; C^\circ$.
 Acceptance criteria describes the method to accept or reject a given candidate solution. In SA, if a new candidate
 solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA,
 worse candidate solutions may be accepted as the new solution. The probability of accepting the candidate solution is
-described by the function $\exp(\frac{J(new-sol) - J(old-sol)}{\Tau})$ where $J()$ is the objective functions
-described in [[#sec:objective-function]].
+described by the function $\exp(\frac{J(new-sol) - J(old-sol)}{\Tau})$ where $J()$ is the objective functions described
+in [[#sec:objective-function]]. The probability of acceptance is a function of the cooling equation just described and
+difference of the current solution and a new candidate solution. Let $\Delta E \equiv J(x) - J(x')$ where $x$ is the
+current solution and $x'$ is the new candidate solution. The probability of acceptance of $x'$ is defined by
+[[eq:candaccept]] \cite{Keller_2019}.
+
+#+name: eq:candaccept
+#+begin_export latex
+\begin{equation}
+\label{eq:candaccept}
+f(x,x',T) =
+\begin{cases}
+  1                 & \Delta E < 0 \\
+  e^{- \frac{\Delta E}{T}} & \text{otherwise}
+\end{cases}
+\end{equation}
+#+end_export
 
 ** Generation Mechanisms
 :PROPERTIES:
 :CUSTOM_ID: sec:generators
 :END:
 Generation mechanisms in SA are used to generate random solutions to propose to the optimizer. For the case of the bus
-generation, five generation mechanism shall be used:
+generation, five generation mechanism shall be used: new visit, slide visit, new charger, remove, new window. The
+purpose of each of these generators is to assign new visits to a charger, adjust a bus visit initial and final charge
+time within the same time frame/queue, remove a bus from a charger, and place a bus visit into a new time slot/queue.
+Each generator will be discussed in more detail.
 
-- New visit
-- Slide visit
-- New charger
-- Remove
-- New window
-
-These generator mechanisms will in turn be utilized by three wrapper functions. One of them being to generate a set of
-bus route data and the other two used to generate candidate solutions to the bus routes. These routines are defined as
-follows:
-
-- Route generation, [[fig:route]], which utilizes route metadata
-  as shown [[fig:routeyaml]]
-- Schedule generation, [[fig:schedule]]
-- Tweak schedule, [[fig:tweak]]
+These generator mechanisms will in turn be utilized by three wrapper functions. These routines are route generation
+([[fig:route]]) which utilizes route metadata as shown ([[fig:routeyaml]]), schedule generation ([[fig:schedule]]), perturb schedule
+([[fig:perturb]]). The purpose of the route generation to create a set of bus route data to feed to the SA algorithm.
+Although, strictly speaking, is not a part of the SA algorithm. It is vital in specifying the initial conditions and
+"setting the stage" for the SA algorithm to solve. The schedule generation is to used create candidate solutions for SA
+to compare with other solutions, and the perturb schedule generator is used to take a candidate solution and alter it
+slightly in an attempt to fall into a global/local minimum.
 
 *** Generators
 :PROPERTIES:
@@ -576,7 +519,26 @@ follows:
 This section describes and outlines the algorithm pool for the different generator types that are utilized in the
 wrapper functions. Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0\; KW$ will be added
 to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in
-\{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id.
+\{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id. Before describing the generators
+themselves, the inputs and outputs of each method shall be described.
+
+**** Generator Input
+Each generator has the tuple input of ($i$, =route-data=, =charger-date=) and an output of $S_{cand}$. The input provides
+the visit $i$, the route information generated by the route generation algorithm ([[#sec:route-gen]]). That information
+contains the necessary information to initialize the scheduling problem. It contains both the information about the
+routes and the bus metadata as well. The route information consists of the arrival and departure time for each visit,
+$a$ and $e$, the initial and final charge times, $u$ and $d$, the next visit index, $\xi_i$, and the assigned charger,
+$v$. The bus metadata consists of the bus id, $b$, initial charge for the first visit, the battery capacity, $\kappa$,
+the initial charge, $\eta$, and the discharge for the route after visit $i$, $\Delta$.
+
+The =charger-data= is the information about the state of the current assignments to each of the chargers. Each charger
+begins an empty schedule $X_q \in \varnothing$. As time is assigned to charger $q$, the schedule is filled $X_q \in \{
+[u_1, d_1], [u_2, d_2], ..., [u_j, d_j]\}$ where $j < I$. This information is used to available times for a bus to
+charge.
+
+The output, $S_{cand}$ defines tuple of the chosen queue, initial charge time, and detach time from the generator, $(v,
+u, d)$. This information is what the wrapper functions will use to create the bus route metadata and to either create or
+alter charging schedules.
 
 **** New visit
 :PROPERTIES:
@@ -603,13 +565,13 @@ charger will be listed and randomly selected using a uniform distribution. The a
     {
         $a$          $\leftarrow$ route-data[$i$].$a$\;
         $e$          $\leftarrow$ route-data[$i$].$e$\;
-        valid-visit  $\leftarrow \emptyset$      \;
+        valid-visit  $\leftarrow \varnothing$      \;
 
-        \For{q $\leftarrow 0$ \KwTo Q}
+        \ForEach{$q \in Q$}
         {
-                \For{free-region $ \leftarrow $ \KwTo charger-data[$q$]}
+                \ForEach{region $ \leftarrow $ charger-data[$q$]}
                 {
-                        \Union{valid-visit, ($q$,\findFreeTime{free-region, ($a$,$e$)})}\;
+                        \Union{valid-visit, ($q$,\findFreeTime{region, ($a$,$e$)})}\;
                 }
         }
 
@@ -618,136 +580,14 @@ charger will be listed and randomly selected using a uniform distribution. The a
 \end{algorithm}
 #+end_export
 
-Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, =route-data= is the data generated
-in =RouteGeneration= (described in [[#sec:route-gen]]), and =charger-data= are the time intervals allocated to
-buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. The cases are depicted in
-[[fig:find-free]].
+Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, =route-data= is the data generated in
+=RouteGeneration= (described in [[#sec:route-gen]]), and =charger-data= are the time intervals allocated to buses. The
+algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. =L= and =U= are the lower and upper bound of the
+time between scheduled times. The possible use cases are depicted in [[fig:find-free]].
 
 #+name: fig:find-free
 #+begin_export latex
-\begin{figure}
-\centering
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Valid position: $a_1 \leq u_1 \leq d_1 \leq e_1$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (1.5,0);
-        \coordinate (C) at (2.0,0);
-        \coordinate (D) at (3.5,0);
-        \coordinate (E) at (4.0,0);
-        \coordinate (F) at (5.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red]  (C) -- (D);
-        \draw[blue] (E) -- (F);
-
-        \node[circle,fill=blue,radius=0.15]                     at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
-        \node[circle,fill=blue,radius=0.15]                     at (F) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\par\bigskip
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Valid position: $L \leq u_1 \leq d_1 \leq e_1$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (2.5,0);
-        \coordinate (C) at (2.0,0);
-        \coordinate (D) at (3.5,0);
-        \coordinate (E) at (4.0,0);
-        \coordinate (F) at (5.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red]  (C) -- (D);
-        \draw[blue] (E) -- (F);
-
-        \node[circle,fill=blue,radius=0.15]                     at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
-        \node[circle,fill=blue,radius=0.15]                     at (F) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\par\bigskip
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Valid position: $a_1 \leq u_1 \leq d_1 \leq U$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0,0);
-        \coordinate (B) at (1.5,0);
-        \coordinate (C) at (2.0,0);
-        \coordinate (D) at (3.5,0);
-        \coordinate (E) at (3.0,0);
-        \coordinate (F) at (5.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red]  (C) -- (D);
-        \draw[blue] (E) -- (F);
-
-        \node[circle,fill=blue,radius=0.15]                     at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
-        \node[circle,fill=blue,radius=0.15]                     at (F) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\par\bigskip
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Valid position: $a_1 \leq u_1 \leq d_1 \leq L$ or $U \leq u_1 \leq d_1 \leq e_1$}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (1.5,0);
-        \coordinate (B) at (3.5,0);
-        \coordinate (C) at (0.0,0);
-        \coordinate (D) at (5.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red]  (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $a_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $e_1$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\par\bigskip
-
-\begin{subfigure}{\textwidth}
-    \centering
-    \caption{Invalid position}
-    \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (0.0,0);
-        \coordinate (B) at (5.5,0);
-        \coordinate (C) at (1.5,0);
-        \coordinate (D) at (3.5,0);
-
-        \draw[blue] (A) -- (B);
-        \draw[red]  (C) -- (D);
-
-        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u_1$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d_1$] at (D) {};
-    \end{tikzpicture}
-\end{subfigure}
-
-\caption{Outlines the different cases that requested time and charger allocated time can overlap}
-\label{fig:find-free}
-\end{figure}
+\input{img/find-free.tex}
 #+end_export
 
 #+name: alg:find-free-time
@@ -788,9 +628,9 @@ buses. The algorithm to find free time is defined in Algorithm [[alg:find-free-t
 :CUSTOM_ID: slide-visit
 :END:
 Slide visit is used for buses that have already been scheduled. Because $a_i \leq u_i \leq d_i \leq e_i$ (arrival time
-is less than initial charge time which is less than the detatch time which is less than the time the bus exists the
+is less than initial charge time which is less than the detach time which is less than the time the bus exists the
 station), there may be some room to move $u_i$ and $d_i$ within the window $[a_i, e_i]$. Two new values, $u_i$
-and $d_i$ are are selected with a uniform distribution to satisfy $a_i \leq u_i \leq d_i \leq e_i$.
+and $d_i$ are selected with a uniform distribution to satisfy $a_i \leq u_i \leq d_i \leq e_i$.
 
 #+name: alg:slide-visit
 #+begin_export latex
@@ -805,6 +645,7 @@ and $d_i$ are are selected with a uniform distribution to satisfy $a_i \leq u_i 
     {
         $a \leftarrow$ route-data[$i$].$a$\;
         $e \leftarrow$ route-data[$i$].$e$\;
+
         $u \leftarrow$ $\mathbb{U}_{[a,e]}$\;
         $d \leftarrow$ $\mathbb{U}_{[u,e]}$\;
 
@@ -835,13 +676,13 @@ distribution.
        $a \leftarrow$ route-data[$i$].$a$\;
        $e \leftarrow$ route-data[$i$].$e$\;
        $v \leftarrow$ route-data[$i$].$v$\;
-       valid-visit  $\leftarrow \emptyset$\;
+       valid-visit  $\leftarrow \varnothing$\;
 
        \For{$q\; \leftarrow 0$ \KwTo $Q$ and $q \neq v$}
        {
-               \For{free-region $\leftarrow$ \KwTo q.free}
+               \For{region $\leftarrow$ \KwTo q.free}
                {
-                       \Union{valid-visit, \findFreeTime{free-region, (a,e)}}\;
+                       \Union{valid-visit, \findFreeTime{region, (a,e)}}\;
                }
        }
 
@@ -862,7 +703,7 @@ The remove generator simply removes a bus from a charger queue and places it in 
 \begin{algorithm}[H]
 \label{alg:remove}
 \caption{Remove algorithm}
-    \TitleOfAlgo{New Visit}
+    \TitleOfAlgo{Remove}
     \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
     \KwOut{Tuple of queue, time region: $(v,u,d)$}
 
@@ -882,8 +723,7 @@ The remove generator simply removes a bus from a charger queue and places it in 
 :PROPERTIES:
 :CUSTOM_ID: sec:new-visit
 :END:
-New window is a combination of the remove and then new visit generators
-([[#sec:remove]] and [[#sec:new-visit]]).
+New window is a combination of the remove and then new visit generators ([[#sec:remove]] and [[#sec:new-visit]]).
 
 #+name: alg:new-window
 #+begin_export latex
@@ -914,32 +754,24 @@ New window is a combination of the remove and then new visit generators
 :PROPERTIES:
 :CUSTOM_ID: generator-wrappers
 :END:
-This section covers the algorithms utilized to select and execute
-different generation processes for the SA process.
+This section covers the algorithms utilized to select and execute different generation processes for the SA process. The
+generator wrappers are the method immediately called by SA. Each wrapper utilizes the generators previously described
+and returns either metadata about the bus routes or a new valid charger schedule.
 
 **** Route Generation
 :PROPERTIES:
 :CUSTOM_ID: sec:route-gen
 :END:
-The objective of route generation is to create a set of metadata about
-bus routes given the information in [[fig:routeyaml]].
-Specifically, the objective is to generate $I$ routes for $B$ buses.
-Each visit will have
+The objective of route generation is to create a set of metadata about bus routes given the information in
+[[fig:routeyaml]]. Specifically, the objective is to generate $I$ routes for $B$ buses. Each visit will have an initial
+charge (specified for first visit only), arrival time, departure time, final charge (minimum allowed charge specified
+for finial visit only).
 
-- Initial charge (for first visit only)
-- Arrival time
-- Departure time
-- Final charge (for finial visit only)
-
-This is created by following the "GenerateSchedule" state in the state
-diagram found in [[fig:route]]. In essence the logic is as
-follows: Generate $B$ random numbers that add up to $I$ visits (with
-a minimum amount of visits set for each bus). For each bus and for each
-visit, set a departure time that is between the range [min_rest,
-max_rest] ([[fig:routeyaml]]), set the next arrival time to be
-$j \cdot \frac{T}{\text{number-of-bus-visits}}$ where $j$ is the
-$j^{th}$ visit for bus $b$. Finally, calculate the amount of
-discharge from previous arrival to the departure time.
+This is created by following the "GenerateSchedule" state in the state diagram found in [[fig:route]]. In essence the logic
+is as follows: Generate $B$ random numbers that add up to $I$ visits (with a minimum amount of visits set for each bus).
+For each bus and for each visit, set a departure time that is between the range [min_rest, max_rest] ([[fig:routeyaml]]),
+set the next arrival time to be $j \cdot \frac{T}{\text{number-of-bus-visits}}$ where $j$ is the $j^{th}$ visit for bus
+$b$. Finally, calculate the amount of discharge from previous arrival to the departure time.
 
 #+name: alg:route-generation
 #+begin_export latex
@@ -951,7 +783,6 @@ discharge from previous arrival to the departure time.
     \KwOut{Array of route events: (route-data)}
 
     \SetKwFunction{Union}{Union}
-    \SetKwFunction{NumBusVisits}{NumBusVisits}
     \SetKwFunction{DepartureTime}{DepartureTime}
     \SetKwFunction{ArrivalTimeNew}{ArrivalTimeNew}
     \SetKwFunction{Discharge}{Discharge}
@@ -960,21 +791,22 @@ discharge from previous arrival to the departure time.
 
     \Begin
     {
-        \While{!schedule-created}
+        \While{\Not schedule-created}
         {
             arrival-new $\leftarrow$ 0.0\;
             arrival-old $\leftarrow$ 0.0\;
             departure-time $\leftarrow$ 0.0\;
-            num-visit $\leftarrow$ \NumBusVisits{B}\;
             schedule-created $\leftarrow$ false\;
 
-            \For{$b \in B$}
+            \ForEach{b $\in$ B}
             {
-                \For{$n \in num-visit[b]$}
+                num-visit $\leftarrow$ |\{b_1, ..., b_j\}|\;
+
+                \ForEach{n $\in$ num-visit[b]}
                 {
                     arrival-old $\leftarrow$ arrival-new\;
 
-                    \If{$j = num-visit[b]$}{final-visit = true\;}
+                    \If{j = num-visit[b]}{final-visit = true\;}
                     \Else{final-visit = false\;}
 
                     departure-time $\leftarrow$ \DepartureTime{arrival-old, final-visit}\;
@@ -991,6 +823,10 @@ discharge from previous arrival to the departure time.
     }
 \end{algorithm}
 #+end_export
+
+Where =discharge-rate= is read from YAML data shown in [[fig:routeyaml]], the =Departure= algorithm is shown in Algorithm
+[[alg:departure-time]], and the =Feasible= method is used to determine if the generated schedule is valid (conditions
+covered in [[#sec:constraints]]).
 
 #+name: alg:departure-time
 #+begin_export latex
@@ -1017,22 +853,14 @@ discharge from previous arrival to the departure time.
 \end{algorithm}
 #+end_export
 
-Where =discharge-rate= is read from YAML data shown in
-[[fig:routeyaml]], the =Feasible= method is used to determine if
-the generated schedule is valid (conditions covered in
-[[#sec:constraints]]).
-
 **** Schedule Generation
 :PROPERTIES:
 :CUSTOM_ID: schedule-generation
 :END:
-The objective of this generator is to generate a candidate solution to
-the given schedule. To generate a candidate solution the generator is
-given the route schedule data that was previous generated. A bus is
-picked at random, $b \in B$, then a random route is picked for bus
-$b$. The new arrival generator is then utilized. This process is
-repeated for each visit. The state diagram is depicted in the state
-digram in [[fig:schedule]] and outlined in Algorithm
+The objective of this generator is to generate a candidate solution to the given schedule. To generate a candidate
+solution the generator is given the route schedule data that was previous generated. A bus is picked at random, $b \in
+B$, then a random route is picked for bus $b$. The new arrival generator is then utilized. This process is repeated for
+each visit. The state diagram is depicted in the state digram in [[fig:schedule]] and outlined in Algorithm
 [[alg:schedule-generation]].
 
 #+name: alg:schedule-generation
@@ -1049,11 +877,11 @@ digram in [[fig:schedule]] and outlined in Algorithm
 
     \Begin
     {
-        schedule $\leftarrow\; \emptyset$\;
+        schedule $\leftarrow\; \varnothing$\;
         \For {i in I}
         {
             bus $\leftarrow\; \mathbb{U}_{[0,B]}$\;
-            visit $\leftarrow\; \mathbb{U}_{[0,total-visit-count]}$\;
+            visit $\leftarrow\; \mathbb{U}_{[0,I]}$\;
             \Union{schedule,\NewVisit{(visit.a, visit.e)}}\;
         }
             \Return{schedule}
@@ -1061,21 +889,20 @@ digram in [[fig:schedule]] and outlined in Algorithm
 \end{algorithm}
 #+end_export
 
-**** Tweak Schedule
+**** Perturb Schedule
 :PROPERTIES:
 :CUSTOM_ID: tweak-schedule
 :END:
-As described in SA, local searches are also employed to try and exploit a given solution
-\cite{radosavljevic2018metaheuristic}. The method that will be employed to exploit the given solution is as follows:
-pick a bus, pick a visit, pick a generator. This state diagram is depicted in [[fig:tweak]] and outlined in Algorithm
-[[alg:tweak-schedule]].
+As described in SA, local searches are also employed to try and exploit a given solution \cite{Radosavljevic2018-jc}.
+The method that will be employed to exploit the given solution is as follows: pick a bus, pick a visit, pick a
+generator. This state diagram is depicted in [[fig:perturb]] and outlined in Algorithm [[alg:perturb-schedule]].
 
-#+name: alg:tweak-schedule
+#+name: alg:perturb-schedule
 #+begin_export latex
 \begin{algorithm}[H]
-\label{alg:tweak-schedule}
-\caption{Tweak schedule algorithm}
-    \TitleOfAlgo{TweakSchedule}
+\label{alg:perturb-schedule}
+\caption{Perturb schedule algorithm}
+    \TitleOfAlgo{PerturbSchedule}
     \KwIn{Schedule candidate solution: (schedule)}
     \KwOut{Perturbed schedule: (schedule)}
 
@@ -1085,10 +912,9 @@ pick a bus, pick a visit, pick a generator. This state diagram is depicted in [[
     {
         \For {i in I}
         {
-            bus $\leftarrow\; \mathbb{U}_{[0,B]}$\;
-            visit $\leftarrow\; \mathbb{U}_{[0,total-visit-count]}$\;
+            visit $\leftarrow\; \mathbb{U}_{[0,I]}$\;
             generator $\leftarrow\; \mathbb{U}_{[0,generator-count]}$\;
-            schedule $\leftarrow$ \GeneratorCallback[generator]{(i, route-data, charger-data)}\;
+            schedule $\leftarrow$ \GeneratorCallback[generator]{(visit, route-data, charger-data)}\;
         }
 
         \Return{schedule}
@@ -1106,8 +932,8 @@ routes utilizing the route metadata in [[fig:routeyaml]]. The initial temperatur
 passed into the SA optimization algorithm. A new candidate solution will be generated. For each step in the cooling
 schedule will have $K$ iterations to attempt to find a local maxima. Each perturbation to the system is then compared to
 the current candidate solution. If the new candidate solution is better it is kept; however, if the candidate solution
-is worse, the solution may still be kept with a probability $\exp(\text{del-sol}/\Tau)$ as described in [[#sec:acceptance]].
-This process is summarized in Algorithm [[alg:sa-pap]].
+is worse, the solution may still be kept with a calculated probability as described in [[#sec:acceptance]]. This process is
+summarized in Algorithm [[alg:sa-pap]].
 
 #+name: alg:sa-pap
 #+begin_export latex
@@ -1124,7 +950,7 @@ This process is summarized in Algorithm [[alg:sa-pap]].
     \SetKwFunction{RouteGeneration}{RouteGeneration}
     \SetKwFunction{J}{J}
     \SetKwFunction{ScheduleGeneration}{ScheduleGeneration}
-    \SetKwFunction{TweakSchedule}{TweakSchedule}
+    \SetKwFunction{PerturbSchedule}{PerturbSchedule}
 
     \Begin
     {
@@ -1153,7 +979,7 @@ This process is summarized in Algorithm [[alg:sa-pap]].
                     best-solution $\leftarrow$ candidate-solution with probability $\exp$(del-sol$\tau_k$)\;
                 }
 
-                schedule $\leftarrow$ \TweakSchedule{schedule}\;
+                schedule $\leftarrow$ \PerturbSchedule{schedule}\;
             }
         }
     }
@@ -1167,22 +993,22 @@ This process is summarized in Algorithm [[alg:sa-pap]].
 #+caption: Route generation state diagram
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
-[[file:uml/route_generation.png]]
+[[file:img/route_generation.png]]
 
 #+name: fig:routeyaml
 #+caption: Route YAML file with example data
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
-[[file:uml/route_yaml.png]]
+[[file:img/route_yaml.png]]
 
 #+name: fig:schedule
 #+caption: Charge solution state diagram
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.5\textwidth
-[[file:uml/charge_solution.png]]
+[[file:img/charge_solution.png]]
 
-#+name: fig:tweak
-#+caption: Solution tweak state diagram
+#+name: fig:perturb
+#+caption: Solution perturb state diagram
 #+ATTR_ORG: :width 200
 #+ATTR_LATEX: :width 0.2\textwidth
-[[file:uml/charge_tweak.png]]
+[[file:img/charge_perturb.png]]
