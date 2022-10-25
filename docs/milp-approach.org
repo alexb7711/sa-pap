@@ -33,6 +33,9 @@
 #+end_export
 
 * Introduction
+:PROPERTIES:
+:CUSTOM_ID: sec:introduction
+:END:
 This document outlines the simulated annealing (SA) approach to the bus charging scheduling problem utilizing Mixed
 Integer Linear Programming (MILP) constraints as the method of determining feasible charging schedules. The problem
 statement is as follows: given a set of routes for a fleet of Battery Electric Buses (BEB), generate an optimal charging
@@ -47,6 +50,9 @@ objective functions describing consumption cost and demand cost, as stated above
 consumption and total cost of using the BEBs.
 
 * Problem Description
+:PROPERTIES:
+:CUSTOM_ID: sec:problem-description
+:END:
 Given a set of bus arrivals to a charging station $i = \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued
 $q = \{1,...,Q\} \in \mathbb{Z}$ where the bus is indicated by an identification number $b = \{1,...,B\} \in
 \mathbb{Z}$. Each bus arrival, $i$, can be represented by a the tuple: $(b_i, a_i, e_i, u_i, d_i, v_i, \eta_i)$, in
@@ -515,28 +521,24 @@ f(x,x',T) =
 :CUSTOM_ID: sec:generators
 :END:
 Generation mechanisms in SA are used to generate random solutions to propose to the optimizer, these are known as
-candidate solutions. For the case of the bus generation, five generation mechanism shall be used: new visit, slide
-visit, new charger, remove, new window. The purpose of each of these generators is to assign new visits to a charger,
-adjust a bus visit initial and final charge time within the same time frame/queue, remove a bus from a charger, and
-place a bus visit into a new time slot/queue. Each generator will be discussed in more detail.
+candidate solutions. In the case of the problem statement made in [[#sec:problem-description]], five generation mechanism
+shall be used: new visit, slide visit, new charger, remove, new window. The purpose of each of these generators is to
+assign new visits to a charger, adjust a bus visits initial and final charge time within the same time frame/queue,
+remove a bus from a charger, and place a bus visit into a new time slot/queue. Each generator will be discussed in more
+detail in [[#sec:generators]].
 
-These generator mechanisms will in turn be utilized by three wrapper functions. These routines are route generation
-([[fig:route]]) which utilizes route metadata as shown ([[fig:routeyaml]]), schedule generation ([[fig:schedule]]), perturb schedule
-([[fig:perturb]]). The purpose of the route generation to create a set of bus route data to feed to the SA algorithm.
-Although, strictly speaking, is not a part of the SA algorithm. It is vital in specifying the initial conditions and
-"setting the stage" for the SA algorithm to solve. The schedule generation is to used create candidate solutions for SA
-to compare with other solutions, and the perturb schedule generator is used to take a candidate solution and alter it
-slightly in an attempt to fall into a global/local minimum.
+These generator mechanisms will in turn be utilized by three wrapper functions. The purpose of the route generation to
+create a set of bus route data to feed to the SA algorithm. Although, strictly speaking, is not a part of the SA
+algorithm. It is vital in specifying the initial conditions and "setting the stage" for the SA algorithm to solve. The
+schedule generation is to used create candidate solutions for SA to compare with other solutions, and the perturb
+schedule generator is used to take a candidate solution and alter it slightly in an attempt to fall into a global/local
+minimum.
 
-*** Generators
+*** Generator Input/Output
 :PROPERTIES:
-:CUSTOM_ID: generators
+:CUSTOM_ID: sec:generator-input-output
 :END:
-This section describes and outlines the algorithm pool for the different generator types that are utilized in the
-wrapper functions. Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0\; KW$ will be added
-to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in
-\{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id. Before describing the generators
-themselves, the inputs and outputs of each method shall be described.
+This section discusses in detail the expected inputs and output of each generator. It is important to discuss the
 
 **** Generator Input
 Each generator has the tuple input of ($i$, =route-data=, =charger-date=) and an output of $S_{cand}$. The input
@@ -552,9 +554,20 @@ begins an empty schedule $Y_q \in \varnothing$. As time is assigned to charger $
 [u_1, d_1], [u_2, d_2], ..., [u_j, d_j]\}$ where $j < I$. This information is used to available times for a bus to
 charge.
 
+**** Generator Output
 The output, $x_i'$ defines tuple of the chosen queue, initial charge time, and detach time from the generator, $(v, u,
 d)$. This information is what the wrapper functions will use to create the bus route metadata and to either create or
 alter charging schedules.
+
+*** Generators
+:PROPERTIES:
+:CUSTOM_ID: sec:generators
+:END:
+This section describes and outlines the algorithm pool for the different generator types that are utilized in the
+wrapper functions. Note that to satisfy constraints, $B$ extra dummy chargers with a power of $0\; KW$ will be added
+to the array of valid chargers. When a bus is not to be placed on a charger, it will be placed in the queue $v_i \in
+\{Q,...,Q+b\}$. Where $Q$ is the total amount of chargers and $b$ is the bus id. Before describing the generators
+themselves, the inputs and outputs of each method shall be described.
 
 **** New visit
 :PROPERTIES:
