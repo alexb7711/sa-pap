@@ -538,7 +538,7 @@ minimum.
 :PROPERTIES:
 :CUSTOM_ID: sec:generator-input-output
 :END:
-This section discusses in detail the expected inputs and output of each generator. It is important to discuss the
+This section discusses in detail the expected inputs and output of each generator. It is important to discuss these parameters in order to have a good understandings of the generating algorithms derived. The input consists of the index of interest, information about the current state of arrivals, $\mathbb{I}$, and the current state of the chargers availability, $\mathbb{C}$. The output of each generator affects the tuple of decision variables $x_{i}' \equiv (v_i, u_i, d_i)$.
 
 **** Generator Input
 Each generator has the tuple input of ($i$, =route-data=, =charger-date=) and an output of $S_{cand}$. The input
