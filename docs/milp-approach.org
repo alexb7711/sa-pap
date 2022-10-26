@@ -18,6 +18,9 @@
 #+latex_header: \newcommand{\AC}{AC(u_i, d_i, v_i, \eta_i)} % Set the parameters for AC once
 #+latex_header: \newcommand{\PC}{PC(u_i, d_i, v_i)}         % Set the parameters for PC once
 #+latex_header: \newcommand{\Not}{\textbf{not }}            % Custom `not' operator
+#+latex_header: \newcommand{\visit}{(b_i, a_i, e_i, u_i, d_i, v_i, \eta_i, \xi_i)}
+#+latex_header: \newcommand{\I}{\mathcal{I}}                % Visits
+#+latex_header: \newcommand{\C}{\mathcal{C}}                % Charger availability information
 
 # * Abstract
 # #+begin_export latex
@@ -53,19 +56,18 @@ consumption and total cost of using the BEBs.
 :PROPERTIES:
 :CUSTOM_ID: sec:problem-description
 :END:
-Given a set of bus arrivals to a charging station $i = \{1,...,I\} \in \mathbb{Z}$ with a set of chargers to be queued
-$q = \{1,...,Q\} \in \mathbb{Z}$ where the bus is indicated by an identification number $b = \{1,...,B\} \in
-\mathbb{Z}$. Each bus arrival, $i$, can be represented by a the tuple: $(b_i, a_i, e_i, u_i, d_i, v_i, \eta_i)$, in
-which the ordered elements denote the bus identification number arrival time to the station, departure time from the
-station, initial charging time, charge end time, the charger queue for the bus to be placed into, and the initial State
-Of Charge (SOC).
+Given a set of bus arrivals to a charging station $i = \{1,...,I\} \in \mathcal{Z}$ with a set of chargers to be queued
+$q = \{1,...,Q\} \in \mathcal{Z}$ where the bus is indicated by an identification number $b = \{1,...,B\} \in
+\mathcal{Z}$. Each bus arrival, $i$, can be represented by a the tuple: $\visit$, in which the ordered elements denote
+the bus identification number arrival time to the station, departure time from the station, initial charging time,
+charge end time, the charger queue for the bus to be placed into, and the initial State Of Charge (SOC).
 
-It is assumed that each visit occurs over the time horizon $T$. The set of all arrivals is represented by the set
-$\mathbb{I} = \{ (b_i, a_i, e_i, u_i, d_i, v_i, \eta_i): b_i \in B, a_i, e_i, u_i, d_i \in T, v_i \in Q\}$. The concept
-of "arrivals" is derived from the PAP \cite{Qarebagh2019}. This idea of arrivals is useful in the sense that it is easy
-to describe the state of any arbitrary arrival; however, it also assumes that each arrival is unique (i.e. no two bus
-arrives twice) therefore a system must be put in place to track each bus over each arrival. That is why a bus identifier
-is placed in the tuple, and in that way each bus can be tracked over each arrival.
+It is assumed that each visit occurs over the time horizon $T$. The set of all arrivals is represented by the set $\I =
+\{ \visit: b_i, \xi_i \in B, a_i, e_i, u_i, d_i \in T, v_i \in Q\}$. The concept of "arrivals" is derived from the PAP
+\cite{Qarebagh2019}. This idea of arrivals is useful in the sense that it is easy to describe the state of any arbitrary
+arrival; however, it also assumes that each arrival is unique (i.e. no two bus arrives twice) therefore a system must be
+put in place to track each bus over each arrival. That is why a bus identifier is placed in the tuple, and in that way
+each bus can be tracked over each arrival.
 
 For each arrival a bus must be placed in a singular queue, $v_i \in Q$. The charger $q$ is assumed to be either a fast
 or slow charger. The bus is not allowed to change queues mid-charge. The amount of time the bus is allowed to charge is
@@ -80,7 +82,7 @@ discharge over a period of time allowing an estimation to be calculated for each
 while at the station is assumed to supply enough charge for each route (battery charge does not deplete to zero) with an
 additional battery capacity percentage, $m$, acting as a safety factor.
 
-The scheduler's task shall be to schedule the set of arrivals $\mathbb{I}$ to fulfill the minimum charge requirements
+The scheduler's task shall be to schedule the set of arrivals $\I$ to fulfill the minimum charge requirements
 over the time horizon $T$ as well as minimize the demand cost as well as minimize over the consumption cost. The
 objective function and constraints are discussed in further detail in section [[#sec:objective-function]].
 
@@ -343,7 +345,7 @@ In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg
 \end{algorithm}
 #+END_EXPORT
 
-Where =schedule= is the set $\mathbb{I} = \{ (b_i, a_i, e_i, u_i, d_i, v_i, \eta_i): b_i \in B, a_i, e_i, u_i, d_i \in
+Where =schedule= is the set $\I = \{ (b_i, a_i, e_i, u_i, d_i, v_i, \eta_i): b_i \in B, a_i, e_i, u_i, d_i \in
 T, v_i \in Q\}$ and =p-fix= is the initial, fixed cost.
 
 ** Constraints
@@ -538,21 +540,22 @@ minimum.
 :PROPERTIES:
 :CUSTOM_ID: sec:generator-input-output
 :END:
-This section discusses in detail the expected inputs and output of each generator. It is important to discuss these parameters in order to have a good understandings of the generating algorithms derived. The input consists of the index of interest, information about the current state of arrivals, $\mathbb{I}$, and the current state of the chargers availability, $\mathbb{C}$. The output of each generator affects the tuple of decision variables $x_{i}' \equiv (v_i, u_i, d_i)$.
+This section discusses in detail the expected inputs and output of each generator. It is important to discuss these
+parameters in order to have a good understandings of the generating algorithms derived. The input consists of the index
+of interest, information about the current state of arrivals, $\I$, and the current state of the chargers availability,
+$\mathcal{C}$. The output of each generator affects the tuple of decision variables $x_{i}' \equiv (v_i, u_i, d_i)$.
 
 **** Generator Input
-Each generator has the tuple input of ($i$, =route-data=, =charger-date=) and an output of $S_{cand}$. The input
-provides the visit $i$, the route information, $\mathbb{I}_i$, generated by the route generation algorithm ([[#sec:route-gen]]). That
-information contains the necessary information to initialize the scheduling problem. It contains both the information
-about the routes and the bus metadata as well. The route information consists of the arrival and departure time for each
-visit, $a$ and $e$, the initial and final charge times, $u$ and $d$, the next visit index, $\xi_i$, and the assigned
-charger, $v$. The bus metadata consists of the bus id, $b$, initial charge for the first visit, the battery capacity,
-$\kappa$, the initial charge, $\eta$, and the discharge for the route after visit $i$, $\Delta$.
+Each generator has the tuple input of ($i, \I, \mathcal{C}$) where $i$ is the visit index is the tuple, $\I_i \equiv
+\visit$, ([[#sec:problem-description]]) that describes the set of visits generated by the route generation algorithm
+([[#sec:route-gen]]). The route information consists of the arrival and departure time for each visit, $a_i$ and $e_i$, the
+initial and final charge times, $u_i$ and $d_i$, the next visit index, $\xi_i$, and the assigned charger, $v_i$.
 
-The =charger-data= is the information about the state of the current assignments to each of the chargers. Each charger
-begins an empty schedule $Y_q \in \varnothing$. As time is assigned to charger $q$, the schedule is filled $Y_q \in \{
-[u_1, d_1], [u_2, d_2], ..., [u_j, d_j]\}$ where $j < I$. This information is used to available times for a bus to
-charge.
+$\mathcal{C}$ is the information about the state of the current assignments to each of the chargers. Each charger begins
+an empty schedule. As buses are assigned to chargers, their respective schedules begin filling. As an example, consider
+charger $q$ that begins with no assignments, $\C_q \in \varnothing$. As buses are assigned to the charger, ranges $[u_i,
+d_i]$, populate the set that represent regions in the time horizon that the charger will be active, $\C_q \in \ {[u_1,
+d_1], [u_2, d_2], ..., [u_j, d_j]\}$ where $j < I$ and $[u_1, d_1] \cap [u_2, d_2]\; ... \cap [u_j, d_j] \varnothing$.
 
 **** Generator Output
 The output, $x_i'$ defines tuple of the chosen queue, initial charge time, and detach time from the generator, $(v, u,
@@ -604,12 +607,12 @@ charger will be listed and randomly selected using a uniform distribution. The a
                 }
         }
 
-        \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
+        \Return{$\mathcal{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
     }
 \end{algorithm}
 #+end_export
 
-Where $\mathbb{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, =route-data= is the data generated in
+Where $\mathcal{U}_[a,b]$ is the continuous uniform distribution of $a$ and $b$, =route-data= is the data generated in
 =RouteGeneration= (described in [[#sec:route-gen]]), and =charger-data= are the time intervals allocated to buses as
 described above. The algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. =L= and =U= are the lower
 and upper bound of the time between scheduled times. The possible use cases are depicted in [[fig:find-free]].
@@ -631,20 +634,20 @@ and upper bound of the time between scheduled times. The possible use cases are 
     \Begin
     {
         \If{$L \leq a$ and $U \geq e$}{
-                u $\leftarrow$ $\mathbb{U}_{[a,e]}$\;
-                d $\leftarrow$ $\mathbb{U}_{[u,e]}$\;
+                u $\leftarrow$ $\mathcal{U}_{[a,e]}$\;
+                d $\leftarrow$ $\mathcal{U}_{[u,e]}$\;
         }
         \ElseIf{$L > a$ and $U \geq e$}{
-                u $\leftarrow$ $\mathbb{U}_{[L,e]}$\;
-                d $\leftarrow$ $\mathbb{U}_{[u,e]}$\;
+                u $\leftarrow$ $\mathcal{U}_{[L,e]}$\;
+                d $\leftarrow$ $\mathcal{U}_{[u,e]}$\;
         }
         \ElseIf{$L \leq a$ and $U < e$}{
-                u $\leftarrow$ $\mathbb{U}_{[a,U]}$\;
-                d $\leftarrow$ $\mathbb{U}_{[u,U]}$\;
+                u $\leftarrow$ $\mathcal{U}_{[a,U]}$\;
+                d $\leftarrow$ $\mathcal{U}_{[u,U]}$\;
         }
         \Else($L > a$ and $U < e$){
                 u $\leftarrow$ $\emptyset$\;
-                d $\leftarrow$ $\mathbb{U}_{[u,U]}$\;
+                d $\leftarrow$ $\mathcal{U}_{[u,U]}$\;
         }
 
         \Return{(u,d)}
@@ -675,8 +678,8 @@ and $d_i$ are selected with a uniform distribution to satisfy $a_i \leq u_i \leq
         $a \leftarrow$ route-data[$i$].$a$\;
         $e \leftarrow$ route-data[$i$].$e$\;
 
-        $u \leftarrow$ $\mathbb{U}_{[a,e]}$\;
-        $d \leftarrow$ $\mathbb{U}_{[u,e]}$\;
+        $u \leftarrow$ $\mathcal{U}_{[a,e]}$\;
+        $d \leftarrow$ $\mathcal{U}_{[u,e]}$\;
 
         \Return{(v,d)}
     }
@@ -715,7 +718,7 @@ distribution.
                }
        }
 
-       \Return{$\mathbb{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
+       \Return{$\mathcal{U}_{[valid-visit[0],valid-visit[length(valid-visit)-1]]}$}
     }
 \end{algorithm}
 #+end_export
@@ -875,7 +878,7 @@ further elaborated on later.
         }
         \Else
         {
-            depart $\leftarrow$ arrival-old + $\mathbb{U}_{[\text{min-rest},\text{max-rest}]}$\;
+            depart $\leftarrow$ arrival-old + $\mathcal{U}_{[\text{min-rest},\text{max-rest}]}$\;
         }
 
         \Return{depart}
@@ -910,8 +913,8 @@ each visit. The state diagram is depicted in the state digram in [[fig:schedule]
         schedule $\leftarrow\; \varnothing$\;
         \For {i in I}
         {
-            bus $\leftarrow\; \mathbb{U}_{[0,B]}$\;
-            visit $\leftarrow\; \mathbb{U}_{[0,I]}$\;
+            bus $\leftarrow\; \mathcal{U}_{[0,B]}$\;
+            visit $\leftarrow\; \mathcal{U}_{[0,I]}$\;
             \Union{schedule,\NewVisit{(visit.a, visit.e)}}\;
         }
             \Return{schedule}
@@ -919,7 +922,7 @@ each visit. The state diagram is depicted in the state digram in [[fig:schedule]
 \end{algorithm}
 #+end_export
 
-Where =schedule= is $\mathbb{I} = \{ (b_i, a_i, e_i, u_i, d_i, v_i, \eta_i): b_i \in B, a_i, e_i, u_i, d_i \in T, v_i \in Q\}$.
+Where =schedule= is $\I = \{ (b_i, a_i, e_i, u_i, d_i, v_i, \eta_i): b_i \in B, a_i, e_i, u_i, d_i \in T, v_i \in Q\}$.
 
 **** Perturb Schedule
 :PROPERTIES:
@@ -944,8 +947,8 @@ generator. This state diagram is depicted in [[fig:perturb]] and outlined in Alg
     {
         \For {i in I}
         {
-            visit $\leftarrow\; \mathbb{U}_{[0,I]}$\;
-            generator $\leftarrow\; \mathbb{U}_{[0,generator-count]}$\;
+            visit $\leftarrow\; \mathcal{U}_{[0,I]}$\;
+            generator $\leftarrow\; \mathcal{U}_{[0,generator-count]}$\;
             schedule $\leftarrow$ \GeneratorCallback[generator]{(visit, route-data, charger-data)}\;
         }
 
