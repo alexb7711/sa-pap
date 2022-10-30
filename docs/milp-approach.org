@@ -36,6 +36,11 @@
 #+latex_header: \newcommand{\C}{\mathbb{C}}                 % Charger availability information
 #+latex_header: \newcommand{\Sol}{\mathbb{S}}               % A shorthand for visit tuple
 
+#+latex_header: \newcommand{\Iset}{\mathcal{I}}             % Set of visits 1-I
+#+latex_header: \newcommand{\Bset}{\mathcal{B}}             % Set of visits 1-B
+#+latex_header: \newcommand{\Qset}{\mathcal{Q}}             % Set of visits 1-Q
+#+latex_header: \newcommand{\Jset}{\mathcal{J}}             % Set of visits 1-J
+
 # =========================================================================================================================
 # More document configuration
 #+begin_export latex
@@ -68,14 +73,15 @@ consumption and total cost of using the BEBs.
 :PROPERTIES:
 :CUSTOM_ID: sec:problem-description
 :END:
-Given a set of bus arrivals to a charging station $i = \{1,...,I\} \in \mathcal{Z}$ with a set of chargers to be queued
-$q = \{1,...,Q\} \in \mathcal{Z}$ where the bus is indicated by an identification number $b = \{1,...,B\} \in
-\mathcal{Z}$. Each bus arrival, $i$, can be represented by a the tuple: $\visit$, in which the ordered elements denote
-the bus identification number arrival time to the station, departure time from the station, initial charging time,
-charge end time, the charger queue for the bus to be placed into, and the initial State Of Charge (SOC).
+Given a set of bus arrivals to a charging station $i \in \{1,...,I\} = \Iset \subset \mathcal{Z}$ with a set of chargers
+to be queued $q \in \{1,...,Q\} = \Qset \subset \mathcal{Z}$ where the bus is indicated by an identification number $b
+\in \{1,...,B\} = \Bset \in \mathcal{Z}$. Each bus arrival, $i$, can be represented by the tuple: $\visit$, in which
+the ordered elements denote the bus identification number arrival time to the station, departure time from the station,
+initial charging time, charge end time, the charger queue for the bus to be placed into, and the initial State Of Charge
+(SOC).
 
 It is assumed that each visit occurs over the time horizon $T$. The set of all arrivals is represented by the set $\I =
-\{ \visit: b_i, \xi_i \in B, a_i, e_i, u_i, d_i \in T, v_i \in Q\}$. The concept of "arrivals" is derived from the PAP
+\{\visit: b_i, \xi_i \in B, a_i, e_i, u_i, d_i \in T, v_i \in Q\}$. The concept of "arrivals" is derived from the PAP
 \cite{Qarebagh2019}. This idea of arrivals is useful in the sense that it is easy to describe the state of any arbitrary
 arrival; however, it also assumes that each arrival is unique (i.e. no two bus arrives twice) therefore a system must be
 put in place to track each bus over each arrival. That is why a bus identifier is placed in the tuple, and in that way
@@ -570,7 +576,7 @@ words, no buses have been assigned to be charged over the time period of $[u_i, 
 complete, $\C_q'$ will have a set of active periods of the form $\C_q' \in \{[u_j, d_j]: j \in \mathcal{J}\}$ where
 $\mathcal{J} \subset \mathcal{I}$. For $\C_q'$ to be of value, its compliment is to be found, $\C_q$.
 
-To determine the inverse of $\C_q'$, begin by noting $\C_q' \bigcap \{[u_j, d_j] : j \in \mathcal{J}} = \varnothing$, in
+To determine the inverse of $\C_q'$, begin by noting $\C_q' \bigcap \{[u_j, d_j] : j \in \mathcal{J}\} = \varnothing$, in
 other words is said to be disjoint \cite{NaiveHalmos}. The inverse of a disjoint set can be found by the De Morgan Law
 as shown in [[eq:demorgan]]. Using [[eq:demorgan]], the set of inactive periods can be written as $\C_q \equiv \bigcup \{[u_j,
 d_j]': j \in \mathcal{J}\}$.
