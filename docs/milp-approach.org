@@ -611,7 +611,11 @@ while others charge.
 :CUSTOM_ID: new-visit
 :END:
 The new visit generator describes the process of moving bus $b$ from the idle queue, $v_i \in \{Q+1,..., Q+b\}$ to a
-valid charging queue, $v_i \in \{1,..., Q\}$. Line 2 initializes the set of solutions to the empty set. Line 3 loops through each charger availability set and line 4 loops thorough
+valid charging queue, $v_i \in \{1,..., Q\}$. Line 2 initializes the set of solutions to the empty set. Line 3 loops
+through each charger availability set and line 4 loops thorough each of the available ranges, denoted as $L$ and $U$ for
+lower and upper free time. Line 5 checks if the range $[a_i, e_i] \subset [L, U]$, and line 6 adds it to the set of
+candidates. Line 10 chooses picks a candidate soluition,$x_i' \subset X_i'$, with a discrete uniform distribution which
+is denoted by $\mathcal{U}_{\{\cdot\}}$.
 
 #+name: alg:new-visit
 #+begin_export latex
@@ -645,10 +649,8 @@ valid charging queue, $v_i \in \{1,..., Q\}$. Line 2 initializes the set of solu
 \end{algorithm}
 #+end_export
 
-Where $\mathcal{U}_{\{\cdot\}}$ is the discrete uniform distribution of $a$ and $b$, =route-data= is the data generated in
-=RouteGeneration= (described in [[#sec:route-gen]]), and =charger-data= are the time intervals allocated to buses as
-described above. The algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. =L= and =U= are the lower
-and upper bound of the time between scheduled times. The possible use cases are depicted in [[fig:find-free]].
+The algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. $L$ and $U$ are the lower and upper bound of
+the time between scheduled times. The possible use cases are depicted in [[fig:find-free]].
 
 #+name: fig:find-free
 #+begin_export latex
@@ -662,26 +664,35 @@ and upper bound of the time between scheduled times. The possible use cases are 
 \caption{Find free time algorithm searches and returns the available time frames}
     \LinesNumbered
     \TitleOfAlgo{Find Free Time}
-    \KwIn{Lower and upper bound of available time and arrival and departure time for bus: $(L,U,a,e)$}
-    \KwOut{Tuple of initial and final charge times: $(u,d)$}
+    \KwIn{$(L,U,a,e)$}
+    \KwOut{$(u,d)$}
 
     \Begin
     {
-        \If{$L \leq a$ and $U \geq e$}{
+        \If(\tcc*[f]{If $L < a < e < U]$ (\autoref{subfig:sandwich})}){$L \leq a$ and $U \geq e$}
+        {
                 u $\leftarrow$ $\mathcal{U}_{[a,e]}$\;
                 d $\leftarrow$ $\mathcal{U}_{[u,e]}$\;
         }
-        \ElseIf{$L > a$ and $U \geq e$}{
+        \ElseIf(\tcc*[f]{Else if $a < L < e < U$ (\autoref{subfig:all})}){$L > a$ and $U \geq e$}
+        {
                 u $\leftarrow$ $\mathcal{U}_{[L,e]}$\;
                 d $\leftarrow$ $\mathcal{U}_{[u,e]}$\;
         }
-        \ElseIf{$L \leq a$ and $U < e$}{
+        \ElseIf(\tcc*[f]{Else if $L < a < U < e$ (\autoref{subfig:egu})}}){$L \leq a$ and $U < e$}
+        {
                 u $\leftarrow$ $\mathcal{U}_{[a,U]}$\;
                 d $\leftarrow$ $\mathcal{U}_{[u,U]}$\;
         }
-        \Else($L > a$ and $U < e$){
-                u $\leftarrow$ $\emptyset$\;
-                d $\leftarrow$ $\mathcal{U}_{[u,U]}$\;
+        \ElseIf(\tcc*[f]{Else if $a \leq u \leq d \leq L$ or $U \leq a \leq d \leq e$ (\autoref{subfig:invertsandwhich})}){$L > a$ and $U < e$}
+        {
+                u $\leftarrow$ $\mathcal{U}_{[a,L], [U,e]}$\;
+                d $\leftarrow$ $\mathcal{U}_{[u,L], [u,e]}$\;
+        }
+        \Else(\tcc*[f]{Otherwise the bus cannot be scheduled in this time frame (\autoref{subfig:invalid})})
+        {
+                u $\leftarrow$ $\varnothing$\;
+                d $\leftarrow$ $\varnothing$\;
         }
 
         \Return{(u,d)}
