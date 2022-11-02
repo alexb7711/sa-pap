@@ -617,11 +617,12 @@ while others charge.
 :CUSTOM_ID: new-visit
 :END:
 The new visit generator describes the process of moving bus $b$ from the idle queue, $v_i \in \{Q+1,..., Q+b\}$ to a
-valid charging queue, $v_i \in \{1,..., Q\}$. Line 2 initializes the set of solutions to the empty set. Line 3 loops
-through each charger availability set and line 4 loops thorough each of the available ranges, denoted as $L$ and $U$ for
-lower and upper free time. Line 5 checks if the range $[a_i, e_i] \subset [L, U]$, and line 6 adds it to the set of
-candidates. Line 10 chooses picks a candidate soluition,$x_i' \subset X_i'$, with a discrete uniform distribution which
-is denoted by $\U_{\{\cdot\}}$.
+valid charging queue, $v_i \in \{1,..., Q\}$. Lines 1 through 4 extract the index, arrival time, and departure time for
+visit $i$. Note that in subsequent algorithms, these lines will be omitted. Line 5 initializes the set of solutions to
+the empty set. Line 3 loops through each charger availability set and line 4 loops thorough each of the available
+ranges, denoted as $L$ and $U$ for lower and upper free time. Line 5 checks if the range $[a_i, e_i] \subset [L, U]$,
+and line 6 adds it to the set of candidates. Line 10 chooses picks a candidate solution, $x_i' \subset X_i'$, with a
+discrete uniform distribution which is denoted by $\U_{\{\cdot\}}$.
 
 #+name: alg:new-visit
 #+begin_export latex
@@ -714,11 +715,12 @@ the time between scheduled times. The possible use cases are depicted in [[fig:f
 :PROPERTIES:
 :CUSTOM_ID: slide-visit
 :END:
-Slide visit is used for buses that have already been scheduled. Because of the constraint \ref{seq:c10}
-there may be some room to move $u_i$ and $d_i$ within the window $[a_i, e_i]$. Two new values, $u_i$ and
-$d_i$ are selected with a uniform distribution to satisfy the constraint $a_i \leq u_i \leq d_i \leq e_i$.
-Lines 1 and 2 get the arrival and departure times, and line 3 gets the current queue that visit $i$ is
-assigned to.
+Slide visit is used for buses that have already been scheduled. Because of the constraint \ref{seq:c10} there may be
+some room to move $u_i$ and $d_i$ within the window $[a_i, e_i]$. Two new values, $u_i$ and $d_i$ are selected with a
+uniform distribution to satisfy the constraint $a_i \leq u_i \leq d_i \leq e_i$. Line 1 initializes the candidate set to
+be the original charge time frame. Line 3 loops through each opening for charger $q$, and line 4 checks if a new time
+frame $[u_i, d_i]$ is able to be scheduled. Lines 5 and 6 add that time frame to the set of candidates. Line 9 returns a
+candidate with a discrete uniform distribution.
 
 #+name: alg:slide-visit
 #+begin_export latex
@@ -742,7 +744,7 @@ assigned to.
                 $X_i' \cup x_i'$ \tcc*{Add $x_i'$ to the set of candidates}
             }
         }
-        \Return{$x_i'$}
+        \Return{$\U_{X_i}'$}
     }
 \end{algorithm}
 #+end_export
