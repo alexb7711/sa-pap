@@ -24,7 +24,7 @@
 # =========================================================================================================================
 # Custom `Algoritm2e' commands
 #+latex_header: \newcommand{\Or}{\textbf{ or }}
-#+latex_header: \newcommand{\And}{\textbf{ and }}
+#+latex_header: \renewcommand*{\And}{\textbf{ and }}
 
 # =========================================================================================================================
 # Custom commands
@@ -734,7 +734,7 @@ candidate with a discrete uniform distribution.
 
     \Begin
     {
-	$X_i' \in \{ [u_i, d_i] \}$ \tcc*{Initialize candidates with the current charge time}
+        $X_i' \leftarrow \varnothing$ \tcc*{Begin with the empty set}
 
         \ForEach (\tcc*[f]{For each inactive region in $\C_q$ where $q = v_i$}) {$C \in \C_q$}
         {
@@ -744,7 +744,8 @@ candidate with a discrete uniform distribution.
                 $X_i' \cup x_i'$ \tcc*{Add $x_i'$ to the set of candidates}
             }
         }
-        \Return{$\U_{X_i}'$}
+
+        \Return{$\U_{X_i'}$} \tcc*[f]{Return a random candidate}
     }
 \end{algorithm}
 #+end_export
@@ -755,7 +756,8 @@ candidate with a discrete uniform distribution.
 :END:
 The new charger generator takes a visit $\I_i$ and changes the charger it is on while maintianing the same charge time,
 $[u_i, d_i]$. Similarly to [[alg:new-visit]], the new candidate, $x_i'$, must be checked before being added to the set
-$X_i'$.
+$X_i'$. Line 2 initializes the candidates to the empty set. Line 3 and 4 loop though each charger availability set and
+each available range for charger $q$.
 
 #+name: alg:new-charger
 #+begin_export latex
@@ -764,8 +766,8 @@ $X_i'$.
 \caption{New Charger Algorithm}
     \LinesNumbered
     \TitleOfAlgo{New Charger}
-    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
-    \KwOut{$x_i'$: $(v,u,d)$}
+    \KwIn{$\Sol$}
+    \KwOut{$x_i'$}
 
     \Begin
     {
@@ -775,18 +777,14 @@ $X_i'$.
         {
             \ForEach (\tcc*[f]{For each inactive region in $\C_q$}) {$C \in \C_q$}
             {
-               \tcc{If $L < a < e < U]$ or $a < L < e < U$ or $L < a < U < e$ or  $L > a$ or $U < e$}
-                \If {$L \leq a \And U \geq e$ \Or
-                    $L > a \And U \geq e$ \Or
-                    $L \leq a \And U < e$ \Or
-                    $a \leq u \leq d \leq L \Or U \leq a \leq d \leq e$}
+                \If (\tcc*[f]{If the charge time is within the region $[L,U]$}) {$L \leq u$ \And $U \geq e$}
                 {
-                        $X_i' \cup (q, u_i, d_i)$
+                    $X_i' \cup (q, u_i, d_i)$ \tcc*{Append the candidate to the set}
                 }
             }
         }
 
-        \Return{$\U_{X_i'}$}
+        \Return{$\U_{X_i'}$} \tcc*[f]{Return a random candidate}
     }
 \end{algorithm}
 #+end_export
@@ -805,16 +803,12 @@ The remove generator simply removes a bus from a charger queue and places it in 
 \caption{Remove algorithm}
     \LinesNumbered
     \TitleOfAlgo{Remove}
-    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
-    \KwOut{$x_i'$: $(v,u,d)$}
+    \KwIn{$\Sol$}
+    \KwOut{$x_i'$}
 
     \Begin
     {
-       $v \leftarrow Q+b$                \;
-       $u \leftarrow$ route-data[$i$].$u$\;
-       $d \leftarrow$ route-data[$i$].$d$\;
-
-       \Return{$(v,u,d)$}
+       \Return{$(Q+b,a_i,e_i)$}
     }
 \end{algorithm}
 #+end_export
@@ -833,19 +827,16 @@ meant that current scheduled tuple $(v_i, u_i, d_i)$ is removed and added back i
 \caption{New window algorithm}
     \LinesNumbered
     \TitleOfAlgo{New Window}
-    \KwIn{Visit index, route data, Charger data: ($i$, route-data, charger-data)}
-    \KwOut{$x_i'$: $(v,u,d)$}
+    \KwIn{$\Sol$}
+    \KwOut{$x_i'$}
 
     \Begin
     {
         \SetKwFunction{NewVisit}{NewVisit}
         \SetKwFunction{Remove}{Remove}
 
-         $v \leftarrow$ route-data[$i$].$v$\;
-         $u \leftarrow$ route-data[$i$].$u$\;
-         $d \leftarrow$ route-data[$i$].$d$\;
-        $(v,u,d)$ = \Remove{$v,u,d$}\;
-        $(v,u,d)$ = \NewVisit{$v,u,d$}\;
+        $x_i' \leftarrow$ \Remove{$v,u,d$} \tcc*{Remove visit $i$ from its charger}
+        $x_i' \leftarrow$ \NewVisit{$x_i'$} \tcc*{Add visit $i$ back in randomly}
 
         \Return{$(v,u,d)$}
     }
