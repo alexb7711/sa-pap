@@ -3,7 +3,7 @@
 title Schedule Parameters
 
 ' Time horizon information
-time_horizon: int (24)                 # [hr]
+time_horizon: int (25)                 # [hr]
 
 ' Schedule information
 schedule:
