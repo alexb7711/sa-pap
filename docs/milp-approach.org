@@ -34,8 +34,10 @@
 
 #+latex_header: \newcommand{\T}{\mathcal{T}}                % To make it clear the difference
 #+latex_header: \newcommand{\Tau}{T}                        % between Tau and T
-#+latex_header: \newcommand{\AC}{AC(u_i, d_i, v_i, \eta_i)} % Set the parameters for AC once
-#+latex_header: \newcommand{\PC}{PC(u_i, d_i, v_i)}         % Set the parameters for PC once
+#+latex_header: \newcommand{\AC}{AC(u, d, v, \eta)}         % Set the parameters for AC once
+#+latex_header: \newcommand{\PC}{PC(u, d, v)}               % Set the parameters for PC once
+#+latex_header: \newcommand{\ACi}{AC(u_i, d_i, v_i, \eta_i)}% Set the parameters for AC once
+#+latex_header: \newcommand{\PCi}{PC(u_i, d_i, v_i)}        % Set the parameters for PC once
 #+latex_header: \newcommand{\Not}{\textbf{not }}            % Custom `not' operator
 #+latex_header: \newcommand{\visit}{(b_i, a_i, e_i, u_i, d_i, v_i, \eta_i, \xi_i)}
                                                             # Single visit tuple
@@ -44,6 +46,7 @@
 #+latex_header: \newcommand{\U}{\mathcal{U}}                % Uniform distribution
 #+latex_header: \newcommand{\Sol}{\mathbb{S}}               % A shorthand for visit tuple
 #+latex_header: \newcommand{\M}{\mathbb{M}}                 % A shorthand for the metadata
+#+latex_header: \newcommand{\Hd}{\mathbb{H}}                % Set of discrete times
 
 #+latex_header: \newcommand{\Iset}{\mathcal{I}}             % Set of visits 1-I
 #+latex_header: \newcommand{\Isetinit}{\mathcal{I}_0}       % Set of visits inital visits
@@ -51,6 +54,7 @@
 #+latex_header: \newcommand{\Bset}{\mathcal{B}}             % Set of visits 1-B
 #+latex_header: \newcommand{\Qset}{\mathcal{Q}}             % Set of visits 1-Q
 #+latex_header: \newcommand{\Jset}{\mathcal{J}}             % Set of visits 1-J
+#+latex_header: \newcommand{\Hset}{\mathcal{H}}             % Set of visits 1-H
 
 # =========================================================================================================================
 # More document configuration
@@ -69,12 +73,12 @@
 :END:
 This document outlines the simulated annealing (SA) approach to the bus charging scheduling problem utilizing Mixed
 Integer Linear Programming (MILP) constraints as the method of determining feasible charging schedules. The problem
-statement is as follows: given a set of routes for a fleet of Battery Electric Buses (BEB), generate an optimal charging
-schedule to minimize the consumption cost (amount of electricity used over a certain time) and the demand cost (rate at
-which electricity is being used) within the constraints that the buses must maintain sufficient charge to complete the
-working day and do not have any delays in their respective routes.
+statement is as follows: given a set of routes for a fleet of Battery Electric Buses (BEB) and a set of fast and slow
+chargers, generate an optimal charging schedule to minimize the consumption cost (amount of electricity used over a
+certain time) and the demand cost (rate at which electricity is being used) within the constraints that the buses must
+maintain sufficient charge to complete the working day and do not have any delays in their respective routes.
 
-Simulated Annealing (SA) shall be introduced and utilized as a means of finding the global optimum. The SA algorithm
+Simulated Annealing (SA) shall be introduced and utilized as a means of finding optimizing. The SA algorithm
 shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints derived from the Position Allocation
 Problem (PAP). These constraints are set in place to ensure validity of the proposed charging schedules. A set of
 objective functions describing consumption cost and demand cost, as stated above, shall be minimized to reduce power
@@ -216,61 +220,62 @@ schedule. It is calculated after all the decision variables have been assigned. 
 :CUSTOM_ID: sec:objective-function
 :END:
 The objective function is used to compare the fitness of different candidate solutions against one another. This
-objective function takes in a set input variables and decision variables to calculate some value of measure. The
-calculated objective function value can either be maximized or minimized. The desired option is dependent on the problem
-to be solved as well as the formulation of said objective function. Let $J$ represent the objective function. The
-objective function for this problem has four main considerations: charger assignment, consumption cost, demand cost, and
-sufficient charge.
+objective function takes in input and decision variables to calculate some value of measure. The calculated objective
+function value can either be maximized or minimized. The desired option is dependent on the problem to be solved as well
+as the formulation of said objective function. Let $J$ represent the objective function. The objective function for this
+problem has four main considerations: charger assignment, consumption cost, demand cost, and sufficient charge.
 
-Suppose the objective function is of the form $\text{min } J = \AC + \PC$. $\AC$ is the assignment cost, and $\PC$ is the power
-usage cost. The assignment cost represents the costs of assigning a bus to a particular queue as well as the chosen
-charging period, $[u_i, d_i]$ as shown in [[eq:ac]].
+Suppose the objective function is of the form $\text{min } J = \AC + \PC$. $\AC$ is the assignment cost, and $\PC$ is
+the power usage cost. The assignment cost represents the costs of assigning a bus to a particular queue as well as the
+chosen charging period, $[u_i, d_i]$, as shown in [[eq:ac]]. $v_i \in q$ is the charger index, $u_i$ is the initial
+charge time, $d_i$ is the detach time for visit $i$, $\phi_i$ is a binary decision variable, $m$ is the minimum charge
+percentage allowed, $\kappa_i$ is the battery capacity for visit $i$, and $\eta_i$ is the charge for $b_i$ when it
+arrives for visit $i$.
 
 #+name: eq:ac
 #+begin_export latex
 \begin{equation}
 \label{eq:ac}
-\AC = \sum_{i=1}^I \epsilon_{v_i}(d_i - u_i) + \frac{1}{2} C \phi_i (\eta_i - m \kappa_i)^{2}
+\AC = \sum_{i=1}^I \Big(\epsilon_{v_i}(d_i - u_i) + \frac{1}{2} C \phi_i (\eta_i - m \kappa_i)^{2}\Big)
 \end{equation}
 #+end_export
 
-Where $v_i \in q$ is the charger index, $u_i$ is the initial charge time, $d_i$ is the detach time for visit $i$,
-$\psi_i$ is a binary decision variable, $m$ is the minimum charge percentage allowed, $\kappa_i$ is the battery capacity
-for visit $i$, and $\eta_i$ is the initial charge for visit $i$. The first term in the summation represents the
-calculation of the cost for assigning a bus to queue $q$ (i.e. cost of using the charger multiplied by the usage time).
-The second term is the penalty function that is either enabled or disabled by $\phi_i$ which is discussed in
-[[#sec:constraints]]. This form is the most common form that penalty methods are found in \cite{Luenberger2008}. Note that
-the variables $\psi_i$ and $\eta_i$ are both decision variables that are being multiplied together. This is called a
-bilinear term. Using a traditional MILP solver, this would require linearization \cite{Rodriguez2013}; however, because
-SA handles nonlinearities easily these bilinear terms will be ignored \cite{Radosavljevic2018-jc}.
+The first term in the summation represents the calculation of the cost for assigning a bus to queue $q$ (i.e. cost of
+using the charger multiplied by the usage time). The second term is the penalty function that is either enabled or
+disabled by $\phi_i$. $\phi_i$ is enabled when the initial charge, $\eta_i$, is less than the allowed minimum charge,
+$m\kappa_{b_i}$. This is further discussed in [[#sec:constraints]]. The form of the penalty function is the most common form
+that they are found in \cite{Luenberger2008}. Note that the variables $\phi_i$ and $\eta_i$ are both decision
+variables that are being multiplied together. This is called a bilinear term. Using a traditional MILP solver, this
+would require linearization \cite{Rodriguez2013}; however, because SA handles nonlinearities easily these bilinear terms
+will be ignored \cite{Radosavljevic2018-jc}.
 
-The power cost contains the demand cost and the consumption cost. It can be divided into two components: demand cost and
-the consumption cost. The demand cost quantifies the amount of power being used over a given period and adjusts the cost
-accordingly. The consumption cost calculates the total amount of power being consumed by the chargers. The power cost is
-shown in [[eq:pc]]. Note that the demand cost is written as a function. This is because it is calculated post generation of
-the candidate solution with no obvious MILP representation.
+The demand cost quantifies the amount of power being used over a given period and adjusts the cost accordingly. The
+consumption cost calculates the total amount of power being consumed by the chargers. The consumption cost is merely the
+summation of all the energy being used over all the active periods for each charger in the time horizon. It is written
+as shown in [[eq:consumption-cost]]. $r_{v_i}$ is the active charger for visit $i$ and is multiplied by the time that the
+charger will be utilized, $d_i - u_i$.
 
-#+name: eq:pc
+#+name: eq:consumption-cost
 #+begin_export latex
 \begin{equation}
-\label{eq:pc}
-\PC = DemandCost(schedule) + \sum_{i=1}^I r[v_i](d_i - u_i)
+\label{eq:consumption-cost}
+  \sum_{i=1}^I \Big( r_{v_i}(d_i - u_i) \Big)
 \end{equation}
 #+end_export
 
-As stated before, the demand cost is calculated based on 15 minute increments (0.25 hours). This cost is also referred
-to as the peak 15. The peak 15 is represented by [[eq:p15]].
+The demand cost is calculated based on 15 minute increments (900 s). This cost is also referred to as the peak 15.
+The average power used over an arbitrary 15 minute interval is represented by [[eq:p15]].
 
 #+name: eq:p15
 #+begin_export latex
 \begin{equation}
 \label{eq:p15}
-p_{15}(t) = 0.25 \int_{t-15}^{t} p(\tau) d\tau
+p_{15}(t) = 1/900 \int_{t-15}^{t} p(\tau) d\tau
 \end{equation}
 #+end_export
 
-Which represents the energy used over the last 15 minutes. Because worst case must be assumed to always ensure enough
-power is supplied, the maximum value found is retained as represented in [[eq:pmax]].
+Worst case must be assumed to always ensure enough power is supplied; therefore, the maximum value found is retained as
+represented in [[eq:pmax]].
 
 #+name: eq:pmax
 #+begin_export latex
@@ -280,8 +285,9 @@ p_{max}(t) = \text{max}_{\tau \in [0,t]}p_{15}(\tau)
 \end{equation}
 #+end_export
 
-Because the cost has a minimum threshold, a fixed minimum cost is introduced. In a similar manner as $p_{max}$, the
-maximum value is retained.
+A fixed minimum cost is introduced before a specified threshold is exceeded. Let this fixed threshold be defined as
+$p_{fix}$. In a similar manner as $p_{max}$, the maximum value is retained. Furthermore, let $s_r$ define the demand
+rate which has the units of \(\frac{\$}{kW}\).
 
 #+name: eq:pdem
 #+begin_export latex
@@ -291,52 +297,41 @@ p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
 \end{equation}
 #+end_export
 
-Where $s_r$ is the demand rate. [[eq:pdem]], again, retains the largest $p_{15}$ value with a starting fixed value of
-$p_{fix}$. To calculate this numerically, an integration algorithm is required to iteratively calculate the $p_{15}(t)$.
-In turn, $p_{dem}(T)$ can be defined. This process is defined in Algorithm [[alg:demand-cost]].
+[[eq:pdem]], again, retains the largest $p_{dem}$ value with a starting fixed value of $p_{fix}$. To write the total power
+demand at any discrete time, consider [[eq:discrete-power]]. Let $\omega_h$ be the discrete power demand and $h \in \{ 1, 2,
+..., \Hd \} \subset \mathcal{Z}$ where $H = \frac{T}{900}$. For conciseness of notation we will abuse $t_h$ to denote
+the time in discrete form (as opposed to $t$ being continuous) and let $\Hset = \{ 1, 2, ..., \Hd \}$. Let $\iota_h$ be
+a binary decision variable that is enabled if charger $v_i \in \Qset$ is enabled in the time frame $[t_{h-1}, t_h]$,
+where $t_h = 900 \cdot h$. Let the power usage of charger $v_i$ be denoted as $r_{v_i}$.
 
-#+name: alg:demand-cost
-#+BEGIN_EXPORT latex
-\begin{algorithm}[H]
-\label{alg:demand-cost}
-\caption{Algorithm to calculate the demand cost.}
-    \LinesNumbered
-    \TitleOfAlgo{DemandCost}
-    \KwIn{Candidate solution: (schedule)}
-    \KwOut{Demand cost: (p-dem)}
+#+name: eq:discrete-power
+#+begin_export latex
+\begin{equation}
+\label{eq:discrete-power}
+  \omega_h = \sum_i^I \iota_h \cdot r_{v_i}
+\end{equation}
+#+end_export
 
-    \SetKwFunction{Integrate}{Integrate}
-    \SetKwFunction{Union}{Union}
+The average power can be rewritten as $p_{15}^h = \omega_h$, $p_{dem}$ can be rewritten as $p_{dem}^h = \text{max}_{h \in
+\Hset} (p_{15}^{h})$, and finally $p_d^h$ can be written as [[eq:pd-dis]].
 
-    \Begin
-    {
-        p15 $\leftarrow\; \varnothing$\;
+#+name: eq:pd-dis
+#+begin_export latex
+\begin{equation}
+\label{eq:pd-dis}
+  p_d^h = \text{max}_{h \in \Hset}(p_{fix}, p_{max})s_d
+\end{equation}
+#+end_export
 
-        \For{dt $\leftarrow 0$ \KwTo T}
-        {
-            \Union{p15, \Integrate{schedule,(dt,dt+0.25)}}
-        }
+To write the power cost, [[eq:consumption-cost]] and [[eq:pd-dis]] are superimposed to create [[eq:pc]].
 
-        p-old $\leftarrow$ p-new $\leftarrow$ p-dem $\leftarrow$ p-fix\;
-
-        \ForEach{element p in p15}
-        {
-            p-old $\leftarrow$ p-new\;
-            p-new $\leftarrow$ p\;
-
-            \If{p-new > p-old}
-            {
-                p-dem $\leftarrow$ p-new\;
-                p-old $\leftarrow$ p-new\;
-            }
-        }
-
-        \Return{p-dem}}
-\end{algorithm}
-#+END_EXPORT
-
-Where =schedule= is the set $\I = \{ (b_i, a_i, e_i, u_i, d_i, v_i, \eta_i): b_i \in B, a_i, e_i, u_i, d_i \in
-T, v_i \in Q\}$ and =p-fix= is the initial, fixed cost.
+#+name: eq:pc
+#+begin_export latex
+\begin{equation}
+\label{eq:pc}
+\PC = p_d^h + \sum_{i=1}^I \Big( r[v_i](d_i - u_i) \Big)
+\end{equation}
+#+end_export
 
 ** Constraints
 :PROPERTIES:
