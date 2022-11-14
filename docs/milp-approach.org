@@ -158,7 +158,8 @@ let $\Jset_b^f$ denote the final visit index for bus $b$. Furthermore, let the $
 \Iset : \forall b \in \Bset, x \in \Jset_b^f \}$. Therefore, the last visit for each bus has no discharge due to a bus
 route and can be written as $\Delta_{\Isetfinal} = 0$. The discharge for visit all visits $i \in \{\Iset \setminus
 \Isetfinal\}$, is defined by $\Delta_i = \delta_i \cdot \rho_i$ where $\delta_i$ is the amount of energy consumed by the
-bus per mile and $\rho_{\Isetfinal}$ is the route mileage after visit $i$.
+bus per mile and $\rho_{\Isetfinal}$ is the route mileage after visit $i$. $\delta_i$ is calculated using $\delta_i =
+\text{average mph} \cdot (a_{\xi_i - d_i})$. The average MPH is assumed to be 20 miles per hour.
 
 As discussed before, since there is no route after the last visit $\rho_I = 0$. $\alpha_b$ is the initial SOC percentage
 of bus $b$ at the beginning of the working day. The initial SOC for bus $b$ can be represented as
@@ -298,28 +299,29 @@ p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
 #+end_export
 
 [[eq:pdem]], again, retains the largest $p_{dem}$ value with a starting fixed value of $p_{fix}$. To write the total power
-demand at any discrete time, consider [[eq:discrete-power]]. Let $\omega_h$ be the discrete power demand and $h \in \{ 1, 2,
-..., \Hd \} \subset \mathcal{Z}$ where $H = \frac{T}{900}$. For conciseness of notation we will abuse $t_h$ to denote
-the time in discrete form (as opposed to $t$ being continuous) and let $\Hset = \{ 1, 2, ..., \Hd \}$. Let $\iota_h$ be
-a binary decision variable that is enabled if charger $v_i \in \Qset$ is enabled in the time frame $[t_{h-1}, t_h]$,
-where $t_h = 900 \cdot h$. Let the power usage of charger $v_i$ be denoted as $r_{v_i}$.
+demand at any discrete time, consider [[eq:discrete-power]]. Let $\omega_h$ be the discrete power demand at time step $h$
+where $h \in \{ 1, 2, ..., H \} \subset \mathcal{Z}$ and $H = \frac{T}{900}$. For conciseness of notation we will abuse
+$t_h$ to denote the time in discrete form (as opposed to $t$ being continuous), let $dt_h = t_h - t_{h-1}$, and
+$\Hset = \{ 1, 2, ..., H \}$. Let $\iota_h$ be a binary decision variable that is enabled if charger $v_i \in \Qset$ is
+enabled in the time frame $[t_{h-1}, t_h]$, where $t_h = 900 \cdot h$. Let the power usage of charger $v_i$ be denoted
+as $r_{v_i}$.
 
 #+name: eq:discrete-power
 #+begin_export latex
 \begin{equation}
 \label{eq:discrete-power}
-  \omega_h = \sum_i^I \iota_h \cdot r_{v_i}
+  \omega = \sum_h^H \sum_i^I \iota_h \cdot r_{v_i}
 \end{equation}
 #+end_export
 
-The average power can be rewritten as $p_{15}^h = \omega_h$, $p_{dem}$ can be rewritten as $p_{dem}^h = \text{max}_{h \in
-\Hset} (p_{15}^{h})$, and finally $p_d^h$ can be written as [[eq:pd-dis]].
+The average power can be rewritten as $p_{15} = \omega$, $p_{dem}$ can be rewritten as $p_{dem} = \text{max}_{h \in
+\Hset} (p_{15}^{h})$, and finally $p_d$ can be written as [[eq:pd-dis]].
 
 #+name: eq:pd-dis
 #+begin_export latex
 \begin{equation}
 \label{eq:pd-dis}
-  p_d^h = \text{max}_{h \in \Hset}(p_{fix}, p_{max})s_d
+  p_d = \text{max}_{h \in \Hset}(p_{fix}, p_{max})s_d
 \end{equation}
 #+end_export
 
@@ -329,7 +331,7 @@ To write the power cost, [[eq:consumption-cost]] and [[eq:pd-dis]] are superimpo
 #+begin_export latex
 \begin{equation}
 \label{eq:pc}
-\PC = p_d^h + \sum_{i=1}^I \Big( r[v_i](d_i - u_i) \Big)
+\PC = p_d + \sum_{i=1}^I \Big( r[v_i](d_i - u_i) \Big)
 \end{equation}
 #+end_export
 
@@ -341,7 +343,7 @@ Now that a method of calculating the fitness of a schedule has been established,
 feasibility of a schedule must be established. Feasible schedules require that the schedule maintain a certain list of
 properties. These properties are enforced by a set of constraints derived from the MILP PAP. The constraints must ensure
 no overlap temporally or spatially, receives enough charge to complete route after each visit $i$, bus visit $i$ cannot
-be over charged, each visit, $i$, departs on time. The aforementioned constraints are shown in [[eq:constraints]].
+be over-charged, each visit, $i$, departs on time. The aforementioned constraints are shown in [[eq:constraints]].
 
 #+name: eq:constraints
 #+begin_export latex
@@ -349,22 +351,34 @@ be over charged, each visit, $i$, departs on time. The aforementioned constraint
 #+end_export
 
 # Org mode is a little silly and does not take normal referencing syntax. This note is for future reference.
-Where the valid queue \ref{seq:c0} - \ref{seq:c4} define the spatial and temporal constraints of the system. These
-constraints enforce that the buses are placed in such a way that only one bus is allowed at a charger at any given time.
-Particularly \ref{seq:c0} determines if the initial charge time of visit $i$ is after the final charge time of visit
-$j$. Similarly, \ref{seq:c1} determines if visit $i$ or visit $j$ are scheduled to be on the same queue. \ref{seq:c2}
-describes whether one of the visits come after the other temporally while \ref{seq:c3} describes if the chargers are
-placed in different queues. \ref{seq:c4} pulls all the previous constraints together and verifies that at least one of
-the conditions are true for each visit pair $(i,j)$. The concept of the temporal and spatial constraints can be
-visualized by [[fig:spacial-and-temporal-constr]]. The y-axis represents the possible queues for a bus visit to be placed
-into and the x-axis represents the time that can be reserved for each visit. The shaded rectangles represent time that
-has been scheduled for each bus visit. The set of constraints \ref{seq:c0} - \ref{seq:c4} aim to ensure that these
-shaded rectangles never overlap. \ref{seq:c5} calculates the discharge for the route after visit $i$. \ref{seq:c6}
-calculates the initial charge for the next visit for bus $b_i$. \ref{seq:c7} ensures that the bus is not being over
-charged. \ref{seq:c8} and \ref{seq:c9} are used to enable and disable the penalty method in [[eq:ac]]. This is done by
-checking if the initial charge for visit $i$ is greater than or equal to the minimum allowed charge. \ref{seq:c10}
-ensures the continuity of the times (i.e. the arrival time is less than the initial charge which is less than the detach
-time which is less than the time the bus exits the station and all must be less than the time horizon).
+Constraints \ref{seq:c0}-\ref{seq:c4} are the "queuing constraints". They are used to prevent overlapping in both
+spatially and temporally as shown in [[fig:spacial-and-temporal-constr]]. The y-axis represents the possible queues for a
+bus visit to be placed into, and the x-axis represents the time that can be reserved for each visit. The shaded
+rectangles represent time that has been scheduled and the queue allocated for each bus visit. The set of constraints
+\ref{seq:c0} - \ref{seq:c4} aim to ensure that these shaded rectangles never overlap.
+
+Constraint \ref{seq:c4} states that the starting service time for bus $j$, $u_j$, must be greater than the starting time
+of bus $i$, $u_i$, plus its service time, $s_i$. The last term utilizes big-M notation to activate or deactivate the
+constraint. A value of $\sigma_{ij} = 1$ will activate the constraint to ensure that $i$ is complete before $j$ is
+allowed to begin being serviced. If $\sigma_{ij} = 0$, then the constraint is of the form $T + u_j + s_j > u_i$
+rendering the constraint "inactive" because $u_i$ cannot be larger than $d_i$. This effectively allows the charging
+windows of the vehicle to overlap.
+
+Similarly, $\phi_{ij}$ determines whether the vehicles will be charging in the same queue. If $\phi_{ij} = 1$ then
+\eqref{seq:c1} is rendered active and vehicle $i$ and $j$ must be charging in different queues. If $\phi_{ij} = 0$ then
+the constraint is deactivated and the vehicle queue assignments may be the same.
+
+\ref{seq:c5} calculates the discharge for the route after visit $i$. \ref{seq:c6} calculates the initial charge for the
+next visit for bus $b_i$. \ref{seq:c7} ensures that the bus is not being over-charged. \ref{seq:c8} and \ref{seq:c9} are
+used to enable and disable the penalty method in [[eq:ac]]. This is done by checking if the initial charge for visit $i$ is
+greater than or equal to the minimum allowed charge. \ref{seq:c10} ensures the continuity of the times (i.e. the arrival
+time is less than the initial charge which is less than the detach time which is less than the time the bus exits the
+station and all must be less than the time horizon).
+
+The final set of constraints \ref{seq:c11} - \ref{seq:c15} set the rules for the decision variable $\iota_h$.
+\ref{seq:c11} and \ref{seq:c12} ensure that the initial charge time for visit $i$, $u_i$, is greater than the discrete
+time, $900 \cdot h$, being checked. Similarly, \ref{seq:c13} and \ref{seq:c14} ensure that the final charge time, $d_i$,
+is less than the next discrete time step, $dt_h$.
 
 #+name: fig:spacial-and-temporal-constr
 #+begin_export latex
@@ -391,18 +405,18 @@ The initial temperature and cooling schedule are used to regulate the speed at w
 to the best known solution. When the temperature is high, SA encourages exploration. As it cools down (in accordance to
 the cooling schedule), it begins to encourage local exploitation of the solution \cite{Rutenbar_1989, Henderson}. There
 are three basic types of cooling equations as shown in [[fig:cool]] \cite{Keller_2019}. The different types merely dictate
-the rate at which we begin disallowing exploration. A linear cooling schedule is defined by [[eq:cool0]].
+the rate at which the algorithm progressively disallows exploration. A linear cooling schedule is defined by [[eq:cool0]].
 
 #+name: eq:cool0
 #+begin_export latex
 \begin{equation}
 \label{eq:cool0}
-\Tau[n] = \Tau[n-1] -\Delta_0
+\Tau[n] = \Tau[n-1] - \Delta_0
 \end{equation}
 #+end_export
 
-with $\Tau[0] = \Tau_0$ and $\Delta_0 = 1/2\; C^\circ$ in [[fig:cool]]. A geometric cooling schedule is mostly used
-in practice \cite{Keller_2019}. It is defined by [[eq:cool1]].
+with $\Tau[0] = \Tau_0$ and $\Delta_0 = 1/2\; C^\circ$ in [[fig:cool]]. A geometric cooling schedule is mostly used in
+practice \cite{Keller_2019}. It is defined by [[eq:cool1]].
 
 #+name: eq:cool1
 #+begin_export latex
@@ -439,7 +453,7 @@ set to $500^\circ\; C$ and each schedule's final temperature is $1\; C^\circ$.
 Acceptance criteria describes the method to accept or reject a given candidate solution. In SA, if a new candidate
 solution is more fit than the currently stored solution it is always accepted as the new solution. However, within SA,
 worse candidate solutions may be accepted as the new solution. The probability of accepting the candidate solution is
-described by the function $\exp(\frac{J(x) - J(x')}{\Tau})$ where $J(\cdot)$ is the objective functions described in
+described by the function $\exp(-\frac{J(x) - J(x')}{\Tau})$ where $J(\cdot)$ is the objective functions described in
 [[#sec:objective-function]]. The probability of acceptance is a function of the cooling equation just described and
 difference of the current solution and a new candidate solution. Let $\Delta E \equiv J(x) - J(x')$ where $x$ is the
 current solution and $x'$ is the new candidate solution. The probability of acceptance of $x'$ is defined by
@@ -547,7 +561,7 @@ discrete uniform distribution which is denoted by $\U_{\{\cdot\}}$.
     \LinesNumbered
     \TitleOfAlgo{New Visit}
     \KwIn{($\Sol$)}
-    \KwOut{$x_i'$}
+    \KwOut{$\I$}
 
     \SetKwFunction{Union}{Union}
     \SetKwFunction{findFreeTime}{findFreeTime}
@@ -652,7 +666,7 @@ candidate with a discrete uniform distribution.
     \LinesNumbered
     \TitleOfAlgo{Slide Visit}
     \KwIn{$\Sol$}
-    \KwOut{$x_i'$}
+    \KwOut{$\I$}
 
     \Begin
     {
@@ -689,7 +703,7 @@ each available range for charger $q$.
     \LinesNumbered
     \TitleOfAlgo{New Charger}
     \KwIn{$\Sol$}
-    \KwOut{$x_i'$}
+    \KwOut{$\I$}
 
     \Begin
     {
@@ -726,7 +740,7 @@ The remove generator simply removes a bus from a charger queue and places it in 
     \LinesNumbered
     \TitleOfAlgo{Remove}
     \KwIn{$\Sol$}
-    \KwOut{$x_i'$}
+    \KwOut{$\I$}
 
     \Begin
     {
@@ -750,7 +764,7 @@ meant that current scheduled tuple $(v_i, u_i, d_i)$ is removed and added back i
     \LinesNumbered
     \TitleOfAlgo{New Window}
     \KwIn{$\Sol$}
-    \KwOut{$x_i'$}
+    \KwOut{$\I$}
 
     \Begin
     {
