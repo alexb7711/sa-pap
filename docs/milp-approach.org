@@ -78,11 +78,11 @@ chargers, generate an optimal charging schedule to minimize the consumption cost
 certain time) and the demand cost (rate at which electricity is being used) within the constraints that the buses must
 maintain sufficient charge to complete the working day and do not have any delays in their respective routes.
 
-Simulated Annealing (SA) shall be introduced and utilized as a means of finding optimizing. The SA algorithm
-shall be constrained by a set of Mixed Integer Linear Program (MILP) constraints derived from the Position Allocation
-Problem (PAP). These constraints are set in place to ensure validity of the proposed charging schedules. A set of
-objective functions describing consumption cost and demand cost, as stated above, shall be minimized to reduce power
-consumption and total cost of using the BEBs.
+Simulated Annealing (SA) shall be introduced and utilized as a means of finding optimizing. The SA algorithm shall be
+constrained by a set of Mixed Integer Linear Program (MILP) constraints derived from the Position Allocation Problem
+(PAP). These constraints are set in place to ensure validity of the proposed charging schedules. A set of objective
+functions describing consumption cost and demand cost, as stated above, shall be minimized to reduce power consumption
+and total cost of using the BEBs.
 
 * Problem Description
 :PROPERTIES:
@@ -104,12 +104,13 @@ multiple times, the model assumes that each arrival is unique (i.e. no two bus a
 put in place to track each bus over each arrival. That is why a bus identifier is placed in the tuple, and in that way
 each bus can be tracked over each arrival.
 
-For each arrival a bus must be placed in a singular queue, $v_i \in Q$. The charger $q$ is assumed to be either a fast
-or slow charger or no charger at all. The bus is only allowed to visit one queue per visit. The amount of time the bus
-is allowed to charge is dictated by the scheduled arrival time and required departure time, $[a_i, e_i]$. Although a bus
-must be placed in a queue, if a bus does not require much charge, or none at all, partial charges, or no charging, is
-allowed. It is not allowed for the bus to charge over its battery capacity limit. The battery charging rate is modeled
-as linear, which remains accurate up to about an SOC of 80% charge \cite{Li2016}.
+For each arrival a bus must be placed in a singular queue, $v_i \in \Qset$. The charger $q$ is assumed to be either a
+fast or slow charger or no charger at all. A bus is only allowed to visit one queue per visit; however, there may be
+multiple buses charging simultaneously. The amount of time the bus is allowed to charge is dictated by the scheduled
+arrival time and required departure time, $[a_i, e_i]$. Although a bus must be placed in a queue, if a bus does not
+require much charge, or none at all, partial charges, or no charging, is allowed. It is not allowed for the bus to
+charge over its battery capacity limit. The battery charging rate is modeled as linear, which remains accurate up to
+about an SOC of 80% charge \cite{Li2016}.
 
 Each bus arrival, with the exception of the last arrival for each bus, has a paired "route" that the bus must perform.
 This route, as one would expect, causes the bus to discharge by some certain amount. This paper assumes an average
@@ -117,9 +118,9 @@ discharge over a period of time where an estimated discharge is calculated for e
 supplied while at the station is required to supply enough charge for each route (battery charge does not deplete to
 zero) with an additional battery capacity percentage, $m$, acting as a safety factor.
 
-The scheduler's task shall be to schedule the set of arrivals $\I$ to fulfill the minimum charge requirements
-over the time horizon $T$ as well as minimize the demand cost as well as minimize over the consumption cost. The
-objective function and constraints are discussed in further detail in section [[#sec:objective-function]].
+The scheduler's task shall be to schedule the set of arrivals $\I$ to fulfill the minimum charge requirements over the
+time horizon $T$ as well as minimize the demand cost as well as minimize over the consumption cost. The objective
+function and constraints are discussed in further detail in section [[#sec:objective-function]].
 
 * Optimization Problem
 :PROPERTIES:
@@ -127,12 +128,12 @@ objective function and constraints are discussed in further detail in section [[
 :END:
 This sections introduces the problem in the form of the objective function as well MILP constraints. The objective
 function is required to allow comparisons between candidate solutions. In the context of this formulation, the objective
-function is broken down into two major components as alluded in the introduction: consumption cost and demand cost. The
-constraints ensure that candidate solutions are in the feasible region. They are composed of a series of equations
-defined by decision variables which are unknown variables that are manipulated in the attempt to optimize the objective
-functions and input variables predefined input variables that are assumed to be known. Furthermore, the decision
-variables have components that are directly and indirectly manipulated. This will be further discussed in
-[[#sec:decision-variables]].
+function is broken down into two major components as alluded in the introduction: consumption cost, demand cost,
+assignment cost, as well as a penalty for undercharging a bus. The constraints ensure that candidate solutions are in
+the feasible region. They are composed of a series of equations defined by decision variables which are unknown
+variables that are manipulated in the attempt to optimize the objective functions and input variables predefined input
+variables that are assumed to be known. Furthermore, the decision variables have components that are directly and
+indirectly manipulated. This will be further discussed in [[#sec:decision-variables]].
 
 #+include: "tab/variables.org"
 
@@ -149,49 +150,49 @@ charging solution. This is further described in [[#sec:simulated-annealing]].
 :PROPERTIES:
 :CUSTOM_ID: sec:input-variables
 :END:
-The input values of any MILP system are defined prior to the solving of the system. They define initial conditions,
+The input values of any MILP system are defined prior to the solving of the system. They specify initial conditions,
 known state properties, etc. Roughly following the order in [[tab:variables]], each variable will be introduced.
 
 $\Delta_i$ is the amount power required to complete the bus route after visit $i$. Because there is no route after the
-last visit has no discharge due to a route. Let $\Jset_b \subset \Iset$ denote the set of visit indices for bus $b$, and
-let $\Jset_b^f$ denote the final visit index for bus $b$. Furthermore, let the $\Isetfinal = \{ x \in \Isetfinal \subset
-\Iset : \forall b \in \Bset, x \in \Jset_b^f \}$. Therefore, the last visit for each bus has no discharge due to a bus
-route and can be written as $\Delta_{\Isetfinal} = 0$. The discharge for visit all visits $i \in \{\Iset \setminus
-\Isetfinal\}$, is defined by $\Delta_i = \delta_i \cdot \rho_i$ where $\delta_i$ is the amount of energy consumed by the
-bus per mile and $\rho_{\Isetfinal}$ is the route mileage after visit $i$. $\delta_i$ is calculated using $\delta_i =
-\text{average mph} \cdot (a_{\xi_i - d_i})$. The average MPH is assumed to be 20 miles per hour.
+last visit, the power consumed after the final visit is zero. Formally, let $\Jset_b \subset \Iset$ denote the set of
+visit indices for bus $b$, and let $\Jset_b^f$ denote the final visit index for bus $b$. Furthermore, let the set of
+final visits for each bus, $b$, such that $\Isetfinal = \{ x \in \Isetfinal \subset \Iset : \forall b \in \Bset, x \in
+\Jset_b^f \}$. As mentioned before, the last visit for each bus has no discharge and can be written as $\Delta_{i \in
+\Isetfinal} = 0$. The discharge for visit all visits $i \in \{\Iset \setminus \Isetfinal\}$, is defined by $\Delta_i =
+\delta_i \cdot \rho_i$ where $\delta_i$ is the amount of energy consumed by the bus per mile and $\rho_i$ is the route
+mileage after visit $i$. $\rho_i$ is calculated using $\rho_i = \text{average mph} \cdot (a_{\xi_i} - d_i)$. For the
+final visits, $\rho_{i \in \Isetfinal} = 0$. The average MPH is assumed to be 20 miles per hour.
 
-As discussed before, since there is no route after the last visit $\rho_I = 0$. $\alpha_b$ is the initial SOC percentage
-of bus $b$ at the beginning of the working day. The initial SOC for bus $b$ can be represented as
+$\alpha_b$ is the initial SOC percentage of bus $b$ at the beginning of the working day. The initial SOC for bus $b$ can
+be represented as shown in [[eq:batinit]] where $\kappa_b$ is the battery capacity for bus $b$, $\eta_{i \in \Isetinit}$
+indicates the initial charge for bus $b$ where $\Isetinit = \{ x \in \Isetinit \subset \Iset : \forall b \in \Bset, x
+\in \Jset_b^0 \}$. The rest of the $\eta_i$ terms are considered decision variables and will be further discussed in
+[[#sec:decision-variables]]. $dt_h$ is the discrete time step used for calculating the demand cost. $\epsilon_q$ is the cost
+for assigning a charger to queue $q$. This parameter is utilized by the objective function and is further discussed in
+[[#sec:objective-function]]. $\xi_i$ represents the next arrival index for bus $b_i$. In other words, given a set of bus
+visit IDs $\{ 1,2,3,1\}$, using a starting index of 1, $\xi_1 = 4$. This is found by first identifying tho ID of the
+first element in $\Iset_b$, which is 1. The next step is to find the next occurrenc of bus 1 in the sequence. In this
+exapmple, the next index for bus 1 is $i= 4$. $a_i$ and $e_i$ are the arrival and departure times of bus visit $i$ to
+the station, respectively. $k$ represents the local iteration search for the SA algorithm. This is further discussed in
+[[#sec:simulated-annealing]]. Lastly, $r_q$ represents the rate of charge for the charger in queue $q$.
 
 #+name: eq:batinit
 #+begin_export latex
 \begin{equation}
 \label{eq:batinit}
-  \eta_{i_0^b} = \alpha_b \cdot \kappa_b \text{,}
+  \eta_{i \in \Isetinit} = \alpha_b \cdot \kappa_b \text{,}
 \end{equation}
 #+end_export
-
-where $\kappa_b$ is the battery capacity for bus $b$, $\eta_{\Isetinit}$, $\Isetinit = \{ x \in \Isetinit \subset
-\Iset : \forall b \in \Bset, x \in \Jset_b^0 \}$, indicates the initial charge for bus $b$. $\eta_i$ will be further
-discussed in [[#sec:decision-variables]]. $\epsilon_q$ is the cost for assigning a charger to queue $q$. This parameter is
-utilized by the objective function and is further discussed in [[#sec:objective-function]]. $\xi_i$ represents the next
-arrival index for bus $b_i$. In other words, given a set of bus visit IDs $\Jset_b = \{ 1,2,3,1\}$, using a starting
-index of 1, $\xi_1 = 4$. $a_i$ and $e_i$ are the arrival and departure times of bus visit $i$ to the station,
-respectively. $k$ represents the local iteration search for the SA algorithm. This is further discussed in
-[[#sec:simulated-annealing]]. Lastly, $r_q$ represents the rate of charge for the charger in queue $q$. As will be discussed
-in [[#sec:objective-function]], fast chargers and slow chargers relate to high and low costs, $\epsilon_q$, respectively.
 
 *** Decision Variables
 :PROPERTIES:
 :CUSTOM_ID: sec:decision-variables
 :END:
 Decision variables are the defined by the optimizer and are therefore unknown prior to running the optimization
-algorithm. In this case the optimizer is SA. Once SA has been run and each of the decision variables have been specified
-and the fitness of the solution is defined by the objection functions outlined in [[#sec:objective-function]] are
-determined. The variables will be broken into two sections: direct and indirect decision variables. Decision variables
-that are direct are values that the system has direct control over and indirect variables are those that are influenced
-by the direct.
+algorithm. In this case the optimizer is SA. Once SA has been run, each of the decision variables will be specified and
+the fitness of the solution will be determined by the objection functions The variables will be broken into two
+sections: direct and indirect decision variables. Decision variables that are direct are values that the system has
+direct control over and indirect variables are those that are influenced by the direct.
 
 **** Direct Decision Variables
 :PROPERTIES:
@@ -199,22 +200,67 @@ by the direct.
 :END:
 Decision variables that are direct are variables that can be immediately chosen by SA. The first two variables are $u_i$
 and $d_i \; \forall i \in \Iset$. They represent the initial and final charging times. These values must remain within
-range of the arrival time and departure time for visit $i$, $[a_i, e_i]$. The last direct decision variable is the queue
-that bus visit $i$ can be placed in to charge, $v_i \in \Qset$.
+range of the arrival time and departure time for visit $i$, $[a_i, e_i]$. $\mu_h$ and $theta_h$ are binary decision
+variables, $\mu_h, \theta_h \in \{0, 1\}$. $\mu_h = 1$ when $u_i \le dt_h$, and is 0 otherwise. $\theta_h = 1$ when $d_i
+\ge dt_h$ and is 0 otherwise. The last direct decision variable is the queue that bus visit $i$ can be placed in to
+charge, $v_i \in \Qset$.
 
 **** Indirect Decision Variables
 :PROPERTIES:
 :CUSTOM_ID: sec:indirect-decision-variables
 :END:
 Indirect decision variables are variables that are dependent on direct decision variables. For example $\eta_i$ is the
-initial charge for visit $i$. These variables are chained together per bus by using the bus identifier, $b$, and next
-index, $\xi_i$. The initial charges must be chained so that the battery charge can be calculated per bus as it is
-charged and discharged over each visit, $[u_i, d_i]$. $\phi_i$ is a boolean decision variable, $\phi_i \in \{0,1\}$,
+initial charge for visit $i \in \Iset \setminus \Isetfinal$. These variables are chained together per bus by using the
+bus identifier, $b$, and next arrival index, $\xi_i$. The initial charges must be chained so that the battery charge can
+be calculated per bus as it is charged and discharged over each visit, $[u_i, d_i]$. The concept of chaining the battery
+charges together is shown in [[eq:bat-chain]]. The equation states that the charge for bus $i$'s next visit is equal to the
+initial charge for visit $i$ plus the charge added to it by charger $v_i$ over duration $d_i - u_i$ minus the discharge
+accumulated over route $i$.
+
+#+name: eq:bat-chain
+#+begin_export latex
+\begin{equation}
+\label{eq:bat-chain}
+  \eta_{\xi_i} = \eta_i + r_{v_i}(d_i - u_i) - \Delta_i
+\end{equation}
+#+end_export
+
+$\iota_h = 1$ when $\mu$ and $\theta$ are both active. $\phi_i$ is a boolean decision variable, $\phi_i \in \{0,1\}$,
 that either enables or disables the charge penalty defined in [[#sec:objective-function]]. $\sigma_{ij}$ and $\psi_{ij}$ are
-used to indicate whether a visit pair $(i, j)$ overlap the same space as show in [[fig:spacial-and-temporal-constr]]. These
-variables will be further elaborated on in [[#sec:constraints]]. $p_{dem}$ is the demand cost of the overall charging
-schedule. It is calculated after all the decision variables have been assigned. This is further described in
-[[#sec:objective-function]].
+used to indicate whether a visit pair $(i, j)$ overlap the same space as show in [[fig:spacial-and-temporal-constr]]. A
+little more formally, [[eq:bus-spat-temp]] describes the relationship that $\sigma_{ij}$ and $\phi_{ij} uphold. That is, for
+every visit, if the start charge time of either visit $i$ or $j$ is greater than end charge time of the other, then
+$\omega_{ij}$ is active. Similarly, if the queue for visit $i$ and $j$ are different then $\psi_{ij}$ is active. These
+variables will be further elaborated on in [[#sec:constraints]].
+
+#+name: eq:bus-spat-temp
+#+begin_export latex
+\begin{subequations}
+\label{eq:bus-spat-temp}
+
+\begin{equation}
+  \sigma_{ij} =
+  \begin{cases}
+    1 & \text{if } u_i \ge d_j \\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation}
+
+\begin{equation}
+  \psi_{ij} =
+  \begin{cases}
+    1 & \text{if } v_i \ge v_j \\
+    0 & \text{otherwise}
+  \end{cases}
+\end{equation}
+
+
+\end{subequations}
+#+end_export
+
+
+$p_d$ is the demand cost of the overall charging schedule. It is calculated after all the decision variables have been
+assigned. This is further described in [[#sec:objective-function]].
 
 ** Objective Function
 :PROPERTIES:
@@ -228,7 +274,7 @@ problem has four main considerations: charger assignment, consumption cost, dema
 
 Suppose the objective function is of the form $\text{min } J = \AC + \PC$. $\AC$ is the assignment cost, and $\PC$ is
 the power usage cost. The assignment cost represents the costs of assigning a bus to a particular queue as well as the
-chosen charging period, $[u_i, d_i]$, as shown in [[eq:ac]]. $v_i \in q$ is the charger index, $u_i$ is the initial
+chosen charging period, $[u_i, d_i]$, as shown in [[eq:ac]]. $v_i \in \Qset$ is the charger index, $u_i$ is the initial
 charge time, $d_i$ is the detach time for visit $i$, $\phi_i$ is a binary decision variable, $m$ is the minimum charge
 percentage allowed, $\kappa_i$ is the battery capacity for visit $i$, and $\eta_i$ is the charge for $b_i$ when it
 arrives for visit $i$.
@@ -243,17 +289,16 @@ arrives for visit $i$.
 
 The first term in the summation represents the calculation of the cost for assigning a bus to queue $q$ (i.e. cost of
 using the charger multiplied by the usage time). The second term is the penalty function that is either enabled or
-disabled by $\phi_i$. $\phi_i$ is enabled when the initial charge, $\eta_i$, is less than the allowed minimum charge,
-$m\kappa_{b_i}$. This is further discussed in [[#sec:constraints]]. The form of the penalty function is the most common form
-that they are found in \cite{Luenberger2008}. Note that the variables $\phi_i$ and $\eta_i$ are both decision
-variables that are being multiplied together. This is called a bilinear term. Using a traditional MILP solver, this
-would require linearization \cite{Rodriguez2013}; however, because SA handles nonlinearities easily these bilinear terms
-will be ignored \cite{Radosavljevic2018-jc}.
+disabled by $\phi_i$ \cite{Luenberger2008}. $\phi_i$ is enabled when the initial charge, $\eta_i$, is less than the
+allowed minimum charge, $m\kappa_{b_i}$. This is further discussed in [[#sec:constraints]]. Note that the variables $\phi_i$
+and $\eta_i$ are both decision variables that are being multiplied together. This is called a bilinear term. Using a
+traditional MILP solver, this would require linearization \cite{Rodriguez2013}; however, because SA handles
+nonlinearities easily these bilinear terms will be ignored \cite{Radosavljevic2018-jc}.
 
 The demand cost quantifies the amount of power being used over a given period and adjusts the cost accordingly. The
 consumption cost calculates the total amount of power being consumed by the chargers. The consumption cost is merely the
-summation of all the energy being used over all the active periods for each charger in the time horizon. It is written
-as shown in [[eq:consumption-cost]]. $r_{v_i}$ is the active charger for visit $i$ and is multiplied by the time that the
+summation of all the energy being used over all the active periods for each charger in the time horizon as written in
+[[eq:consumption-cost]]. $r_{v_i}$ is the charge rate for the active charger $v_i$ and is multiplied by the time that the
 charger will be utilized, $d_i - u_i$.
 
 #+name: eq:consumption-cost
@@ -264,14 +309,14 @@ charger will be utilized, $d_i - u_i$.
 \end{equation}
 #+end_export
 
-The demand cost is calculated based on 15 minute increments (900 s). This cost is also referred to as the peak 15.
-The average power used over an arbitrary 15 minute interval is represented by [[eq:p15]].
+The demand cost is calculated based on 15 minute increments (900 s). This cost is also referred to as the peak 15. The
+average power used over an arbitrary 15 minute interval is represented by [[eq:p15]].
 
 #+name: eq:p15
 #+begin_export latex
 \begin{equation}
 \label{eq:p15}
-p_{15}(t) = 1/900 \int_{t-15}^{t} p(\tau) d\tau
+p_{15}(t) = 1/900 \int_{t-900}^{t} p(\tau) d\tau
 \end{equation}
 #+end_export
 
@@ -286,42 +331,41 @@ p_{max}(t) = \text{max}_{\tau \in [0,t]}p_{15}(\tau)
 \end{equation}
 #+end_export
 
-A fixed minimum cost is introduced before a specified threshold is exceeded. Let this fixed threshold be defined as
-$p_{fix}$. In a similar manner as $p_{max}$, the maximum value is retained. Furthermore, let $s_r$ define the demand
-rate which has the units of \(\frac{\$}{kW}\).
+A fixed minimum threshold, $p_{fix}$, is introduced as a base power rate to be charged at. Let this fixed threshold be
+defined as $p_{fix}$. In a similar manner as $p_{max}$, the maximum value is retained. Furthermore, let $s_r$ define the
+demand rate which has the units of \(\frac{\$}{kW}\).
 
 #+name: eq:pdem
 #+begin_export latex
 \begin{equation}
 \label{eq:pdem}
-p_{dem}(t) = \text{max}(p_{fix},p_{max}(t))s_r
+p_d(t) = \text{max}(p_{fix},p_{max}(t))s_r
 \end{equation}
 #+end_export
 
 [[eq:pdem]], again, retains the largest $p_{dem}$ value with a starting fixed value of $p_{fix}$. To write the total power
-demand at any discrete time, consider [[eq:discrete-power]]. Let $\omega_h$ be the discrete power demand at time step $h$
-where $h \in \{ 1, 2, ..., H \} \subset \mathcal{Z}$ and $H = \frac{T}{900}$. For conciseness of notation we will abuse
-$t_h$ to denote the time in discrete form (as opposed to $t$ being continuous), let $dt_h = t_h - t_{h-1}$, and
-$\Hset = \{ 1, 2, ..., H \}$. Let $\iota_h$ be a binary decision variable that is enabled if charger $v_i \in \Qset$ is
-enabled in the time frame $[t_{h-1}, t_h]$, where $t_h = 900 \cdot h$. Let the power usage of charger $v_i$ be denoted
-as $r_{v_i}$.
+demand at any discrete time, consider [[eq:discrete-power]]. Let $\omega_h \in \omega$ be the discrete power demand at time
+step $h$ where $h \in \{ 1, 2, ..., H \} \subset \mathcal{Z}$ and $H = \frac{T}{900}$. For conciseness of notation we
+will abuse $t_h$ to denote the time in discrete form (as opposed to $t$ being continuous), let $dt_h = t_h - t_{h-1}$,
+and $\Hset = \{ 1, 2, ..., H \}$. Let $\iota_h$ be a binary decision variable that is enabled if charger $v_i \in \Qset$
+is enabled in the time frame $dt_h$. Let the power usage of charger $v_i$ be denoted as $r_{v_i}$.
 
 #+name: eq:discrete-power
 #+begin_export latex
 \begin{equation}
 \label{eq:discrete-power}
-  \omega = \sum_h^H \sum_i^I \iota_h \cdot r_{v_i}
+  \omega_h = \sum_i^I \iota_h \cdot r_{v_i}
 \end{equation}
 #+end_export
 
-The average power can be rewritten as $p_{15} = \omega$, $p_{dem}$ can be rewritten as $p_{dem} = \text{max}_{h \in
-\Hset} (p_{15}^{h})$, and finally $p_d$ can be written as [[eq:pd-dis]].
+The average power can be rewritten as $p_{15}^h = \omega_h$, $p_d$ can be rewritten as $p_d^h = \text{max}_{h \in \Hset}
+(p_{15}^{h})$, there the $h$ repesents the $h^{\text{th}}$ step. Finally $p_d^f$ can be written as [[eq:pd-dis]].
 
 #+name: eq:pd-dis
 #+begin_export latex
 \begin{equation}
 \label{eq:pd-dis}
-  p_d = \text{max}_{h \in \Hset}(p_{fix}, p_{max})s_d
+  p_d^h = \text{max}_{h \in \Hset}(p_{fix}, p_{max}^h)s_d
 \end{equation}
 #+end_export
 
@@ -331,7 +375,7 @@ To write the power cost, [[eq:consumption-cost]] and [[eq:pd-dis]] are superimpo
 #+begin_export latex
 \begin{equation}
 \label{eq:pc}
-\PC = p_d + \sum_{i=1}^I \Big( r[v_i](d_i - u_i) \Big)
+\PC = p_d + \sum_{i=1}^I \Big( r_{v_i}(d_i - u_i) \Big)
 \end{equation}
 #+end_export
 
@@ -345,10 +389,7 @@ properties. These properties are enforced by a set of constraints derived from t
 no overlap temporally or spatially, receives enough charge to complete route after each visit $i$, bus visit $i$ cannot
 be over-charged, each visit, $i$, departs on time. The aforementioned constraints are shown in [[eq:constraints]].
 
-#+name: eq:constraints
-#+begin_export latex
-\input{eq/constraints.tex}
-#+end_export
+#+include: "eq/constraints.org"
 
 # Org mode is a little silly and does not take normal referencing syntax. This note is for future reference.
 Constraints \ref{seq:c0}-\ref{seq:c4} are the "queuing constraints". They are used to prevent overlapping in both
@@ -380,10 +421,7 @@ The final set of constraints \ref{seq:c11} - \ref{seq:c15} set the rules for the
 time, $900 \cdot h$, being checked. Similarly, \ref{seq:c13} and \ref{seq:c14} ensure that the final charge time, $d_i$,
 is less than the next discrete time step, $dt_h$.
 
-#+name: fig:spacial-and-temporal-constr
-#+begin_export latex
-\input{img/spacial-temporal-constr.tex}
-#+end_export
+#+include: "img/spacial-temporal-constr.org"
 
 * Simulated Annealing
 :PROPERTIES:
@@ -426,8 +464,8 @@ practice \cite{Keller_2019}. It is defined by [[eq:cool1]].
 \end{equation}
 #+end_export
 
-where $\alpha = 0.995$ in [[fig:cool]]. An Exponential cooling schedule is defined by the difference equation is
-define as [[eq:cool2]].
+where $\alpha = 0.995$ in [[fig:cool]]. An Exponential cooling schedule is defined by the difference equation is define as
+[[eq:cool2]].
 
 #+name: eq:cool2
 #+begin_export latex
@@ -437,8 +475,8 @@ define as [[eq:cool2]].
 \end{equation}
 #+end_export
 
-where $\beta = 0.01$ in [[fig:cool]]. The initial temperature, $T_0$, in the case of [[fig:cool]], is
-set to $500^\circ\; C$ and each schedule's final temperature is $1\; C^\circ$.
+where $\beta = 0.01$ in [[fig:cool]]. The initial temperature, $T_0$, in the case of [[fig:cool]], is set to $500^\circ\; C$ and
+each schedule's final temperature is $1\; C^\circ$.
 
 #+name: fig:cool
 #+ATTR_ORG: :width 200
@@ -550,8 +588,8 @@ valid charging queue, $v_i \in \{1,..., Q\}$. Lines 2 through 4 extract the inde
 visit $i$. Note that in subsequent algorithms, these lines will be omitted. Line 5 initializes the set of solutions to
 the empty set. Line 6 loops through each charger availability set and line 7 loops thorough each of the available
 ranges, denoted as $L$ and $U$ for lower and upper free time. Line 8 checks if the range $[a_i, e_i] \subset [L, U]$,
-and lines 9 and 10 add it to the set of candidates. Line 14 chooses picks a candidate solution, $x_i' \subset X_i'$, with a
-discrete uniform distribution which is denoted by $\U_{\{\cdot\}}$.
+and lines 9 and 10 add it to the set of candidates. Line 14 chooses picks a candidate solution, $x_i' \subset X_i'$,
+with a discrete uniform distribution which is denoted by $\U_{\{\cdot\}}$.
 
 #+name: alg:new-visit
 #+begin_export latex
@@ -591,18 +629,16 @@ discrete uniform distribution which is denoted by $\U_{\{\cdot\}}$.
 
 The algorithm to find free time is defined in Algorithm [[alg:find-free-time]]. $L$ and $U$ are the lower and upper bound of
 the time between scheduled times. The possible use cases are depicted in [[fig:find-free]]. In each case depicted by
-[[fig:find-free]], the red line shows the arrival and departure time for an arbitrary bus visit, $i$. The blue lines indicate
-reigons in which charger $q$ is active. $C \in \C_q \subset \C$ represents one of the regions between the blue lines, $[L, U]$
-which stand for the lower and upper portions of the regions, respectively. The output of [[alg:find-free-time]] is a range for
-which the bus may be charged and the empty set if it cannet. As an example, consider a bus that is in the process of being
-scheduled and it encounters a situation similar to \autoref{subfig:egu}. That is, the only scheduling constraint is that the
-arrival time is before charger $q$ is available to charge the bus. Therefore the bus must wait intil $L$ before changer $q$ may
-charge it. Furthermore, the range that $u_i$ must be selected from is $[L,e]$.
+[[fig:find-free]], the red line shows the arrival and departure time for an arbitrary bus visit, $i$. The blue lines
+indicate reigons in which charger $q$ is active. $C \in \C_q \subset \C$ represents one of the regions between the blue
+lines, $[L, U]$ which stand for the lower and upper portions of the regions, respectively. The output of
+[[alg:find-free-time]] is a range for which the bus may be charged and the empty set if it cannet. As an example, consider a
+bus that is in the process of being scheduled and it encounters a situation similar to \autoref{subfig:egu}. That is,
+the only scheduling constraint is that the arrival time is before charger $q$ is available to charge the bus. Therefore
+the bus must wait intil $L$ before changer $q$ may charge it. Furthermore, the range that $u_i$ must be selected from is
+$[L,e]$.
 
-#+name: fig:find-free
-#+begin_export latex
-\input{img/find-free.tex}
-#+end_export
+#+include: "img/find-free.org"
 
 #+name: alg:find-free-time
 #+begin_export latex
@@ -1031,10 +1067,10 @@ candidate solution is worse, the solution may still be kept with a calculated pr
                     best-solution $\leftarrow$ candidate-solution with probability $\exp$(del-sol$\tau_k$)\;
                 }
 
-                $\I$ $\leftarrow$ \PerturbSchedule{schedule}\;
-            } % If
-          }   % ForEach
-        }     % If
+                $\I \leftarrow$ \PerturbSchedule{schedule}\;
+              } % ForEach
+            }   % If
+        }     % ForEach
     }
 \end{algorithm}
 #+end_export

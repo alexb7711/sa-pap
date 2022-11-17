@@ -1,0 +1,131 @@
+#+name: fig:find-free
+#+begin_export latex
+\begin{figure}
+\centering
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Valid position: $a \leq u \leq d \leq e$}
+    \label{subfig:sandwich}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (1.5,0);
+        \coordinate (C) at (2.0,0);
+        \coordinate (D) at (3.5,0);
+        \coordinate (E) at (4.0,0);
+        \coordinate (F) at (5.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red]  (C) -- (D);
+        \draw[blue] (E) -- (F);
+
+        \node[circle,fill=blue,radius=0.15]                     at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e$] at (D) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
+        \node[circle,fill=blue,radius=0.15]                     at (F) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Valid position: $L \leq u \leq d \leq e$}
+    \label{subfig:all}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (2.5,0);
+        \coordinate (C) at (2.0,0);
+        \coordinate (D) at (3.5,0);
+        \coordinate (E) at (4.0,0);
+        \coordinate (F) at (5.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red]  (C) -- (D);
+        \draw[blue] (E) -- (F);
+
+        \node[circle,fill=blue,radius=0.15]                     at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e$] at (D) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
+        \node[circle,fill=blue,radius=0.15]                     at (F) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Valid position: $a \leq u \le d \leq U$}
+    \label{subfig:egu}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (1.5,0);
+        \coordinate (C) at (2.0,0);
+        \coordinate (D) at (3.5,0);
+        \coordinate (E) at (3.0,0);
+        \coordinate (F) at (5.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red]  (C) -- (D);
+        \draw[blue] (E) -- (F);
+
+        \node[circle,fill=blue,radius=0.15]                     at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e$] at (D) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (E) {};
+        \node[circle,fill=blue,radius=0.15]                     at (F) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Valid position: $a \le u \leq d \leq L$ or $U \leq u \leq d \leq e$}
+    \label{subfig:invertsandwhich}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (1.5,0);
+        \coordinate (B) at (3.5,0);
+        \coordinate (C) at (0.0,0);
+        \coordinate (D) at (5.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red]  (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Invalid position}
+    \label{subfig:invalid}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0.0,0);
+        \coordinate (B) at (5.5,0);
+        \coordinate (C) at (1.5,0);
+        \coordinate (D) at (3.5,0);
+
+        \draw[blue] (A) -- (B);
+        \draw[red]  (C) -- (D);
+
+        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (A) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $u$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $d$] at (D) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\caption{Outlines the different cases that requested time and charger allocated time can overlap}
+\label{fig:find-free}
+\end{figure}
+#+end_export

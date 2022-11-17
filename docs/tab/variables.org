@@ -5,8 +5,9 @@
 | Input constants    |                                                                    |
 | $C$                | Penalty method gain factor                                         |
 | $B$                | Number of buses in use                                             |
+| $H$                | Numer of discrete steps, $h$, in time horizon                      |
 | $I$                | Number of total visits                                             |
-| $J(v,u,d)$         | Objective function                                                 |
+| $J(u,d,v,\eta)$    | Objective function                                                 |
 | $K$                | Local search iteration amount                                      |
 | $Q$                | Number of chargers                                                 |
 | $\T$               | Time horizon                                                       |
@@ -15,7 +16,6 @@
 | Input variables    |                                                                    |
 | $\Delta_i$         | Discharge of visit over after visit $i$                            |
 | $\alpha_b$         | Initial charge percentage time for bus $b$                         |
-| $\beta_i$          | Final charge percentage for bus $i$ at the end of the time horizon |
 | $\delta_i$         | Discharge rate for vehicle $i$ per mile                            |
 | $\epsilon_q$       | Cost of using charger $q$                                          |
 | $\kappa_b$         | Battery capacity for bus $b$                                       |
@@ -23,6 +23,7 @@
 | $\xi_i$            | The next index bus $b$ will arrive                                 |
 | $a_i$              | Arrival time of visit $i$                                          |
 | $b_i$              | ID for bus visit $i$                                               |
+| $dt_h$             | Discrete time step $dt_h = t_h - t_{h-1}$                          |
 | $e_i$              | Time bus visit $i$ must exit the station                           |
 | $k$                | Local search iteration $k$                                         |
 | $m$                | Minimum charge percentage allowed for each visit                   |
@@ -30,9 +31,12 @@
 |--------------------+--------------------------------------------------------------------|
 | Decision Variables |                                                                    |
 | $\eta_i$           | Charge for the bus at the beginning of visit $i$                   |
+| $\iota_h$          | Binary variable that is 1 if $u_i \le dt_h \le d_i$, 0 othewise    |
+| $\mu_h$            | Binary variable that is 1 if $u_i \le dt_h$, 0 otherwise           |
 | $\phi_i$           | Binary term to enable/disable charge penalty for visit $i$         |
 | $\psi_{ij}$        | Tracks spatial overlap for visit pair $(i,j)$                      |
 | $\sigma_{ij}$      | Tracks temporal overlap for visit pair $(i,j)$                     |
+| $\theta$           | Binary variable that is 1 if $d_i \ge dt_h$, 0 otherwise           |
 | $d_i$              | Detach time from charger for visit $i$                             |
 | $p_{dem}(t)$       | Demand cost                                                        |
 | $s_i$              | Amount of time spent on charger for visit $i$ (service time)       |
