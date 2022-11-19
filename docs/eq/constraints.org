@@ -1,70 +1,72 @@
 #+name: eq:constraints
 #+begin_export latex
+\begin{multicols}{2}
 \begin{subequations}
 \label{eq:constraints}
-\begin{equation}
-    \label{seq:c0}
-    u_i - d_j - (\sigma_{ij} - 1)T \ge 0
-\end{equation}
-\begin{equation}
-    \label{seq:c1}
-    v_i - v_j - (\psi_{ij} - 1)Q \ge 0
-\end{equation}
-\begin{equation}
-    \label{seq:c2}
-    \sigma_{ij} + \sigma_{ji} \le 1
-\end{equation}
-\begin{equation}
-   \label{seq:c3}
-    \psi_{ij} + \psi_{ji} \le 1
-\end{equation}
-\begin{equation}
-    \label{seq:c4}
-    \sigma_{ij} + \sigma_{ji} + \psi_{ij} + \psi_{ji} \ge 1
-\end{equation}
-\begin{equation}
-    \label{seq:c5}
-    \Delta_i = \delta_i \rho_i
-\end{equation}
-\begin{equation}
-    \label{seq:c6}
-     \eta_{\xi_i} = \eta_i + r_{v_i}(d_i - u_i) - \Delta_i
-\end{equation}
-\begin{equation}
-    \label{seq:c7}
-    \kappa_i \geq \eta_i + r_{v_i}(d_i - u_i)
-\end{equation}
-\begin{equation}
-    \label{seq:c8}
-    \eta_i - m\kappa_{b_i} \le T (1 - \phi_{i})
-\end{equation}
-\begin{equation}
-    \label{seq:c9}
-    m_{k_i} - m\kappa_{b_i} < T \phi_{i}
-\end{equation}
-\begin{equation}
-    \label{seq:c10}
-    a_i \leq u_i \leq d_i \le e_i \le T
-\end{equation}
-\begin{equation}
-    \label{seq:c11}
-    u_i - dt_h \le T\theta_h
-\end{equation}
-\begin{equation}
-    \label{seq:c12}
-    dt_h - u_i \le T(1 - \theta_h)
-\end{equation}
-\begin{equation}
-    \label{seq:c13}
-    dt_h - d_i \le T\mu_h
-\end{equation}
-\begin{equation}
-    \label{seq:c14}
-    d_i - dt_h \le T(1 - \mu_h)
-\end{equation}
-\begin{equation}
-    \label{seq:c15}
-    \iota_h = \mu_h \theta_h
-\end{equation}
+  \begin{equation}
+      \label{seq:c0}
+      u_i - d_j - (\sigma_{ij} - 1)T \ge 0
+  \end{equation}
+  \begin{equation}
+      \label{seq:c1}
+      v_i - v_j - (\psi_{ij} - 1)Q \ge 0
+  \end{equation}
+  \begin{equation}
+      \label{seq:c2}
+      \sigma_{ij} + \sigma_{ji} \le 1
+  \end{equation}
+  \begin{equation}
+     \label{seq:c3}
+      \psi_{ij} + \psi_{ji} \le 1
+  \end{equation}
+  \begin{equation}
+      \label{seq:c4}
+      \sigma_{ij} + \sigma_{ji} + \psi_{ij} + \psi_{ji} \ge 1
+  \end{equation}
+  \begin{equation}
+      \label{seq:c5}
+      \Delta_i = \delta_i \rho_i
+  \end{equation}
+  \begin{equation}
+      \label{seq:c6}
+       \eta_{\xi_i} = \eta_i + r_{v_i}(d_i - u_i) - \Delta_i
+  \end{equation}
+  \begin{equation}
+      \label{seq:c7}
+      \kappa_i \geq \eta_i + r_{v_i}(d_i - u_i)
+  \end{equation}
+  \begin{equation}
+      \label{seq:c8}
+      \eta_i - m\kappa_{b_i} \le T (1 - \phi_{i})
+  \end{equation}
+  \begin{equation}
+      \label{seq:c9}
+      m_{k_i} - m\kappa_{b_i} < T \phi_{i}
+  \end{equation}
+  \begin{equation}
+      \label{seq:c10}
+      a_i \leq u_i \leq d_i \le e_i \le T
+  \end{equation}
+  \begin{equation}
+      \label{seq:c11}
+      u_i - dt_h \le T\theta_h
+  \end{equation}
+  \begin{equation}
+      \label{seq:c12}
+      dt_h - u_i \le T(1 - \theta_h)
+  \end{equation}
+  \begin{equation}
+      \label{seq:c13}
+      dt_h - d_i \le T\mu_h
+  \end{equation}
+  \begin{equation}
+      \label{seq:c14}
+      d_i - dt_h \le T(1 - \mu_h)
+  \end{equation}
+  \begin{equation}
+      \label{seq:c15}
+      \iota_h = \mu_h \theta_h
+  \end{equation}
 \end{subequations}
+\end{multicols}
 #+end_export
