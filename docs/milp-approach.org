@@ -589,12 +589,10 @@ while others charge.
 :CUSTOM_ID: new-visit
 :END:
 The new visit generator describes the process of moving bus $b$ from the idle queue, $v_i \in \{Q+1,..., Q+B\}$ to a
-valid charging queue, $v_i \in \{1,..., Q\}$. Lines 2 through 4 extract the index, arrival time, and departure time for
-visit $i$. Note that in subsequent algorithms, these lines will be omitted. Line 5 initializes the set of solutions to
-the empty set. Line 6 loops through each charger availability set and line 7 loops thorough each of the available
-ranges, denoted as $L$ and $U$ for lower and upper free time. Line 8 checks if the range $[a_i, e_i] \subset [L, U]$,
-and lines 9 and 10 add it to the set of candidates. Line 14 chooses picks a candidate solution, $\I_i' \subset \I'$,
-with a discrete uniform distribution which is denoted by $\U_{\{\cdot\}}$.
+valid charging queue, $v_i \in \{1,..., Q\}$. Lines 2-4 extracts the visit, $i$, arrival time, $a_i$, and departure
+time, $e_i$. Note that in subsequent algorithms these lines will be omitted for conciseness. Line 5 loops through the
+inactive time periods that contain the time the bus is at the station, $[a_i, e_i]$. Line 6 verifies that the inactive
+period selected is valid and returns a random charging time, $[u_i, d_i]$, if it is. Line 7 returns the new visit.
 
 #+name: alg:new-visit
 #+begin_export latex
@@ -614,20 +612,15 @@ with a discrete uniform distribution which is denoted by $\U_{\{\cdot\}}$.
         $i    \leftarrow \{i: i \in \Sol \}$ \tcc*{The index of the visit $i$}
         $a_i  \leftarrow \{ a_i \in \I_i : \I_i \in \I \subset \Sol \}$ \tcc*{Get the arrival time for visit $i$}
         $e_i  \leftarrow \{ e_i \in \I_i : \I_i \in \I \subset \Sol \}$ \tcc*{Get the departure time for visit $i$}
-        $X_i' \leftarrow \varnothing$ \tcc*{Begin with the empty set}
 
-        \ForEach (\tcc*[f]{For set of availabile times for charger $q$}) {$\C_q \in \C$}
+        \tcc{Randomly select a free time, $j$, from any charger $q \in \Q$ that is within the time frame $[a_i e_i]$}
+        \While {$C_q^j \in \{[a_i, e_i]\} \subset \U_{\C}$}
         {
-            \ForEach (\tcc*[f]{For each inactive region in $\C_q$}) {$C \in \C_q$}
+            \If(\tcc*[f]{If there is time available in $C_q^j$}){$x_i' \leftarrow\findFreeTime{$C_q^j$, ($a_i, e_i$)} $\not\in \varnothing$}
             {
-                \If(\tcc*[f]{If there is time available in $C$}){\findFreeTime{C, ($a_i, e_i$)} $\not\in \varnothing$}
-                {
-                    $x_i' \rightarrow$ \findFreeTime{C, ($a_i, e_i$)} \tcc*{Assign $x_i'$ to the found reigion}
-                    $X_i' \cup x_i'$ \tcc*{Add $x_i'$ to the set of candidates}
-                }
+                \Return{$\I_i' \leftarrow x_i'$} \tcc*[f]{Return visit}
             }
         }
-        \Return{$\U_{X_i'}$} \tcc*[f]{Return a random candidate}
     }
 \end{algorithm}
 #+end_export
@@ -694,10 +687,9 @@ $[L,e]$.
 :END:
 Slide visit is used for buses that have already been scheduled. Because of the constraint \ref{seq:c10} there may be
 some room to move $u_i$ and $d_i$ within the window $[a_i, e_i]$. Two new values, $u_i$ and $d_i$ are selected with a
-uniform distribution to satisfy the constraint $a_i \leq u_i \leq d_i \leq e_i$. Line 1 initializes the candidate set to
-be the original charge time frame. Line 3 loops through each opening for charger $q$, and line 4 checks if a new time
-frame $[u_i, d_i]$ is able to be scheduled. Lines 5 and 6 add that time frame to the set of candidates. Line 9 returns a
-candidate with a discrete uniform distribution.
+uniform distribution to satisfy the constraint $a_i \leq u_i \leq d_i \leq e_i$. Line 2 randomly loops through the other
+inactive time frames from charger $v_i$ that is within the time that the bus is at the station, $[a_i, e_i]$. Line 3
+verifies the time frame previously selected and returns a new charging time. Line 4 returns the new visit.
 
 #+name: alg:slide-visit
 #+begin_export latex
@@ -711,18 +703,14 @@ candidate with a discrete uniform distribution.
 
     \Begin
     {
-        $X_i' \leftarrow \varnothing$ \tcc*{Begin with the empty set}
-
-        \ForEach (\tcc*[f]{For each inactive region in $\C_q$ where $q = v_i$}) {$C \in \C_q$}
+        \tcc{Randomly select an inactive time frame, $j$, from charger $v_i$ that is within the time frame $[a_i, e_i]$}
+        \While {$C_q^j \in \{[a_i, e_i]\} \subset \U_{\C_{v_i}}$}
         {
-            \If(\tcc*[f]{If there is time available in $C$}){\findFreeTime{C, ($a_i, e_i$)} $\not\in \varnothing$}
+            \If(\tcc*[f]{If there is time available in $C_q^j$}){$x_i' \rightarrow$ \findFreeTime{$C_q^j$, ($a_i, e_i$)} $\not\in \varnothing$}
             {
-                $x_i' \rightarrow$ \findFreeTime{C, ($a_i, e_i$)} \tcc*{Assign $x_i'$ to the found reigion}
-                $X_i' \cup x_i'$ \tcc*{Add $x_i'$ to the set of candidates}
+                \Return{$\I_i \leftarrow x_i'$} \tcc*[f]{Return visit}
             }
         }
-
-        \Return{$\U_{X_i'}$} \tcc*[f]{Return a random candidate}
     }
 \end{algorithm}
 #+end_export
@@ -733,8 +721,8 @@ candidate with a discrete uniform distribution.
 :END:
 The new charger generator takes a visit $\I_i$ and changes the charger it is on while maintianing the same charge time,
 $[u_i, d_i]$. Similarly to [[alg:new-visit]], the new candidate, $x_i'$, must be checked before being added to the set
-$X_i'$. Line 2 initializes the candidates to the empty set. Line 3 and 4 loop though each charger availability set and
-each available range for charger $q$.
+$X_i'$. Line 2 randomly loops through any time frame from any charger, $C_q^j$, that is within the time frame that the
+bus is at the station, $[a_i, e_i]$. Line 3 verifies the selection and line 4 returns the new visit.
 
 #+name: alg:new-charger
 #+begin_export latex
@@ -748,20 +736,15 @@ each available range for charger $q$.
 
     \Begin
     {
-        $X_i' \leftarrow \varnothing$ \tcc*{Begin with the empty set}
-
-        \ForEach (\tcc*[f]{For set of availabile times for charger $q$}) {$\C_q \in \C$}
+        \tcc{Randomly select an inactive time frame, $j$, from any charger $q \in \Qset$ that is within the time frame $[a_i, e_i]$}
+        \While {$C_q^j \in \{[a_i, e_i] \} \subset \U_{\C}$}
         {
-            \ForEach (\tcc*[f]{For each inactive region in $\C_q$}) {$C \in \C_q$}
+            \If (\tcc*[f]{If the charge time is within the region $[L,U]$}) {$L \leq u$ \And $U \geq e$}
             {
-                \If (\tcc*[f]{If the charge time is within the region $[L,U]$}) {$L \leq u$ \And $U \geq e$}
-                {
-                    $X_i' \cup (q, u_i, d_i)$ \tcc*{Append the candidate to the set}
-                }
+                \Return{$\I_i \leftarrow x_i'$} \tcc*[f]{Return visit}
             }
         }
 
-        \Return{$\U_{X_i'}$} \tcc*[f]{Return a random candidate}
     }
 \end{algorithm}
 #+end_export
