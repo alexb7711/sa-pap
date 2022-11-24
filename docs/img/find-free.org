@@ -85,19 +85,45 @@
 
 \begin{subfigure}{\textwidth}
     \centering
-    \caption{Valid position: $a \le u \leq d \leq L$ or $U \leq u \leq d \leq e$}
+    \caption{Valid position: $L \le u \leq d \leq U$}
     \label{subfig:invertsandwhich}
     \begin{tikzpicture}[scale=2]
-        \coordinate (A) at (1.5,0);
-        \coordinate (B) at (3.5,0);
-        \coordinate (C) at (0.0,0);
-        \coordinate (D) at (5.5,0);
+        \coordinate (A) at (0,0);
+        \coordinate (B) at (1.5,0);
+        \coordinate (C) at (2.0,0);
+        \coordinate (D) at (3.5,0);
+        \coordinate (E) at (4.0,0);
+        \coordinate (F) at (5.5,0);
 
-        \draw[blue] (A) -- (B);
+        \draw[blue] (A) -- (C);
+        \draw[blue] (D) -- (F);
+        \draw[red]  (B) -- (E);
+
+        \node[circle,fill=blue,radius=0.15]                    at (A) {};
+        \node[circle,fill=red,radius=0.15,label=above : $a$]   at (B) {};
+        \node[circle,fill=blue,radius=0.15,label=above  : $L$] at (C) {};
+        \node[circle,fill=blue,radius=0.15,label=above  : $U$] at (D) {};
+        \node[circle,fill=red,radius=0.15,label=above : $e$]   at (E) {};
+        \node[circle,fill=blue,radius=0.15]                    at (F) {};
+    \end{tikzpicture}
+\end{subfigure}
+
+\par\bigskip
+
+\begin{subfigure}{\textwidth}
+    \centering
+    \caption{Invalid position}
+    \label{subfig:invalid}
+    \begin{tikzpicture}[scale=2]
+        \coordinate (A) at (0.0,0);
+        \coordinate (B) at (5.5,0);
+        \coordinate (C) at (1.5,0);
+        \coordinate (D) at (3.5,0);
+
+        \draw[-{Latex[width=3mm]},blue]  (A) -- (B);
         \draw[red]  (C) -- (D);
 
-        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (B) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $U$] at (A) {};
         \node[circle,fill=red,radius=0.15,label=above  : $a$] at (C) {};
         \node[circle,fill=red,radius=0.15,label=above  : $e$] at (D) {};
     \end{tikzpicture}
@@ -115,13 +141,12 @@
         \coordinate (C) at (1.5,0);
         \coordinate (D) at (3.5,0);
 
-        \draw[blue] (A) -- (B);
+        \draw[-{Latex[width=3mm]},blue]  (B) -- (A);
         \draw[red]  (C) -- (D);
 
-        \node[circle,fill=blue,radius=0.15,label=above : $L$]   at (A) {};
-        \node[circle,fill=blue,radius=0.15,label=above : $U$]   at (B) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $u$] at (C) {};
-        \node[circle,fill=red,radius=0.15,label=above  : $d$] at (D) {};
+        \node[circle,fill=blue,radius=0.15,label=above : $L$] at (B) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $a$] at (C) {};
+        \node[circle,fill=red,radius=0.15,label=above  : $e$] at (D) {};
     \end{tikzpicture}
 \end{subfigure}
 
