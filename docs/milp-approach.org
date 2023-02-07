@@ -158,14 +158,14 @@ initial charge for visit $i \in \Iset \setminus \Isetfinal$. These variables are
 bus identifier, $b$, and next arrival index, $\xi_i$. The initial charges must be chained so that the battery charge can
 be calculated per bus as it is charged and discharged over each visit, $[u_i, d_i]$. The concept of chaining the battery
 charges together is shown in [[eq:bat-chain]]. The equation states that the charge for bus $i$'s next visit is equal to the
-initial charge for visit $i$ plus the charge added to it by charger $v_i$ over duration $d_i - u_i$ minus the discharge
+initial charge for visit $i$ plus the charge added to it by charger $v_i$ over duration $s_i = d_i - u_i$ minus the discharge
 accumulated over route $i$.
 
 #+name: eq:bat-chain
 #+begin_export latex
 \begin{equation}
 \label{eq:bat-chain}
-  \eta_{\xi_i} = \eta_i + r_{v_i}(d_i - u_i) - \Delta_i
+  \eta_{\xi_i} = \eta_i + r_{v_i}s_i - \Delta_i
 \end{equation}
 #+end_export
 
@@ -226,7 +226,7 @@ arrives for visit $i$.
 #+begin_export latex
 \begin{equation}
 \label{eq:ac}
-\AC = \sum_{i=1}^I \Big(\epsilon_{v_i}(d_i - u_i) + \frac{1}{2} C \phi_i (\eta_i - m \kappa_i)^{2}\Big)
+\AC = \sum_{i=1}^I \Big(\epsilon_{v_i}s_i + \frac{1}{2} C \phi_i (\eta_i - m \kappa_i)^{2}\Big)
 \end{equation}
 #+end_export
 
@@ -242,13 +242,13 @@ The demand cost quantifies the amount of power being used over a given period an
 consumption cost calculates the total amount of power being consumed by the chargers. The consumption cost is merely the
 summation of all the energy being used over all the active periods for each charger in the time horizon as written in
 [[eq:consumption-cost]]. $r_{v_i}$ is the charge rate for the active charger $v_i$ and is multiplied by the time that the
-charger will be utilized, $d_i - u_i$.
+charger will be utilized, $s_i$.
 
 #+name: eq:consumption-cost
 #+begin_export latex
 \begin{equation}
 \label{eq:consumption-cost}
-  \sum_{i=1}^I \Big( r_{v_i}(d_i - u_i) \Big)
+  \sum_{i=1}^I \Big( r_{v_i}s_i \Big)
 \end{equation}
 #+end_export
 
@@ -302,7 +302,7 @@ $dt_h$. Let the power usage of charger $v_i$ be denoted as $r_{v_i}$.
 #+end_export
 
 The average power can be rewritten as $p_{15}^h = \omega_h$, $p_d$ can be rewritten as $p_d^h = \text{max}_{h \in \Hset}
-(p_{15}^{h})$, there the $h$ repesents the $h^{\text{th}}$ step. Finally $p_d^f$ can be written as [[eq:pd-dis]].
+(p_{15}^{h})$, there the $h$ repesents the $h^{\text{th}}$ step. Finally, $p_d^f$ can be written as [[eq:pd-dis]].
 
 #+name: eq:pd-dis
 #+begin_export latex
@@ -318,7 +318,7 @@ To write the power cost, [[eq:consumption-cost]] and [[eq:pd-dis]] are added tog
 #+begin_export latex
 \begin{equation}
 \label{eq:pc}
-\PC = p_d + \sum_{i=1}^I \Big( r_{v_i}(d_i - u_i) \Big)
+\PC = p_d + \sum_{i=1}^I \Big( r_{v_i}s_i \Big)
 \end{equation}
 #+end_export
 
@@ -355,17 +355,18 @@ Similarly, $\phi_{ij}$ determines whether the vehicles will be charging in the s
 \eqref{seq:c1} is rendered active and vehicle $i$ and $j$ must be charging in different queues. If $\phi_{ij} = 0$ then
 the constraint is deactivated and the vehicle queue assignments may be the same.
 
-\ref{seq:c5} calculates the discharge for the route after visit $i$. \ref{seq:c6} calculates the initial charge for the
-next visit for bus $b_i$. \ref{seq:c7} ensures that the bus is not being over-charged. \ref{seq:c8} and \ref{seq:c9} are
-used to enable and disable the penalty method in [[eq:ac]]. This is done by checking if the initial charge for visit $i$ is
-greater than or equal to the minimum allowed charge. \ref{seq:c10} ensures the continuity of the times (i.e. the arrival
-time is less than the initial charge which is less than the detach time which is less than the time the bus exits the
-station and all must be less than the time horizon).
+\ref{seq:c5} calculates the discharge for the route after visit $i$. \ref{seq:c6} forms describes the service time of
+the bus. \ref{seq:c7} calculates the initial charge for the next visit for bus $b_i$. \ref{seq:c7} ensures that the bus
+is not being over-charged. \ref{seq:c9} and \ref{seq:c10} are used to enable and disable the penalty method in [[eq:ac]].
+This is done by checking if the initial charge for visit $i$ is greater than or equal to the minimum allowed charge.
+\ref{seq:c10} ensures the continuity of the times (i.e. the arrival time is less than the initial charge which is less
+than the detach time which is less than the time the bus exits the station and all must be less than the time horizon).
 
-The last set of constraints \ref{seq:c11} - \ref{seq:c15} set the rules for the decision variable $\iota_h$.
-\ref{seq:c11} and \ref{seq:c12} ensure that the initial charge time for visit $i$, $u_i$, is greater than the discrete
-time, $900 \cdot h$, being checked. Similarly, \ref{seq:c13} and \ref{seq:c14} ensure that the final charge time, $d_i$,
-is less than the next discrete time step, $dt_h$.
+The last set of constraints \ref{seq:c13} - \ref{seq:c17} set the rules for the decision variable $\iota_h$.
+\ref{seq:c13} and \ref{seq:c14} ensure that the initial charge time for visit $i$, $u_i$, is greater than the discrete
+time, $900 \cdot h$, being checked. Similarly, \ref{seq:c15} and \ref{seq:c16} ensure that the final charge time, $d_i$,
+is less than the next discrete time step, $dt_h$. The final constraint \ref{sec:c17} is the discrete representation of
+whether charger $v_i \in \Qset$ is active.
 
 * Simulated Annealing
 :PROPERTIES:
