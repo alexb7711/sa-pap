@@ -1,7 +1,18 @@
-target/
-
-*.utxt
+# Docs
+*.*~
+*.aux
+*.bbl
+*.dvi
+*.fdb_latexmk
+*.fls
+*.log
+*.out
 *.pdf
 *.png
+*.tex
+*.toc
+*.utxt
 
+# Rust
 Cargo.lock
+target/
