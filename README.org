@@ -16,7 +16,7 @@ complete their workday without delays.
 
 The SA algorithm is introduced and constrained by a set of MILP constraints derived from the Position Allocation Problem
 (PAP) to ensure the validity of proposed charging schedules. Objective functions describing consumption cost and demand
-cost are used to minimize power consumption and total cost of using the BEBs.* Requirements
+cost are used to minimize power consumption and total cost of using the BEBs.
 
 * Requirements
 ** Program
