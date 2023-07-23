@@ -19,11 +19,13 @@ The SA algorithm is introduced and constrained by a set of MILP constraints deri
 cost are used to minimize power consumption and total cost of using the BEBs.
 
 * Requirements
+This repository contains both the source code and the documentation/research for the code as a submodule.
+
 ** Program
 - [[https://www.rust-lang.org/][rust]]
 
 ** Documentation
-- [[https://pandoc.org/][pandoc]]
+- [[https://mg.readthedocs.io/latexmk.html][latexmk]]
 - [[https://plantuml.com/][PlantUML]]
 
 * Build/Test/Run Program
