@@ -1,0 +1,24 @@
+#+title: Simulated Annealing Position Allocation Problem
+#+author: Alexander Brown
+#+date: \today
+
+#+include:
+
+* Requirements
+** Program
+- [[https://www.rust-lang.org/][rust]]
+
+** Documentation
+- [[https://pandoc.org/][pandoc]]
+- [[https://plantuml.com/][PlantUML]]
+
+* Build/Test/Run Program
+- Build: `cargo build`
+- Test: `cargo test`
+- Run: `cargo run`
+
+* Building Documentation
+
+- Rust crate documentation: `cargo doc --open`
+- Everything in `docs` folder: `cd docs && make`
+- Everything in `docs/uml` folder: `cd docs/uml/ && make`

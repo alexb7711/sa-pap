@@ -1,3 +1,4 @@
 [submodule "sa-pap-paper"]
 	path = sa-pap-paper
 	url = git@github.com:alexb7711/sa-pap-paper.git
+	branch = main
