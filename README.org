@@ -19,22 +19,22 @@ The SA algorithm is introduced and constrained by a set of MILP constraints deri
 cost are used to minimize power consumption and total cost of using the BEBs.
 
 * Requirements
-This repository contains both the source code and the documentation/research for the code as a submodule.
+This repository contains both the source code and the documentation/research for the code as a submodule. The code is
+written in [[https://www.rust-lang.org/][rust]]. Rust was chosen for its performance, reliability, and its rich packaging system. Rust [[https://www.rust-lang.org/tools/install][can be installed
+by following this link]].
 
-** Program
-- [[https://www.rust-lang.org/][rust]]
+This repository also includes the [[https://github.com/alexb7711/sa-pap-paper][partnered research paper]]. The document is written in [[https://orgmode.org/][org mode]], but has a LaTeX export
+of the document that can be built with [[https://orgmode.org/][pdflatex]] and [[https://mg.readthedocs.io/latexmk.html][latexmk]]. These are typically bundled with a full installation of the
+[[https://www.latex-project.org/][LaTeX]] environment. [[https://plantuml.com/][PlantUML]] is also utilized for some of the image generation.
 
-** Documentation
-- [[https://mg.readthedocs.io/latexmk.html][latexmk]]
-- [[https://plantuml.com/][PlantUML]]
+Most (if not all) of the tasks are automated via [[https://taskfile.dev/][Task]]. Type =task -l= to get a list of tasks that can be run.
 
 * Build/Test/Run Program
-- Build: `cargo build`
-- Test: `cargo test`
-- Run: `cargo run`
+- Build: =cargo build=
+- Test: =cargo test=
+- Run: =cargo run=
 
 * Building Documentation
-
-- Rust crate documentation: `cargo doc --open`
-- Everything in `docs` folder: `cd docs && make`
-- Everything in `docs/uml` folder: `cd docs/uml/ && make`
+- Rust crate documentation: =cargo doc --open=
+- Everything in =docs= folder: =task docs=
+- Everything in `docs/uml` folder: =task images=
