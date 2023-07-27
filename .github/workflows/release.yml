@@ -1,32 +1,39 @@
-name: Release
-
-permissions:
-  contents: write
-
+name: release
 on:
   workflow_dispatch:
   push:
-    tags: 'v*.**'
+    tags:
+      - "v*.**"
 
 jobs:
   release:
-    name: release ${{ matrix.target }}
+    name: Create Release
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-pc-windows-gnu
-            archive: zip
-          - target: x86_64-unknown-linux-musl
-            archive: tar.gz tar.xz tar.zst
-          - target: x86_64-apple-darwin
-            archive: zip
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@master
         with:
           submodules: true
-      - name: Update and Intall Dependencies
+      - name: Create Release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: true
+  document:
+    name: Document
+    needs:
+      - release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone test repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Update and intall dependencies
         run: sudo apt-get update && sudo apt-get install -y texlive-full latexmk
       - name: Setup go-task
         uses: arduino/setup-task@v1
@@ -35,17 +42,42 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Clean Project
         run: task spap:clean
-      - name: List Project
-        run: ls -R
       - name: PlantUML
         uses: holowinski/plantuml-github-action@main
         with:
           args: -v -tpng "sa-pap-paper/sections/img/*.pml"
       - name: Build PDF
         run: task spap:pdf
-      - name: Compile and release
-        uses: xhaiker/rust-release.action@v1.0.0
+  publish:
+    name: publish ${{ matrix.name }}
+    needs:
+      - document
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target: x86_64-pc-windows-gnu
+            suffix: windows-x86_64
+            archive: zip
+            name: x86_64-pc-windows-gnu
+          - target: x86_64-unknown-linux-gnu
+            suffix: linux-x86_64
+            archive: tar.xz
+            name: x86_64-unknown-linux-gnu
+          - target: x86_64-apple-darwin
+            suffix: darwin-x86_64
+            archive: tar.gz
+            name: x86_64-apple-darwin
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone test repository
+        uses: actions/checkout@v2
         with:
+          submodules: true
+      - uses: xhaiker/rust-release.action@v1.0.0
+        name: build ${{ matrix.name }}
+        with:
+          release: ${{ github.ref_name }}
           rust_target: ${{ matrix.target }}
           archive_suffix: ${{ matrix.suffix }}
           archive_types: ${{ matrix.archive }}
