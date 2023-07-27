@@ -14,9 +14,9 @@ jobs:
       with:
         submodules: true
     - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
     - name: Build Project
         run: cargo build
     - name: Test Project
