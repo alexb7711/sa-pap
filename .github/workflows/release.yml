@@ -38,8 +38,8 @@ jobs:
         uses: holowinski/plantuml-github-action@main
         with:
           args: -v -tpng "sections/img/*.pml"
-    - name: Build PDF
-      run: task spap:images spap:pdf
+      - name: Build PDF
+        run: task spap:images spap:pdf
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.4.3
         env:
