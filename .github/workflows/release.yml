@@ -40,7 +40,7 @@ jobs:
       - name: PlantUML
         uses: holowinski/plantuml-github-action@main
         with:
-          args: -v -tpng "sections/img/*.pml"
+          args: -v -tpng "sa-pap-paper/sections/img/*.pml"
       - name: Build PDF
         run: task spap:images spap:pdf
       - name: Compile and release
