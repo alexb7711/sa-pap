@@ -24,6 +24,8 @@ jobs:
             archive: zip
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: Update and Intall Dependencies
         run: sudo apt-get update && sudo apt-get install -y texlive-full latexmk
       - name: Setup go-task
