@@ -42,7 +42,7 @@ jobs:
         with:
           args: -v -tpng "sa-pap-paper/sections/img/*.pml"
       - name: Build PDF
-        run: task spap:images spap:pdf
+        run: task spap:pdf
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.4.3
         env:
