@@ -1,4 +1,4 @@
-name: SA PAP
+name: Test
 
 on:
   pull_request:
