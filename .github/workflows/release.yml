@@ -74,13 +74,14 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
-      - uses: xhaiker/rust-release.action@v1.0.0
+      - uses: xhaiker/rust-release.action@v1.0.4
         name: build ${{ matrix.name }}
         with:
           release: ${{ github.ref_name }}
           rust_target: ${{ matrix.target }}
           archive_suffix: ${{ matrix.suffix }}
           archive_types: ${{ matrix.archive }}
+          build_options: -r
           extra_files: "sa-pap-paper/sa-pap.pdf LICENSE"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
