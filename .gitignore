@@ -16,3 +16,6 @@
 # Rust
 Cargo.lock
 target/
+
+# Task
+.task

@@ -22,7 +22,24 @@ jobs:
           - target: x86_64-apple-darwin
             archive: zip
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
+      - name: Update and Intall Dependencies
+        run: sudo apt-get update && sudo apt-get install -y texlive-full latexmk
+      - name: Setup go-task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Clean Project
+        run: task spap:clean
+      - name: List Project
+        run: ls -R
+      - name: PlantUML
+        uses: holowinski/plantuml-github-action@main
+        with:
+          args: -v -tpng "sections/img/*.pml"
+    - name: Build PDF
+      run: task spap:images spap:pdf
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.4.3
         env:
@@ -30,3 +47,4 @@ jobs:
         with:
           RUSTTARGET: ${{ matrix.target }}
           ARCHIVE_TYPES: ${{ matrix.archive }}
+          EXTRA_FILES: "sa-pap-paper/sa-pap.pdf LICENSE"
