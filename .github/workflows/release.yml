@@ -44,10 +44,11 @@ jobs:
       - name: Build PDF
         run: task spap:pdf
       - name: Compile and release
-        uses: rust-build/rust-build.action@v1.4.3
+        uses: xhaiker/rust-release.action@v1.0.0
+        with:
+          rust_target: ${{ matrix.target }}
+          archive_suffix: ${{ matrix.suffix }}
+          archive_types: ${{ matrix.archive }}
+          extra_files: "sa-pap-paper/sa-pap.pdf LICENSE"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          RUSTTARGET: ${{ matrix.target }}
-          ARCHIVE_TYPES: ${{ matrix.archive }}
-          EXTRA_FILES: "sa-pap-paper/sa-pap.pdf LICENSE"
