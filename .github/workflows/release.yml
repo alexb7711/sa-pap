@@ -23,35 +23,36 @@ jobs:
           release_name: ${{ github.ref }}
           draft: false
           prerelease: true
-  document:
-    name: Document
-    needs:
-      - release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone test repository
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: Update and intall dependencies
-        run: sudo apt-get update && sudo apt-get install -y texlive-full latexmk
-      - name: Setup go-task
-        uses: arduino/setup-task@v1
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Clean Project
-        run: task spap:clean
-      - name: PlantUML
-        uses: holowinski/plantuml-github-action@main
-        with:
-          args: -v -tpng "sa-pap-paper/sections/img/*.pml"
-      - name: Build PDF
-        run: task spap:pdf
+  # document:
+  #   name: Document
+  #   needs:
+  #     - release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Clone test repository
+  #       uses: actions/checkout@v3
+  #       with:
+  #         submodules: true
+  #     - name: Update and intall dependencies
+  #       run: sudo apt-get update && sudo apt-get install -y texlive-full latexmk
+  #     - name: Setup go-task
+  #       uses: arduino/setup-task@v1
+  #       with:
+  #         version: 3.x
+  #         repo-token: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Clean Project
+  #       run: task spap:clean
+  #     - name: PlantUML
+  #       uses: holowinski/plantuml-github-action@main
+  #       with:
+  #         args: -v -tpng "sa-pap-paper/sections/img/*.pml"
+  #     - name: Build PDF
+  #       run: task spap:pdf
   publish:
     name: publish ${{ matrix.name }}
     needs:
-      - document
+      # - document
+      - release
     strategy:
       fail-fast: true
       matrix:
@@ -82,6 +83,6 @@ jobs:
           archive_suffix: ${{ matrix.suffix }}
           archive_types: ${{ matrix.archive }}
           build_options: -r
-          extra_files: "sa-pap-paper/sa-pap.pdf LICENSE"
+          # extra_files: "sa-pap-paper/sa-pap.pdf LICENSE"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
