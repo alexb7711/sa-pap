@@ -3,7 +3,7 @@ use yaml_rust::Yaml;
 
 // Import Modules
 use sa_pap::sa::SA;
-use sa_pap::sa::generators::route_generator::RouteGenerator;
+use sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
 use sa_pap::sa::generators::schedule_generator::ScheduleGenerator;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
 use sa_pap::sa::temp_func::{TempFunc, CoolSchedule::Geometric};
@@ -22,8 +22,8 @@ fn main()
         bool_util::i64_to_bool(gen_config["load_from_file"].clone().into_i64().unwrap());
 
     // Create schedule generator
-    let gsys: Box<RouteGenerator> =
-        Box::new(RouteGenerator::new(load_from_file, "./src/yaml/schedule.yaml"));
+    let gsys: Box<RouteRandGenerator> =
+        Box::new(RouteRandGenerator::new(load_from_file, "./src/yaml/schedule.yaml"));
 
     // rg.run();
     // rg.print_route();
