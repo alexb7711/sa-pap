@@ -1,55 +1,52 @@
 //===============================================================================
 // Declare submodules
-pub use crate::sa::route::route_rand_generator::route_event::RouteEvent;        // Keep public for testing
-use crate::sa::route::Route;
-use crate::util::fileio::yaml_loader;
-use yaml_rust::Yaml;
+pub mod parse_routes;
 
 //===============================================================================
 // External Crates
+use csv;
+use yaml_rust::Yaml;
 
 //===============================================================================
 // Import Crates
+use crate::sa::route::Route;
+use crate::util::fileio::yaml_loader;
 
 //===============================================================================
 // Import modules
 
-
 //===============================================================================
 // Implementation of ScheduleGenerator
 #[allow(dead_code)]
-pub struct RouteCSVGenerator
-{
+pub struct RouteCSVGenerator {
     // PUBLIC
 
     // PRIVATE
     config: Yaml,
-    load_from_file: bool,
+    csv_h: csv::Reader<std::fs::File>,
 }
 
 //===============================================================================
 // Implementation of ScheduleCSVGenerator
-impl RouteCSVGenerator
-{
+impl RouteCSVGenerator {
     //===========================================================================
     // PUBLIC
 
     //---------------------------------------------------------------------------
-    /// Returns a schedule generator
+    /// Constructor that returns a CSV schedule generator
     ///
     /// # Input
-    /// * `config_path`: Path to YAML schedule config
+    /// * `config_path`   : Path to YAML schedule config
+    /// * `csv_path`      : Path to CSV file
     ///
     /// # Output
     /// * `ScheduleGenerator`
     ///
-    pub fn new(load_from_file: bool, config_path: &str) -> RouteCSVGenerator
-    {
+    pub fn new(config_path: &str) -> RouteCSVGenerator {
         // Create new RouteGenerator
-        let rg = RouteCSVGenerator
-        {
+        let rg = RouteCSVGenerator {
             config: yaml_loader::load_yaml(config_path),
-            load_from_file,
+            csv_h: parse_routes::read_csv(config_path),
         };
 
         // Return Route Generator
@@ -59,8 +56,7 @@ impl RouteCSVGenerator
 
 //===============================================================================
 //
-impl Route for RouteCSVGenerator
-{
+impl Route for RouteCSVGenerator {
     //---------------------------------------------------------------------------
     /// Generate or load route
     ///
@@ -70,22 +66,19 @@ impl Route for RouteCSVGenerator
     /// # Output
     /// * `route_schedule`: The routes that the buses must adhere to
     ///
-    fn run(self: &mut RouteCSVGenerator)
-    {
-    }
+    fn run(self: &mut RouteCSVGenerator) {}
 }
 
 //===============================================================================
 // TEST PRIVATE METHODS IN ROUTE GENERATOR
 #[cfg(test)]
-mod priv_test_route_gen
-{
+mod priv_test_route_gen {
     //use super::{RouteCSVGenerator,Route};
 
     //---------------------------------------------------------------------------
     //
     // fn create_object() -> RouteCSVGenerator
     // {
-    //     return RouteCSVGenerator::new(false, "./src/yaml/schedule-test.yaml");
+    //     return RouteCSVGenerator::new(false, "./src/config/schedule-test.yaml");
     // }
 }

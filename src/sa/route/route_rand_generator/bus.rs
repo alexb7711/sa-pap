@@ -12,18 +12,16 @@ use std::cmp::Ordering;
 ///
 #[allow(dead_code)]
 #[derive(Debug, Default, Clone)]
-pub struct Bus
-{
-    pub bat_capacity   : f32,
-    pub initial_charge : f32,
-    pub discharge_rate : f32,
-    pub final_charge   : f32,
+pub struct Bus {
+    pub bat_capacity: f32,
+    pub initial_charge: f32,
+    pub discharge_rate: f32,
+    pub final_charge: f32,
 }
 
 //===============================================================================
 //
-impl PartialEq for Bus
-{
+impl PartialEq for Bus {
     //--------------------------------------------------------------------------
     /// Tests for `self` and `other` values to be equal by using `==` operator.
     ///
@@ -33,10 +31,9 @@ impl PartialEq for Bus
     /// # OUTPUT
     /// * `bool`: True if all items match
     ///
-    fn eq(&self, other: &Self) -> bool
-    {
-        return (self.initial_charge == other.initial_charge) &&
-               (self.discharge_rate == other.discharge_rate);
+    fn eq(&self, other: &Self) -> bool {
+        return (self.initial_charge == other.initial_charge)
+            && (self.discharge_rate == other.discharge_rate);
     }
 
     //--------------------------------------------------------------------------
@@ -48,22 +45,19 @@ impl PartialEq for Bus
     /// # OUTPUT
     /// * `bool`: True if no items match
     ///
-    fn ne(&self, other: &Self) -> bool
-    {
-        return (self.initial_charge != other.initial_charge) &&
-               (self.discharge_rate != other.discharge_rate);
+    fn ne(&self, other: &Self) -> bool {
+        return (self.initial_charge != other.initial_charge)
+            && (self.discharge_rate != other.discharge_rate);
     }
 }
 
 //===============================================================================
 //
-impl Eq for Bus
-{}
+impl Eq for Bus {}
 
 //===============================================================================
 //
-impl PartialOrd for Bus
-{
+impl PartialOrd for Bus {
     //--------------------------------------------------------------------------
     /// Returns an ordering between `self` and `other` values if one exists.
     ///
@@ -73,16 +67,14 @@ impl PartialOrd for Bus
     /// # OUTPUT
     /// * `Option<Ordering>`: An ordering of the objects if one exists
     ///
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering>
-    {
-       return Some(self.cmp(&other));
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        return Some(self.cmp(&other));
     }
 }
 
 //===============================================================================
 //
-impl Ord for Bus
-{
+impl Ord for Bus {
     //--------------------------------------------------------------------------
     /// Returns an `Ordering` between `self` and `other`
     ///
@@ -92,8 +84,10 @@ impl Ord for Bus
     /// # OUTPUT
     /// * `Option<Ordring>`: An ordering of the objects if one exists
     ///
-    fn cmp(&self, other: &Self) -> Ordering
-    {
-        return self.initial_charge.partial_cmp(&other.initial_charge).unwrap();
+    fn cmp(&self, other: &Self) -> Ordering {
+        return self
+            .initial_charge
+            .partial_cmp(&other.initial_charge)
+            .unwrap();
     }
 }

@@ -6,41 +6,40 @@ extern crate sa_pap;
 //===============================================================================
 //
 #[cfg(test)]
-mod test_route_rand_generator
-{
+mod test_route_rand_generator {
     //---------------------------------------------------------------------------
     // Import modules
+    use super::sa_pap::sa::route::route_rand_generator::{RouteEvent, RouteRandGenerator};
+    use super::sa_pap::sa::route::Route;
     use sa_pap::util::fileio::yaml_loader;
     use std::cell::Ref;
-    use super::sa_pap::sa::route::Route;
-    use super::sa_pap::sa::route::route_rand_generator::{RouteRandGenerator, RouteEvent};
 
     //---------------------------------------------------------------------------
     //
-    fn get_route_size() -> usize
-    {
-        return yaml_loader::load_yaml(yaml_path())["buses"]["num_visit"].as_i64().unwrap() as usize;
+    fn get_route_size() -> usize {
+        return yaml_loader::load_yaml(yaml_path())["buses"]["num_visit"]
+            .as_i64()
+            .unwrap() as usize;
     }
 
     //---------------------------------------------------------------------------
     //
-    fn get_bus_size() -> usize
-    {
-        return yaml_loader::load_yaml(yaml_path())["buses"]["num_bus"].as_i64().unwrap() as usize;
+    fn get_bus_size() -> usize {
+        return yaml_loader::load_yaml(yaml_path())["buses"]["num_bus"]
+            .as_i64()
+            .unwrap() as usize;
     }
 
     //---------------------------------------------------------------------------
     //
-    fn yaml_path() -> &'static str
-    {
-        return "./src/yaml/schedule-test.yaml";
+    fn yaml_path() -> &'static str {
+        return "./src/config/schedule-test.yaml";
     }
 
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_valid_load_yaml()
-    {
+    fn test_valid_load_yaml() {
         let mut rg: RouteRandGenerator = RouteRandGenerator::new(false, yaml_path());
 
         rg.run();
@@ -52,8 +51,7 @@ mod test_route_rand_generator
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_valid_bus_data()
-    {
+    fn test_valid_bus_data() {
         let mut rg: RouteRandGenerator = RouteRandGenerator::new(false, yaml_path());
 
         rg.run();
