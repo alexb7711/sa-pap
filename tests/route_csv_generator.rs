@@ -9,8 +9,8 @@ extern crate sa_pap;
 mod test_route_csv_generator {
     //---------------------------------------------------------------------------
     // Import modules
-    use super::sa_pap::sa::route::route_csv_generator::parse_routes;
-    // use super::sa_pap::sa::route::Route;
+    use super::sa_pap::sa::route::route_csv_generator::{parse_routes, RouteCSVGenerator};
+    use super::sa_pap::sa::route::Route;
     use sa_pap::util::fileio::yaml_loader;
 
     //---------------------------------------------------------------------------
@@ -45,18 +45,30 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_load_yaml() {
-        let mut p = parse_routes::read_csv(csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path());
 
-        for r in p.records() {
-            println!("{:?}", r);
-        }
+        rg.run();
 
-        // assert_eq!(p.route.get_mut().capacity(), get_route_size());
-        // assert_eq!(p.buses.get_mut().capacity(), get_bus_size());
+        // assert_eq!(rg.route.get_mut().capacity(), get_route_size());
+        // assert_eq!(rg.buses.get_mut().capacity(), get_bus_size());
     }
 
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_csv_load() {}
+    fn test_csv_load() {
+        let mut p = parse_routes::read_csv(csv_path());
+
+        for r in p.records() {
+            println!("{:?}", r);
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    #[should_panic]
+    fn test_csv_bad_path() {
+        parse_routes::read_csv("./routes.csv");
+    }
 }

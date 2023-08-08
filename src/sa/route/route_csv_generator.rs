@@ -12,6 +12,8 @@ use yaml_rust::Yaml;
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
 
+use super::route_rand_generator::RouteRandGenerator;
+
 //===============================================================================
 // Import modules
 
@@ -52,6 +54,25 @@ impl RouteCSVGenerator {
         // Return Route Generator
         return rg;
     }
+
+    //===========================================================================
+    // PRIVATE
+
+    //---------------------------------------------------------------------------
+    //
+    fn buffer_attributes(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    //
+    fn convert_route_to_visit(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    //
+    fn calc_discharge(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    //
+    fn generate_schedule_params(self: &RouteCSVGenerator) {}
 }
 
 //===============================================================================
@@ -66,7 +87,22 @@ impl Route for RouteCSVGenerator {
     /// # Output
     /// * `route_schedule`: The routes that the buses must adhere to
     ///
-    fn run(self: &mut RouteCSVGenerator) {}
+    fn run(self: &mut RouteCSVGenerator) {
+        // Parse CSV
+        parse_routes::parse_csv(&mut self.csv_h);
+
+        // Buffer Attributes
+        self.buffer_attributes();
+
+        // Convert routes to visits
+        self.convert_route_to_visit();
+
+        // Estimate discharge over routes
+        self.calc_discharge();
+
+        // Generate schedule parameters
+        self.generate_schedule_params();
+    }
 }
 
 //===============================================================================
