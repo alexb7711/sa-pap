@@ -45,7 +45,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_load_yaml() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         rg.run();
 

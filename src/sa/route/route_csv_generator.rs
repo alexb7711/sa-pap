@@ -44,11 +44,11 @@ impl RouteCSVGenerator {
     /// # Output
     /// * `ScheduleGenerator`
     ///
-    pub fn new(config_path: &str) -> RouteCSVGenerator {
+    pub fn new(config_path: &str, csv_path: &str) -> RouteCSVGenerator {
         // Create new RouteGenerator
         let rg = RouteCSVGenerator {
             config: yaml_loader::load_yaml(config_path),
-            csv_h: parse_routes::read_csv(config_path),
+            csv_h: parse_routes::read_csv(csv_path),
         };
 
         // Return Route Generator

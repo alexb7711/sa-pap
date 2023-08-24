@@ -37,14 +37,18 @@ pub fn read_csv(csv_path: &str) -> csv::Reader<std::fs::File> {
 /// # Output
 /// * `routes`: Tuple of that contains the vector of bus IDs and vector of routes
 ///
+// BUG: https://levelup.gitconnected.com/working-with-csv-data-in-rust-7258163252f8
+//      The deserialize is part of SERDE which needs some extra goodies to make it work
 pub fn parse_csv(csv_h: &mut csv::Reader<std::fs::File>) -> (Vec<u16>, Vec<Vec<u16>>) {
     // Variables
     let mut routes: (Vec<u16>, Vec<Vec<u16>>) = (Vec::new(), Vec::from(Vec::new()));
 
     // Executable code
 
+    let mut iter = csv_h.deserialize();
+
     // Loop through each row in the CSV file
-    for result in csv_h.deserialize() {
+    for result in iter.next() {
         // Unpack the row if possible
         let r: Vec<u16> = match result {
             Ok(r) => r,
