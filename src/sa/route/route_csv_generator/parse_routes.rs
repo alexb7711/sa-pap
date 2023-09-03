@@ -39,27 +39,39 @@ pub fn read_csv(csv_path: &str) -> csv::Reader<std::fs::File> {
 ///
 // BUG: https://levelup.gitconnected.com/working-with-csv-data-in-rust-7258163252f8
 //      The deserialize is part of SERDE which needs some extra goodies to make it work
-pub fn parse_csv(csv_h: &mut csv::Reader<std::fs::File>) -> (Vec<u16>, Vec<Vec<u16>>) {
-    // Variables
-    let mut routes: (Vec<u16>, Vec<Vec<u16>>) = (Vec::new(), Vec::from(Vec::new()));
+pub fn parse_csv(csv_h: &mut csv::Reader<std::fs::File>) -> (Vec<u16>, Vec<Vec<f32>>) {
 
-    // Executable code
-
-    let mut iter = csv_h.deserialize();
+    // Stores the route data
+    let mut routes: (Vec<u16>, Vec<Vec<f32>>) = (Vec::new(), Vec::from(Vec::new()));
 
     // Loop through each row in the CSV file
-    for result in iter.next() {
+    for result in csv_h.records() {
+
+        // Reset the ith route vector
+        let mut route_i: Vec<f32> = Vec::new();
+
         // Unpack the row if possible
-        let r: Vec<u16> = match result {
+        let r = match result {
             Ok(r) => r,
             Err(e) => panic!("{:?}", e),
         };
 
         // Append the ID
-        routes.0.push(r[0]);
+        let id: u16 = r[0].parse::<u16>().unwrap();
+        routes.0.push(id);
 
         // Append the routes
-        routes.1.push(r[1..].to_vec());
+        for s in r.iter().skip(0)
+        {
+            // Convert the jth variable to float
+            let f: f32 = s.trim().parse::<f32>().unwrap();
+
+            // Append the float to the ith route vector
+            route_i.push(f);
+        }
+
+        // Append route vector
+        routes.1.push(route_i);
     }
 
     return routes;
