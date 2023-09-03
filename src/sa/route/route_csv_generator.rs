@@ -22,6 +22,7 @@ use super::route_rand_generator::RouteRandGenerator;
 #[allow(dead_code)]
 pub struct RouteCSVGenerator {
     // PUBLIC
+    pub csv_schedule: (Vec<u16>, Vec<Vec<f32>>),
 
     // PRIVATE
     config: Yaml,
@@ -47,6 +48,7 @@ impl RouteCSVGenerator {
     pub fn new(config_path: &str, csv_path: &str) -> RouteCSVGenerator {
         // Create new RouteGenerator
         let rg = RouteCSVGenerator {
+            csv_schedule: (Vec::new(), Vec::new()),
             config: yaml_loader::load_yaml(config_path),
             csv_h: parse_routes::read_csv(csv_path),
         };
@@ -89,7 +91,7 @@ impl Route for RouteCSVGenerator {
     ///
     fn run(self: &mut RouteCSVGenerator) {
         // Parse CSV
-        parse_routes::parse_csv(&mut self.csv_h);
+        self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h);
 
         // Buffer Attributes
         self.buffer_attributes();

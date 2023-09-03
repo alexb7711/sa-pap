@@ -47,10 +47,34 @@ mod test_route_csv_generator {
     fn test_load_yaml() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
+        // Load the CSV schedule
         rg.run();
 
-        // assert_eq!(rg.route.get_mut().capacity(), get_route_size());
-        // assert_eq!(rg.buses.get_mut().capacity(), get_bus_size());
+        // Test bus IDs
+        assert_eq!(rg.csv_schedule.0[0] , 0);
+        assert_eq!(rg.csv_schedule.0[10], 10);
+        assert_eq!(rg.csv_schedule.0[15], 15);
+        assert_eq!(rg.csv_schedule.0[20], 20);
+        assert_eq!(rg.csv_schedule.0[30], 30);
+        assert_eq!(rg.csv_schedule.0[42], 42);
+        assert_eq!(rg.csv_schedule.0[58], 58);
+
+        // Test route times
+        assert_eq!(rg.csv_schedule.1[0][0]  , 0.0);
+        assert_eq!(rg.csv_schedule.1[0][7]  , 39600.0);
+        assert_eq!(rg.csv_schedule.1[0][15] , 82800.0);
+
+        assert_eq!(rg.csv_schedule.1[1][0]  , 0.0);
+        assert_eq!(rg.csv_schedule.1[1][5]  , 31830.0);
+        assert_eq!(rg.csv_schedule.1[1][9]  , 49950.0);
+
+        assert_eq!(rg.csv_schedule.1[10][0]  , 0.0);
+        assert_eq!(rg.csv_schedule.1[10][10] , 78420.0);
+        assert_eq!(rg.csv_schedule.1[10][15] , 86370.0);
+
+        assert_eq!(rg.csv_schedule.1[36][0]  , 0.0);
+        assert_eq!(rg.csv_schedule.1[36][6]  , 32610.0);
+        assert_eq!(rg.csv_schedule.1[36][22] , 68880.0);
     }
 
     //---------------------------------------------------------------------------

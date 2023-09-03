@@ -60,8 +60,8 @@ pub fn parse_csv(csv_h: &mut csv::Reader<std::fs::File>) -> (Vec<u16>, Vec<Vec<f
         let id: u16 = r[0].parse::<u16>().unwrap();
         routes.0.push(id);
 
-        // Append the routes
-        for s in r.iter().skip(0)
+        // Append the routes, skip the first element (queue index)
+        for s in r.iter().skip(1)
         {
             // Convert the jth variable to float
             let f: f32 = s.trim().parse::<f32>().unwrap();
