@@ -1,7 +1,7 @@
 //===============================================================================
 // Declare submodules
-pub mod bus;
-pub mod route_event;
+// pub mod bus;
+// pub mod route_event;
 
 //===============================================================================
 // External Crates
@@ -14,8 +14,8 @@ use yaml_rust::Yaml;
 
 //===============================================================================
 // Import modules
-use crate::sa::route::route_rand_generator::bus::Bus;
-pub use crate::sa::route::route_rand_generator::route_event::RouteEvent; // Keep public for testing
+use crate::sa::route::bus::Bus;
+pub use crate::sa::route::route_event::RouteEvent;                              // Keep public for testing
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
 use crate::util::rand_utils;

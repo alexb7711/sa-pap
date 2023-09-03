@@ -9,8 +9,9 @@ extern crate sa_pap;
 mod test_route_rand_generator {
     //---------------------------------------------------------------------------
     // Import modules
-    use super::sa_pap::sa::route::route_rand_generator::{RouteEvent, RouteRandGenerator};
     use super::sa_pap::sa::route::Route;
+    use super::sa_pap::sa::route::route_event::RouteEvent;
+    use super::sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
     use sa_pap::util::fileio::yaml_loader;
     use std::cell::Ref;
 

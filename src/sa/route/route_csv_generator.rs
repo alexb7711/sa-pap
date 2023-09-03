@@ -7,12 +7,11 @@ pub mod parse_routes;
 use csv;
 use yaml_rust::Yaml;
 
+
 //===============================================================================
 // Import Crates
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
-
-use super::route_rand_generator::RouteRandGenerator;
 
 //===============================================================================
 // Import modules
@@ -62,7 +61,17 @@ impl RouteCSVGenerator {
 
     //---------------------------------------------------------------------------
     //
-    fn buffer_attributes(self: &RouteCSVGenerator) {}
+    /// Allocates space for the start,stop set of routes to be generated.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn buffer_attributes(self: &RouteCSVGenerator) {
+
+    }
 
     //---------------------------------------------------------------------------
     //

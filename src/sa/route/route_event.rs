@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 
 //=========================================================================
 // Import modules
-pub use crate::sa::route::route_rand_generator::bus::Bus;
+pub use crate::sa::route::bus::Bus;
 
 //===============================================================================
 /// Structure for route
