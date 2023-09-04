@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 //=========================================================================
 // Import Crates
 
@@ -23,29 +25,28 @@ pub struct Data {
 ///
 #[derive(Debug, Default, Clone)]
 pub struct Parameter {
-    pub A     : Vec<u16>,                                        // Number of buses
+    pub A     : usize,                                           // Number of buses
     pub D     : Vec<f32>,                                        // Discharge of route i
     pub G     : Vec<u16>,                                        // Array of visit IDs
     pub K     : u16,                                             // Discrete number of steps in T
-    pub N     : Vec<u16>,                                        // Number of total visits
-    pub Q     : Vec<u16>,                                        // Number of chargers
+    pub N     : usize,                                           // Number of total visits
+    pub Q     : usize,                                           // Number of chargers
     pub S     : u16,                                             // Length of a single charger
-    pub T     : u16,                                             // Time horizon                                   [hr]
+    pub T     : f32,                                             // Time horizon                                   [hr]
     pub a     : Vec<f32>,                                        // Arrival time of bus visit i                    [hr]
-    pub alpha : f32,                                             // Initial charge percentage for bus a            [%]
-    pub beta  : f32,                                             // Final charge percentage for bus a at T         [%]
+    pub alpha : Vec<f32>,                                        // Initial charge percentage for bus a            [%]
+    pub beta  : Vec<f32>,                                        // Final charge percentage for bus a at T         [%]
     pub dt    : f32,                                             // Discrete time step                             [hr]
     pub e     : Vec<f32>,                                        // Exit time for bus visit i                      [hr]
     pub ep    : Vec<f32>,                                        // (epsilon) Cost of using charger q per unit time
-    pub fast  : u16,                                             // Number of fast chargers
+    pub fast  : usize,                                           // Number of fast chargers
     pub g     : Vec<u16>,                                        // Array of values indicating the next index for bus i
     pub k     : Vec<f32>,                                        // (kappa) Battery capacity for bus i             [MJ]
     pub l     : Vec<f32>,                                        // (lambda) Discharge of bus visit over route i
-    pub m     : Vec<f32>,                                        // Cost of bus i being assigned to charger q
-    pub nu    : Vec<f32>,                                        // Minimum charge allowed on departure of visit i [%]
+    pub m     : Vec<usize>,                                      // Cost of bus i being assigned to charger q
+    pub nu    : f32,                                             // Minimum charge allowed on departure of visit i [%]
     pub r     : Vec<f32>,                                        // Charge rate for charger q                      [KWh]
-    pub s     : u16,                                             // Length of a bus
-    pub slow  : u16,                                             // Number of slow chargers
+    pub slow  : usize,                                           // Number of slow chargers
     pub tk    : Vec<f32>,                                        // Array of discrete times                        [hr]
  }
 

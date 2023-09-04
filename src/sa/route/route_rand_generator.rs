@@ -203,7 +203,7 @@ impl RouteRandGenerator {
 
         if final_visit {
             // Set the final departure time as the time horizon
-            depart = self.config["time_horizon"].as_f64().unwrap() as f32;
+            depart = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         } else {
             let min_rest: f32 = self.config["buses"]["min_rest"].as_f64().unwrap() as f32;
             let max_rest: f32 = self.config["buses"]["max_rest"].as_f64().unwrap() as f32;
@@ -227,7 +227,7 @@ impl RouteRandGenerator {
     ///
     fn next_arrival(self: &mut RouteRandGenerator, current_visit: u16, event_cnt: u16) -> f32 {
         // Variables
-        let time_horizon: f32 = self.config["time_horizon"].as_f64().unwrap() as f32;
+        let time_horizon: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let chunk: f32 = time_horizon / (event_cnt as f32);
         let next_arr: f32 = (current_visit as f32) * chunk;
 
@@ -368,7 +368,7 @@ mod priv_test_route_gen {
         // Variables
         let mut rg: RouteRandGenerator = create_object();
         let mut arrival: f32 = 1.0;
-        let time_horizon: f32 = rg.config["time_horizon"].as_f64().unwrap() as f32;
+        let time_horizon: f32 = rg.config["time"]["EOD"].as_f64().unwrap() as f32;
 
         // Test 1
         let mut depart: f32 = rg.next_depart(arrival, false);

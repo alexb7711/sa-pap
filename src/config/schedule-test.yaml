@@ -1,4 +1,7 @@
-time_horizon: 10.0   # [hr]
+time:
+  BOD: 0.0                                                                      # [hr]
+  EOD: 10.0                                                                    # [hr]
+  K: 100
 buses:
   num_bus: 25
   num_visit: 200
@@ -18,7 +21,7 @@ final_charge: 0.95     # [0-1]
 chargers:
   slow:
     num: 7
-    rate: 100          # [Kw]
+    rate: 100.0        # [Kw]
   fast:
     num: 4
-    rate: 400          # [Kw]
+    rate: 400.0        # [Kw]
