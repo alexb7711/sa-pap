@@ -21,7 +21,8 @@ pub struct Data {
 ///
 /// Defines the structure that contains the buffers for the SA parameters
 ///
-struct Parameters {
+#[derive(Debug, Default, Clone)]
+pub struct Parameter {
     pub A     : Vec<u16>,                                        // Number of buses
     pub D     : Vec<f32>,                                        // Discharge of route i
     pub G     : Vec<u16>,                                        // Array of visit IDs
@@ -34,7 +35,7 @@ struct Parameters {
     pub alpha : f32,                                             // Initial charge percentage for bus a            [%]
     pub beta  : f32,                                             // Final charge percentage for bus a at T         [%]
     pub dt    : f32,                                             // Discrete time step                             [hr]
-    pub e     : None,                                            // Exit time for bus visit i                      [hr]
+    pub e     : Vec<f32>,                                        // Exit time for bus visit i                      [hr]
     pub ep    : Vec<f32>,                                        // (epsilon) Cost of using charger q per unit time
     pub fast  : u16,                                             // Number of fast chargers
     pub g     : Vec<u16>,                                        // Array of values indicating the next index for bus i
@@ -53,13 +54,14 @@ struct Parameters {
 ///
 /// Defines the structure that contains the buffers for the decision variables
 ///
-struct DecisionVar {
+#[derive(Debug, Default, Clone)]
+pub struct DecisionVar {
     pub c     : Vec<f32>,                                        //  Detach time for visit i                [hr]
-    pub psi : Vec<Vec<f32>>,                                     //  Determines if i is "fully left" of j
+    pub psi   : Vec<Vec<bool>>,                                  //  Determines if i is "fully left" of j
     pub eta   : Vec<f32>,                                        //  Initial charge for bus visit i         [MJ]
     pub s     : Vec<f32>,                                        //  Time to charge for bus visit i         [hr]
-    pub sigma : None,                                            //  Determines if i is "fully below" j
-    pub u     : None,                                            //  Initial charge time for visit i        [hr]
-    pub v     : None,                                            //  Assigned queue for visit i
-    pub w     : None,                                            //  Matrix representation of bus charger assignments
+    pub sigma : Vec<Vec<bool>>,                                  //  Determines if i is "fully below" j
+    pub u     : Vec<f32>,                                        //  Initial charge time for visit i        [hr]
+    pub v     : Vec<u16>,                                        //  Assigned queue for visit i
+    pub w     : Vec<Vec<bool>>,                                  //  Matrix representation of bus charger assignments
 }

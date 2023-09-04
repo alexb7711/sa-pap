@@ -6,6 +6,7 @@ use self::temp_func::TempFunc;
 
 //===============================================================================
 // Import modules
+pub mod data;                                                                // Parameters and decision variables
 pub mod generators;                                                          // Pool of all the SA generators
 pub mod route;                                                               // Pool of all the route generators
 pub mod temp_func;                                                           // Temperature functions

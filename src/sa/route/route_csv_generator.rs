@@ -12,6 +12,7 @@ use yaml_rust::Yaml;
 // Import Crates
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
+use crate::sa::data::Data;
 
 //===============================================================================
 // Import modules
@@ -22,6 +23,7 @@ use crate::util::fileio::yaml_loader;
 pub struct RouteCSVGenerator {
     // PUBLIC
     pub csv_schedule: (Vec<u16>, Vec<Vec<f32>>),
+    pub data: Data,
 
     // PRIVATE
     config: Yaml,
@@ -48,6 +50,7 @@ impl RouteCSVGenerator {
         // Create new RouteGenerator
         let rg = RouteCSVGenerator {
             csv_schedule: (Vec::new(), Vec::new()),
+            data: Data{..Default::default()},
             config: yaml_loader::load_yaml(config_path),
             csv_h: parse_routes::read_csv(csv_path),
         };
