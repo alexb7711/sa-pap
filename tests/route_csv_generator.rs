@@ -44,7 +44,7 @@ mod test_route_csv_generator {
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_load_yaml() {
+    fn test_csv_load() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         // Load the CSV schedule
@@ -75,17 +75,6 @@ mod test_route_csv_generator {
         assert_eq!(rg.csv_schedule.1[36][0]  , 0.0);
         assert_eq!(rg.csv_schedule.1[36][6]  , 32610.0);
         assert_eq!(rg.csv_schedule.1[36][22] , 68880.0);
-    }
-
-    //---------------------------------------------------------------------------
-    //
-    #[test]
-    fn test_csv_load() {
-        let mut p = parse_routes::read_csv(csv_path());
-
-        for r in p.records() {
-            println!("{:?}", r);
-        }
     }
 
     //---------------------------------------------------------------------------

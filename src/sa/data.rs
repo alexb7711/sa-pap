@@ -48,6 +48,7 @@ pub struct Parameter {
     pub r     : Vec<f32>,                                        // Charge rate for charger q                      [KWh]
     pub slow  : usize,                                           // Number of slow chargers
     pub tk    : Vec<f32>,                                        // Array of discrete times                        [hr]
+    pub zeta  : Vec<f32>,                                        // Discharge rate of bus b
  }
 
 //===============================================================================

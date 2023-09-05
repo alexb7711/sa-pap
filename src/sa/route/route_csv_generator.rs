@@ -7,6 +7,7 @@ pub mod parse_routes;
 //===============================================================================
 // External Crates
 use csv;
+use std::collections::HashMap;
 use yaml_rust::Yaml;
 
 //===============================================================================
@@ -122,6 +123,8 @@ impl RouteCSVGenerator {
         self.data.param.slow = slow_c.len();
         self.data.param.fast = fast_c.len();
 
+        self.data.param.zeta = [self.config["buses"]["dis_rate"].as_f64().unpack() as f32].repeat(A);
+
     }
 
     //---------------------------------------------------------------------------
@@ -145,7 +148,7 @@ impl RouteCSVGenerator {
         let mut N: usize = 0;
 
         let bod: f32 = config["time"]["BOD"].as_f64().unwrap() as f32;
-        let eod: f32 = config["time"]["EOD"].as_f64().unwrap() as f32;
+        let eod: config["time"]["EOD"].as_f64().unwrap() as f32;
 
         // for each bus
         for r in &csv.1 {
@@ -168,11 +171,112 @@ impl RouteCSVGenerator {
 
     //---------------------------------------------------------------------------
     //
-    fn convert_route_to_visit(self: &RouteCSVGenerator) {}
+    /// Convert the start/stop representation to a arrival/departure representation
+    /// of the route schedule.
+    ///
+    /// # Input:
+    /// * init  : Initialization parameters from YAML
+    /// * routes: CSV route data in start/stop route form
+    ///
+    /// # Output:
+    /// * routes: CSV route data in arrival/departure form
+    ///
+    fn convert_route_to_visit(self: &RouteCSVGenerator) {
+        let bod: f32     = self.config["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod: f32     = self.config["time"]["EOD"].as_f64().unwrap() as f32;
+        let mut route_visit: HashMap<u16, Vec<Vec<f32>>> = HashMap::new();
+
+        // Generate set of visit/departures
+
+        // For each bus/route
+        for i in 0..self.csv_schedule.0.len()
+        {
+            // Variables
+            let b: u16                       = self.csv_schedule.0[i];
+            let r: Vec<f32>                  = self.csv_schedule.1[i].clone();
+            let J: usize                     = r.len();
+            let mut arrival_c: f32           = r[1];
+            let mut arrival_n: f32;
+            let mut departure: f32;
+            let mut tmp_route: Vec<Vec<f32>> = Vec::new();
+
+            // For each start/stop route pair
+            for j in (0..J).step_by(2) {
+                // Update the times
+                departure = r[j];
+                arrival_n = r[j+1];
+
+                // If the first visit is at the BOD
+                if j == 0 && r[j] > bod {
+                    tmp_route.push(vec![bod,bod]);
+                    continue;
+                }
+                // Otherwise the first visit after the BOD
+                else if j == 0 && r[j] == bod {
+                    tmp_route.push(vec![bod,bod]);
+                    continue;
+                }
+                // Else append the arrival/departure time normally
+                else {
+                    tmp_route.push(vec![arrival_c, departure]);
+                }
+
+                // if the final visit is not at the EOD
+                if j == J-2 && r[j+1] < eod {
+                    tmp_route.push(vec![arrival_n, eod]);
+                }
+
+                // Update the current arrival
+                arrival_c = arrival_n;
+            }
+
+            // Update the route
+            route_visit.insert(b, tmp_route);
+        }
+
+        return route_visit
+    }
 
     //---------------------------------------------------------------------------
     //
-    fn calc_discharge(self: &RouteCSVGenerator) {}
+    /// Calculate the discharge for each route
+    ///
+    /// Input:
+    ///   - self  : Scheduler object
+    ///   - route : Bus routes in start/stop form
+    ///
+    /// Output:
+    ///   - discharge : Battery discharge over each visit
+    ///
+    fn calc_discharge(self: &RouteCSVGenerator, routes: HashMap<u16, Vec<Vec<f32>>>) {
+        let discharge: Vec<Vec<f32>> = Vec::new();
+        let bod: f32     = self.config["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod: f32     = self.config["time"]["EOD"].as_f64().unwrap() as f32;
+
+        // For each set of routes for bus b
+        for route in routes.iter() {
+            let J = route.1.len();
+            let b = route.0;
+            let discharge_tmp: Vec<f32> = Vec::new();
+
+            // For each route for bus b
+            for j in (0..J).step_by(2) {
+                let r = route.1;
+                discharge_tmp.push(self.data.param.zeta[b]*(r[j+1] - r[j]));
+
+                // If the final visit is not at the end of the day
+                if j == J-2 && r[j+1] < eod {
+                    // The bus has no more routes
+                    discharge_tmp.push(0.0);
+                }
+            }
+
+            // Append the list of discharges
+            discharge.push(discharge_tmp);
+        }
+
+        return discharge;
+    }
 
     //---------------------------------------------------------------------------
     //
@@ -199,10 +303,10 @@ impl Route for RouteCSVGenerator {
         self.buffer_attributes();
 
         // Convert routes to visits
-        self.convert_route_to_visit();
+        let routes = self.convert_route_to_visit();
 
         // Estimate discharge over routes
-        self.calc_discharge();
+        self.calc_discharge(routes);
 
         // Generate schedule parameters
         self.generate_schedule_params();
