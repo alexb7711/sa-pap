@@ -1,11 +1,14 @@
 //===============================================================================
 // Declare submodules
-use self::temp_func::TempFunc;
 use crate::sa::generators::Generator;
+use crate::sa::route::Route;
+use self::temp_func::TempFunc;
 
 //===============================================================================
 // Import modules
-pub mod generators;                                                          // Pool of all the generators
+pub mod data;                                                                // Parameters and decision variables
+pub mod generators;                                                          // Pool of all the SA generators
+pub mod route;                                                               // Pool of all the route generators
 pub mod temp_func;                                                           // Temperature functions
 
 //===============================================================================
@@ -22,7 +25,7 @@ pub struct Results
 pub struct SA
 {
     gsol   : Box <dyn Generator>,                                            // Solution generator
-    gsys   : Box <dyn Generator>,                                            // System generator
+    gsys   : Box <dyn Route>,                                                // Route generator
     gtweak : Box <dyn Generator>,                                            // Solution perterber
     r      : Results,
     tf     : Box <TempFunc>,                                                 // Cooling Schedule
@@ -45,7 +48,7 @@ impl SA
     /// * `sa`: Simulated annealing structure
     ///
     pub fn new(gsol   : Box<dyn Generator>,
-               gsys   : Box<dyn Generator>,
+               gsys   : Box<dyn Route>,
                gtweak : Box<dyn Generator>,
                tf     : Box<TempFunc>) -> SA
 

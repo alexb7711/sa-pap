@@ -1,5 +1,4 @@
 // Generators
-pub mod route_generator;                        // Create random routes
 pub mod schedule_generator;                     // Create charge schedule
 pub mod tweak_schedule;                         // Alter a charge schedule
 
