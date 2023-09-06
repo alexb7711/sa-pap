@@ -11,23 +11,23 @@ mod test_route_csv_generator {
     // Import modules
     use super::sa_pap::sa::route::route_csv_generator::{parse_routes, RouteCSVGenerator};
     use super::sa_pap::sa::route::Route;
-    use sa_pap::util::fileio::yaml_loader;
+    // use sa_pap::util::fileio::yaml_loader;
 
-    //---------------------------------------------------------------------------
+    // //---------------------------------------------------------------------------
+    // //
+    // fn get_route_size() -> usize {
+    //     return yaml_loader::load_yaml(yaml_path())["buses"]["num_visit"]
+    //         .as_i64()
+    //         .unwrap() as usize;
+    // }
     //
-    fn get_route_size() -> usize {
-        return yaml_loader::load_yaml(yaml_path())["buses"]["num_visit"]
-            .as_i64()
-            .unwrap() as usize;
-    }
-
-    //---------------------------------------------------------------------------
-    //
-    fn get_bus_size() -> usize {
-        return yaml_loader::load_yaml(yaml_path())["buses"]["num_bus"]
-            .as_i64()
-            .unwrap() as usize;
-    }
+    // //---------------------------------------------------------------------------
+    // //
+    // fn get_bus_size() -> usize {
+    //     return yaml_loader::load_yaml(yaml_path())["buses"]["num_bus"]
+    //         .as_i64()
+    //         .unwrap() as usize;
+    // }
 
     //---------------------------------------------------------------------------
     //
@@ -83,5 +83,32 @@ mod test_route_csv_generator {
     #[should_panic]
     fn test_csv_bad_path() {
         parse_routes::read_csv("./routes.csv");
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_visit_count() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Test the route counts
+        assert_eq!(rg.data.param.N, 572);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_route_count() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Test the route counts
+        assert_eq!(rg.data.param.N, 572);
+
     }
 }
