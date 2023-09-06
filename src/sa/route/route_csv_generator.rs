@@ -251,15 +251,14 @@ impl RouteCSVGenerator {
         let routes = &self.csv_schedule;
 
         // For each set of routes for bus b
-        for i in 0..routes.0.len() {
-            let J: usize                    = routes.1[i].len();
-            let b: usize                    = routes.0[i] as usize;
-            let r = routes.1[b].clone();
+        for b in &routes.0 {
+            let J: usize                    = routes.1[*b as usize].len();
+            let r = routes.1[*b as usize].clone();
             let mut discharge_tmp: Vec<f32> = Vec::new();
 
             // For each route for bus b
             for j in (0..J).step_by(2) {
-                discharge_tmp.push(self.data.param.zeta[b]*(r[j+1] - r[j]));
+                discharge_tmp.push(self.data.param.zeta[*b as usize]*(r[j+1] - r[j]));
 
                 // If the final visit is not at the end of the day
                 if j == J-2 && r[j+1] < eod {
@@ -294,7 +293,7 @@ impl Route for RouteCSVGenerator {
     ///
     fn run(self: &mut RouteCSVGenerator) {
         // Parse CSV
-        self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h);
+        self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h, &self.config);
 
         // Buffer Attributes
         self.buffer_attributes();

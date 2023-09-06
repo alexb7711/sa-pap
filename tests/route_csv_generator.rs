@@ -55,9 +55,9 @@ mod test_route_csv_generator {
         assert_eq!(rg.csv_schedule.0[10], 10);
         assert_eq!(rg.csv_schedule.0[15], 15);
         assert_eq!(rg.csv_schedule.0[20], 20);
+        assert_eq!(rg.csv_schedule.0[28], 28);
         assert_eq!(rg.csv_schedule.0[30], 30);
-        assert_eq!(rg.csv_schedule.0[42], 42);
-        assert_eq!(rg.csv_schedule.0[58], 58);
+        assert_eq!(rg.csv_schedule.0[32], 32);
 
         // Test route times
         assert_eq!(rg.csv_schedule.1[0][0]  , 0.0);
@@ -72,9 +72,9 @@ mod test_route_csv_generator {
         assert_eq!(rg.csv_schedule.1[10][10] , 78420.0);
         assert_eq!(rg.csv_schedule.1[10][15] , 86370.0);
 
-        assert_eq!(rg.csv_schedule.1[36][0]  , 0.0);
-        assert_eq!(rg.csv_schedule.1[36][6]  , 32610.0);
-        assert_eq!(rg.csv_schedule.1[36][22] , 68880.0);
+        assert_eq!(rg.csv_schedule.1[12][0]  , 0.0);
+        assert_eq!(rg.csv_schedule.1[12][6]  , 66060.0);
+        assert_eq!(rg.csv_schedule.1[12][10] , 82800.0);
     }
 
     //---------------------------------------------------------------------------
@@ -95,7 +95,7 @@ mod test_route_csv_generator {
         rg.run();
 
         // Test the route counts
-        assert_eq!(rg.data.param.N, 572);
+        assert_eq!(rg.data.param.N, 303);
     }
 
     //---------------------------------------------------------------------------
@@ -108,7 +108,7 @@ mod test_route_csv_generator {
         rg.run();
 
         // Test the route counts
-        assert_eq!(rg.data.param.N, 572);
+        assert_eq!(rg.data.param.N, 303);
 
     }
 }

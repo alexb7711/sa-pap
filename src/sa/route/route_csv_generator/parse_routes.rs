@@ -1,6 +1,7 @@
 //=========================================================================
 // Import Crates
 use csv::ReaderBuilder;
+use yaml_rust::Yaml;
 
 //===============================================================================
 // External Crates
@@ -37,16 +38,22 @@ pub fn read_csv(csv_path: &str) -> csv::Reader<std::fs::File> {
 /// # Output
 /// * `routes`: Tuple of that contains the vector of bus IDs and vector of routes
 ///
-// BUG: https://levelup.gitconnected.com/working-with-csv-data-in-rust-7258163252f8
-//      The deserialize is part of SERDE which needs some extra goodies to make it work
-pub fn parse_csv(csv_h: &mut csv::Reader<std::fs::File>) -> (Vec<u16>, Vec<Vec<f32>>) {
-
+pub fn parse_csv(
+    csv_h: &mut csv::Reader<std::fs::File>,
+    config: &Yaml,
+) -> (Vec<u16>, Vec<Vec<f32>>) {
     // Stores the route data
     let mut routes: (Vec<u16>, Vec<Vec<f32>>) = (Vec::new(), Vec::from(Vec::new()));
+    let mut b: u16 = 0;
+    let ignore: Vec<usize> = config["ignore"]
+        .as_vec()
+        .unwrap()
+        .iter()
+        .map(|x| x.as_i64().unwrap() as usize)
+        .collect();
 
     // Loop through each row in the CSV file
     for result in csv_h.records() {
-
         // Reset the ith route vector
         let mut route_i: Vec<f32> = Vec::new();
 
@@ -56,13 +63,20 @@ pub fn parse_csv(csv_h: &mut csv::Reader<std::fs::File>) -> (Vec<u16>, Vec<Vec<f
             Err(e) => panic!("{:?}", e),
         };
 
-        // Append the ID
+        // Check if the ID is in the ignore list
         let id: u16 = r[0].parse::<u16>().unwrap();
-        routes.0.push(id);
+
+        // If the id is in the ignore list, don't include the route data
+        if ignore.contains(&(id as usize)) {
+            continue;
+        }
+
+        // Append the ID
+        routes.0.push(b);
+        b += 1;
 
         // Append the routes, skip the first element (queue index)
-        for s in r.iter().skip(1)
-        {
+        for s in r.iter().skip(1) {
             // Convert the jth variable to float
             let f: f32 = s.trim().parse::<f32>().unwrap();
 
