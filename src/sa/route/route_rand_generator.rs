@@ -347,6 +347,20 @@ impl Route for RouteRandGenerator {
             self.generate_routes();
         }
     }
+
+    //---------------------------------------------------------------------------
+    /// Return the route data
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * `route: Vector of route data
+    ///
+    fn get_route_data(self: RouteRandGenerator) -> RefCell<Vec<RouteEvent>> {
+        return self.route;
+    }
+
 }
 
 //===============================================================================

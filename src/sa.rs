@@ -1,15 +1,17 @@
 //===============================================================================
 // Declare submodules
+use crate::sa::charger::Charger;
 use crate::sa::generators::Generator;
 use crate::sa::route::Route;
 use self::temp_func::TempFunc;
 
 //===============================================================================
 // Import modules
-pub mod data;                                                                // Parameters and decision variables
-pub mod generators;                                                          // Pool of all the SA generators
-pub mod route;                                                               // Pool of all the route generators
-pub mod temp_func;                                                           // Temperature functions
+pub mod charger;                                                               // Parameters and decision variables
+pub mod data;                                                                   // Parameters and decision variables
+pub mod generators;                                                             // Pool of all the SA generators
+pub mod route;                                                                  // Pool of all the route generators
+pub mod temp_func;                                                              // Temperature functions
 
 //===============================================================================
 /// Results from simulated annealing
@@ -27,7 +29,8 @@ pub struct SA
     gsol   : Box <dyn Generator>,                                            // Solution generator
     gsys   : Box <dyn Route>,                                                // Route generator
     gtweak : Box <dyn Generator>,                                            // Solution perterber
-    r      : Results,
+    charger: Box <Charger>,                                                  // Charge schedule keeper
+    r      : Results,                                                        // Results
     tf     : Box <TempFunc>,                                                 // Cooling Schedule
 }
 
@@ -58,6 +61,7 @@ impl SA
             gsol,
             gsys,
             gtweak,
+            charger: Box::new(Charger::new()),
             r: Default::default(),
             tf,
         };

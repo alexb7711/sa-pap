@@ -7,14 +7,18 @@ pub mod parse_routes;
 //===============================================================================
 // External Crates
 use csv;
+use std::cell::RefCell;
 use std::collections::HashMap;
 use yaml_rust::Yaml;
 
 //===============================================================================
 // Import Crates
 use crate::sa::data::Data;
+use crate::sa::route::route_event::RouteEvent;
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
+
+use super::route_rand_generator::RouteRandGenerator;
 
 //===============================================================================
 // Import modules
@@ -26,6 +30,7 @@ pub struct RouteCSVGenerator {
     // PUBLIC
     pub csv_schedule: (Vec<u16>, Vec<Vec<f32>>),
     pub data: Data,
+    pub route: Vec<RouteEvent>,
 
     // PRIVATE
     config: Yaml,
@@ -52,9 +57,8 @@ impl RouteCSVGenerator {
         // Create new RouteGenerator
         let rg = RouteCSVGenerator {
             csv_schedule: (Vec::new(), Vec::new()),
-            data: Data {
-                ..Default::default()
-            },
+            data: Default::default(),
+            route: Vec::new(),
             config: yaml_loader::load_yaml(config_path),
             csv_h: parse_routes::read_csv(csv_path),
         };
@@ -115,7 +119,7 @@ impl RouteCSVGenerator {
             [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(A);
 
         let Q = self.data.param.Q;
-        self.data.param.m = (0..Q).map(|x| 1000*x).collect();
+        self.data.param.m = (0..Q).map(|x| 1000 * x).collect();
 
         self.data.param.nu = self.config["buses"]["min_charge"].as_f64().unwrap() as f32;
         self.data.param.D = [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
@@ -123,8 +127,8 @@ impl RouteCSVGenerator {
         self.data.param.slow = slow_c.len();
         self.data.param.fast = fast_c.len();
 
-        self.data.param.zeta = [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
-
+        self.data.param.zeta =
+            [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
     }
 
     //---------------------------------------------------------------------------
@@ -143,10 +147,11 @@ impl RouteCSVGenerator {
     fn count_visits(
         self: &RouteCSVGenerator,
         config: &Yaml,
-        csv: &(Vec<u16>, Vec<Vec<f32>>)) -> usize {
+        csv: &(Vec<u16>, Vec<Vec<f32>>),
+    ) -> usize {
         let mut N: usize = 0;
-        let bod: f32     = config["time"]["BOD"].as_f64().unwrap() as f32;
-        let eod: f32     = config["time"]["EOD"].as_f64().unwrap() as f32;
+        let bod: f32 = config["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod: f32 = config["time"]["EOD"].as_f64().unwrap() as f32;
 
         // for each bus
         for r in &csv.1 {
@@ -180,8 +185,8 @@ impl RouteCSVGenerator {
     /// * routes: CSV route data in arrival/departure form
     ///
     fn convert_route_to_visit(self: &RouteCSVGenerator) -> HashMap<u16, Vec<Vec<f32>>> {
-        let bod: f32     = self.config["time"]["BOD"].as_f64().unwrap() as f32;
-        let eod: f32     = self.config["time"]["EOD"].as_f64().unwrap() as f32;
+        let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let mut route_visit: HashMap<u16, Vec<Vec<f32>>> = HashMap::new();
 
         // Generate set of visit/departures
@@ -189,10 +194,10 @@ impl RouteCSVGenerator {
         // For each bus/route
         for i in 0..self.csv_schedule.0.len() {
             // Variables
-            let b: u16                       = self.csv_schedule.0[i];
-            let r: Vec<f32>                  = self.csv_schedule.1[i].clone();
-            let J: usize                     = r.len();
-            let mut arrival_c: f32           = r[1];
+            let b: u16 = self.csv_schedule.0[i];
+            let r: Vec<f32> = self.csv_schedule.1[i].clone();
+            let J: usize = r.len();
+            let mut arrival_c: f32 = r[1];
             let mut arrival_n: f32;
             let mut departure: f32;
             let mut tmp_route: Vec<Vec<f32>> = Vec::new();
@@ -201,16 +206,16 @@ impl RouteCSVGenerator {
             for j in (0..J).step_by(2) {
                 // Update the times
                 departure = r[j];
-                arrival_n = r[j+1];
+                arrival_n = r[j + 1];
 
                 // If the first visit is at the BOD
                 if j == 0 && r[j] > bod {
-                    tmp_route.push(vec![bod,bod]);
+                    tmp_route.push(vec![bod, bod]);
                     continue;
                 }
                 // Otherwise the first visit after the BOD
                 else if j == 0 && r[j] == bod {
-                    tmp_route.push(vec![bod,bod]);
+                    tmp_route.push(vec![bod, bod]);
                     continue;
                 }
                 // Else append the arrival/departure time normally
@@ -219,7 +224,7 @@ impl RouteCSVGenerator {
                 }
 
                 // if the final visit is not at the EOD
-                if j == J-2 && r[j+1] < eod {
+                if j == J - 2 && r[j + 1] < eod {
                     tmp_route.push(vec![arrival_n, eod]);
                 }
 
@@ -231,7 +236,7 @@ impl RouteCSVGenerator {
             route_visit.insert(b, tmp_route);
         }
 
-        return route_visit
+        return route_visit;
     }
 
     //---------------------------------------------------------------------------
@@ -247,21 +252,21 @@ impl RouteCSVGenerator {
     ///
     fn calc_discharge(self: &RouteCSVGenerator) -> Vec<Vec<f32>> {
         let mut discharge: Vec<Vec<f32>> = Vec::new();
-        let eod: f32                     = self.config["time"]["EOD"].as_f64().unwrap() as f32;
+        let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let routes = &self.csv_schedule;
 
         // For each set of routes for bus b
         for b in &routes.0 {
-            let J: usize                    = routes.1[*b as usize].len();
+            let J: usize = routes.1[*b as usize].len();
             let r = routes.1[*b as usize].clone();
             let mut discharge_tmp: Vec<f32> = Vec::new();
 
             // For each route for bus b
             for j in (0..J).step_by(2) {
-                discharge_tmp.push(self.data.param.zeta[*b as usize]*(r[j+1] - r[j]));
+                discharge_tmp.push(self.data.param.zeta[*b as usize] * (r[j + 1] - r[j]));
 
                 // If the final visit is not at the end of the day
-                if j == J-2 && r[j+1] < eod {
+                if j == J - 2 && r[j + 1] < eod {
                     // The bus has no more routes
                     discharge_tmp.push(0.0);
                 }
@@ -272,6 +277,48 @@ impl RouteCSVGenerator {
         }
 
         return discharge;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Converts the route information into a vector of RouteEvents.
+    ///
+    /// # Input
+    /// * visit: Hash map of visit information
+    /// * dis  : Vector of route discharges
+    ///
+    /// # Output
+    /// * route: Vector of RouteEvents consolidating the input parameters.
+    ///
+    fn populate_route_events(
+        self: &RouteCSVGenerator,
+        visit: HashMap<u16, Vec<Vec<f32>>>,
+        dis: Vec<Vec<f32>>,
+    ) -> Vec<RouteEvent> {
+        // Allocate route buffer space
+        let mut route: Vec<RouteEvent> = Vec::new();
+
+        for it in visit.into_iter().zip(dis) {
+            let (vis, d)         = it;
+            let b: u16           = vis.0;
+            let vis: Vec<Vec<f32>> = vis.1;
+
+            // TODO: Fix for loop. Add the
+            // * id
+            // * start/stop time
+            // * etc
+            //
+            // for v in vis {
+            //     let r: RouteEvent;
+            //
+            //     r.id = b;
+            //     r.arrival_time.
+            //
+            //     // Add route event to route
+            //     route.push(r)
+            // }
+        }
+
+        return route;
     }
 
     //---------------------------------------------------------------------------
@@ -299,13 +346,28 @@ impl Route for RouteCSVGenerator {
         self.buffer_attributes();
 
         // Convert routes to visits
-        let _visits = self.convert_route_to_visit();
+        let visits = self.convert_route_to_visit();
 
         // Estimate discharge over routes
-        let _dis = self.calc_discharge();
+        let dis = self.calc_discharge();
+
+        self.route = populate_route_events(visits, dis);
 
         // Generate schedule parameters
         self.generate_schedule_params();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Return the route data
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * `route: Vector of route data
+    ///
+    fn get_route_data(self: RouteCSVGenerator) -> RefCell<Vec<RouteEvent>> {
+        return RefCell::new(self.route);
     }
 }
 
@@ -313,13 +375,15 @@ impl Route for RouteCSVGenerator {
 // TEST PRIVATE METHODS IN ROUTE GENERATOR
 #[cfg(test)]
 mod priv_test_route_gen {
-    use super::{RouteCSVGenerator,Route};
+    use super::{Route, RouteCSVGenerator};
 
     //---------------------------------------------------------------------------
     //
-    fn create_object() -> RouteCSVGenerator
-    {
-        return RouteCSVGenerator::new("./src/config/schedule-test.yaml", "./src/config/routes.csv");
+    fn create_object() -> RouteCSVGenerator {
+        return RouteCSVGenerator::new(
+            "./src/config/schedule-test.yaml",
+            "./src/config/routes.csv",
+        );
     }
 
     //---------------------------------------------------------------------------
@@ -341,7 +405,7 @@ mod priv_test_route_gen {
         // Test routes
         let r = match route.get(&0) {
             Some(r) => r.clone(),
-            None => vec![]
+            None => vec![],
         };
 
         assert_eq!(r[0], vec![0.0, 0.0]);
@@ -350,7 +414,7 @@ mod priv_test_route_gen {
 
         let r = match route.get(&10) {
             Some(r) => r.clone(),
-            None => vec![]
+            None => vec![],
         };
 
         assert_eq!(r[0], vec![0.0, 0.0]);
@@ -376,28 +440,28 @@ mod priv_test_route_gen {
         let j: usize = 0;
         let b: usize = 0;
         let r = rg.csv_schedule.1[b].clone();
-        let l_dis = rg.data.param.zeta[b]*(r[j+1] - r[j]);
-        assert_eq!(dis[b][j/2 as usize],l_dis);
+        let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
+        assert_eq!(dis[b][j / 2 as usize], l_dis);
 
         // Test 2
         let j: usize = 4;
         let b: usize = 2;
         let r = rg.csv_schedule.1[b].clone();
-        let l_dis = rg.data.param.zeta[b]*(r[j+1] - r[j]);
-        assert_eq!(dis[b][j/2 as usize],l_dis);
+        let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
+        assert_eq!(dis[b][j / 2 as usize], l_dis);
 
         // Test 3
         let j: usize = 6;
         let b: usize = 8;
         let r = rg.csv_schedule.1[b].clone();
-        let l_dis = rg.data.param.zeta[b]*(r[j+1] - r[j]);
-        assert_eq!(dis[b][j/2 as usize],l_dis);
+        let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
+        assert_eq!(dis[b][j / 2 as usize], l_dis);
 
         // Test 4
         let j: usize = 10;
         let b: usize = 15;
         let r = rg.csv_schedule.1[b].clone();
-        let l_dis = rg.data.param.zeta[b]*(r[j+1] - r[j]);
-        assert_eq!(dis[b][j/2 as usize],l_dis);
+        let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
+        assert_eq!(dis[b][j / 2 as usize], l_dis);
     }
 }

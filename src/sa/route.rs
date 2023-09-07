@@ -1,3 +1,4 @@
+
 // Generators
 
 // Public
@@ -8,9 +9,16 @@ pub mod route_event;                                                            
 // Private
 mod bus;
 
+// Public imports
+use std::cell::RefCell;
+
+// Developed imports
+use crate::sa::route::route_event::RouteEvent;                              // Keep public for testing
+
 //===============================================================================
 /// Trait to define `Route` interfaces
 //
 pub trait Route {
     fn run(&mut self);
+    fn get_route_data(self) -> RefCell<Vec<RouteEvent>>;
 }
