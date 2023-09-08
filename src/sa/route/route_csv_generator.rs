@@ -290,8 +290,8 @@ impl RouteCSVGenerator {
     ///
     fn populate_route_events(
         self: &RouteCSVGenerator,
-        visit: HashMap<u16, Vec<Vec<f32>>>,
-        discharge: Vec<Vec<f32>>,
+        visit: &HashMap<u16, Vec<Vec<f32>>>,
+        discharge: &Vec<Vec<f32>>,
     ) -> Vec<RouteEvent> {
         // Allocate route buffer space
         let mut route: Vec<RouteEvent> = Vec::new();
@@ -302,8 +302,8 @@ impl RouteCSVGenerator {
             let (vis, dis) = it;
 
             // Extract the bus ID and visit
-            let b: u16 = vis.0;
-            let vis: Vec<Vec<f32>> = vis.1;
+            let b: &u16 = vis.0;
+            let vis: &Vec<Vec<f32>> = vis.1;
 
             // Loop through each start/stop pair
             for it in vis.into_iter().zip(dis) {
@@ -315,8 +315,8 @@ impl RouteCSVGenerator {
                     arrival_time: v[0],
                     bus: self.gen_bus(),
                     departure_time: v[1],
-                    discharge: d,
-                    id: b,
+                    discharge: *d,
+                    id: *b,
                     route_time: v[1] - v[0],
                     ..Default::default()
                 };
@@ -381,7 +381,7 @@ impl Route for RouteCSVGenerator {
         // Estimate discharge over routes
         let dis = self.calc_discharge();
 
-        self.route = self.populate_route_events(visits, dis);
+        self.route = self.populate_route_events(&visits, &dis);
 
         // Generate schedule parameters
         self.generate_schedule_params();
@@ -405,7 +405,7 @@ impl Route for RouteCSVGenerator {
 // TEST PRIVATE METHODS IN ROUTE GENERATOR
 #[cfg(test)]
 mod priv_test_route_gen {
-    use super::{Route, RouteCSVGenerator};
+    use super::{Route, RouteCSVGenerator, RouteEvent};
 
     //---------------------------------------------------------------------------
     //
@@ -493,5 +493,34 @@ mod priv_test_route_gen {
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
         assert_eq!(dis[b][j / 2 as usize], l_dis);
+    }
+
+    #[test]
+    fn test_visit() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Get the route visits
+        let visit = rg.convert_route_to_visit();
+        let dis = rg.calc_discharge();
+
+        // Get the RouteEvents
+        let re = rg.populate_route_events(&visit, &dis);
+
+        // Test 1
+        let r: RouteEvent = RouteEvent {
+            arrival_time: visit[&0][0][0],
+            bus: rg.gen_bus(),
+            departure_time: visit[&0][0][0],
+            discharge: dis[0][0],
+            id: 0,
+            route_time: visit[&0][0][0] - visit[&0][0][0],
+            ..Default::default()
+        };
+
+        assert_eq!(re[0], r);
     }
 }
