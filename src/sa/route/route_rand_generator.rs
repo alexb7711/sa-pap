@@ -15,7 +15,7 @@ use yaml_rust::Yaml;
 //===============================================================================
 // Import modules
 use crate::sa::route::bus::Bus;
-pub use crate::sa::route::route_event::RouteEvent;                              // Keep public for testing
+pub use crate::sa::route::route_event::RouteEvent; // Keep public for testing
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
 use crate::util::rand_utils;
@@ -304,17 +304,15 @@ impl RouteRandGenerator {
         let bat_capacity: f32 = self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
         let dis_rat: f32 = self.config["buses"]["dis_rate"].as_f64().unwrap() as f32;
         let fc: f32 = self.config["final_charge"].as_f64().unwrap() as f32;
-        let ic: &Vec<Yaml> = self.config["initial_charge"].as_vec().unwrap();
+        let ic_ub: f32 = self.config["initial_charge"]["max"].as_f64().unwrap() as f32;
+        let ic_lb: f32 = self.config["initial_charge"]["min"].as_f64().unwrap() as f32;
         let num_bus: u16 = self.config["buses"]["num_bus"].as_i64().unwrap() as u16;
 
         for b in 0..num_bus as usize {
             self.buses.get_mut()[b].bat_capacity = bat_capacity;
             self.buses.get_mut()[b].discharge_rate = dis_rat;
             self.buses.get_mut()[b].final_charge = fc;
-            self.buses.get_mut()[b].initial_charge = rand_utils::rand_range(
-                ic[0].as_f64().unwrap() as f32,
-                ic[1].as_f64().unwrap() as f32,
-            );
+            self.buses.get_mut()[b].initial_charge = rand_utils::rand_range(ic_lb, ic_ub);
         }
     }
 }
@@ -360,7 +358,6 @@ impl Route for RouteRandGenerator {
     fn get_route_data(self: RouteRandGenerator) -> RefCell<Vec<RouteEvent>> {
         return self.route;
     }
-
 }
 
 //===============================================================================

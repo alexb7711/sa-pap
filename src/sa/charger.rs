@@ -6,7 +6,7 @@
 //
 #[allow(dead_code)]
 pub struct Charger {
-    q: Vec<Vec<f32>>                                                            // Lists of scheduled charge times
+    q: Vec<Vec<f32>>, // Lists of scheduled charge times
 }
 
 //===============================================================================
@@ -24,22 +24,20 @@ impl Charger {
     ///
     pub fn new() -> Charger {
         // Create new Charger
-        let c = Charger {
-            q: Vec::new(),
-        };
+        let c = Charger { q: Vec::new() };
 
         return c;
-}
+    }
 
     //--------------------------------------------------------------------------
     //
-    pub fn assign(self: &mut Charger){}
+    pub fn assign(self: &mut Charger) {}
 
     //--------------------------------------------------------------------------
     //
-    pub fn remove(){}
+    pub fn remove() {}
 
     //--------------------------------------------------------------------------
     //
-    pub fn get_schedule(){}
+    pub fn get_schedule() {}
 }

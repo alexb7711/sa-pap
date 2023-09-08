@@ -14,11 +14,10 @@ use yaml_rust::Yaml;
 //===============================================================================
 // Import Crates
 use crate::sa::data::Data;
+use crate::sa::route::bus::Bus;
 use crate::sa::route::route_event::RouteEvent;
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
-
-use super::route_rand_generator::RouteRandGenerator;
 
 //===============================================================================
 // Import modules
@@ -292,33 +291,64 @@ impl RouteCSVGenerator {
     fn populate_route_events(
         self: &RouteCSVGenerator,
         visit: HashMap<u16, Vec<Vec<f32>>>,
-        dis: Vec<Vec<f32>>,
+        discharge: Vec<Vec<f32>>,
     ) -> Vec<RouteEvent> {
         // Allocate route buffer space
         let mut route: Vec<RouteEvent> = Vec::new();
 
-        for it in visit.into_iter().zip(dis) {
-            let (vis, d)         = it;
-            let b: u16           = vis.0;
+        // Loop through each visit/discharge
+        for it in visit.into_iter().zip(discharge) {
+            // Extract visit and discharge
+            let (vis, dis) = it;
+
+            // Extract the bus ID and visit
+            let b: u16 = vis.0;
             let vis: Vec<Vec<f32>> = vis.1;
 
-            // TODO: Fix for loop. Add the
-            // * id
-            // * start/stop time
-            // * etc
-            //
-            // for v in vis {
-            //     let r: RouteEvent;
-            //
-            //     r.id = b;
-            //     r.arrival_time.
-            //
-            //     // Add route event to route
-            //     route.push(r)
-            // }
+            // Loop through each start/stop pair
+            for it in vis.into_iter().zip(dis) {
+                // Extract iterator
+                let (v, d) = it;
+
+                // Create RouteEvent structure
+                let r: RouteEvent = RouteEvent {
+                    arrival_time: v[0],
+                    bus: self.gen_bus(),
+                    departure_time: v[1],
+                    discharge: d,
+                    id: b,
+                    route_time: v[1] - v[0],
+                    ..Default::default()
+                };
+
+                // Add route event to route
+                route.push(r)
+            }
         }
 
         return route;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Generate information about the bus from the YAML file.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * Bus: Information about bus b
+    ///
+    fn gen_bus(self: &RouteCSVGenerator) -> Bus {
+        let bat_capacity = self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
+        let alpha = self.config["initial_charge"]["max"].as_f64().unwrap() as f32;
+        let beta = self.config["final_charge"].as_f64().unwrap() as f32;
+
+        return Bus {
+            bat_capacity,
+            initial_charge: alpha * bat_capacity,
+            final_charge: beta * bat_capacity,
+            discharge_rate: self.config["buses"]["dis_rate"].as_f64().unwrap() as f32,
+        };
     }
 
     //---------------------------------------------------------------------------
@@ -351,7 +381,7 @@ impl Route for RouteCSVGenerator {
         // Estimate discharge over routes
         let dis = self.calc_discharge();
 
-        self.route = populate_route_events(visits, dis);
+        self.route = self.populate_route_events(visits, dis);
 
         // Generate schedule parameters
         self.generate_schedule_params();

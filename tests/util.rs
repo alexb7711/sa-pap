@@ -31,8 +31,8 @@ mod test_yaml_loader {
 
         assert_eq!(yaml["time"]["EOD"].as_f64().unwrap(), 10.0);
         assert_eq!(yaml["final_charge"].as_f64().unwrap(), 0.95);
-        assert_eq!(yaml["initial_charge"][0].as_f64().unwrap(), 0.90);
-        assert_eq!(yaml["initial_charge"][1].as_f64().unwrap(), 0.95);
+        assert_eq!(yaml["initial_charge"]["min"].as_f64().unwrap(), 0.90);
+        assert_eq!(yaml["initial_charge"]["max"].as_f64().unwrap(), 0.95);
     }
 }
 

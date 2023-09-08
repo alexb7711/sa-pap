@@ -16,8 +16,8 @@ buses:
   max_rest: 0.3                                                                 # [hr]
   min_rest: 0.15                                                                # [hr]
 initial_charge:
-  max: 0.9                                                                      # [0-1]
-  min: 0.9                                                                      # [0-1]
+  max: 0.90                                                                     # [0-1]
+  min: 0.90                                                                     # [0-1]
 final_charge: 0.70                                                              # [0-1]
 chargers:
   slow:

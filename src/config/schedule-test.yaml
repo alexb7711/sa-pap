@@ -16,8 +16,8 @@ buses:
   max_route: 0.75      # [hr]
   min_route: 0.15      # [hr]
 initial_charge:
-  - 0.90               # min [0-1]
-  - 0.95               # max [0-1]
+  min: 0.90            # min [0-1]
+  max: 0.95            # max [0-1]
 final_charge: 0.95     # [0-1]
 chargers:
   slow:
