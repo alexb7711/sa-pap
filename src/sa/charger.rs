@@ -4,7 +4,7 @@
 //===============================================================================
 /// Structure to consolidate the bus assignment information
 ///
-#[derive(Debug, PartialEq, PartialOrd)]
+#[derive(Debug, PartialEq, PartialOrd, Copy, Clone)]
 pub struct Assignment {
     pub t: (f32, f32),
     pub b: usize,
@@ -19,7 +19,9 @@ pub struct Charger {
 }
 
 //===============================================================================
-/// Implementation of SA
+/// Implementation of Charger
+//
+// BUG: The charger does not make sure that the times are within the time horizon
 //
 impl Charger {
     //---------------------------------------------------------------------------
@@ -119,16 +121,30 @@ impl Charger {
     /// * avail: True if the time slice is available, false otherwise
     ///
     pub fn avail(self: &mut Charger, q: &usize, c: &(f32, f32)) -> bool {
-        // Default to indicate that the time slice item was not removed
-        let mut avail: bool = true;
+        // If the queue is empty, return true
+        if self.schedule[*q].len() == 0 {
+            return true;
+        }
 
-        // Check if the time slice exists in the charger queue
-        if let Some(_) = self.schedule[*q].iter().find(|s| s.t == *c) {
-            // State that the item is being removed
-            avail = false;
-        };
+        // Iterate through the schedule for charger q
+        for it in self.schedule[*q].iter() {
+            // Extract the iterator
+            let ts = *it;
 
-        return avail;
+            // Compare the current scheduled time with the candidate
+            // If the candidate time has any of the following properties:
+            //
+            // * the candidates initial and final times are not less than the current time slice's initial time or
+            // * the candidates initial and final times are not greater than the current time slice's final time
+            //
+            if (c.0 < ts.t.0 && c.1 < ts.t.0) || (c.0 > ts.t.1 && c.1 > ts.t.1) {
+                // Return that there is an available time
+                return true;
+            }
+        }
+
+        // Return that there is no availability
+        return false;
     }
 
     //--------------------------------------------------------------------------
