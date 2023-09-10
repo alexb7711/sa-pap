@@ -48,6 +48,7 @@ impl SA {
     /// * `sa`: Simulated annealing structure
     ///
     pub fn new(
+        config_path: &str,
         gsol: Box<dyn Generator>,
         gsys: Box<dyn Route>,
         gtweak: Box<dyn Generator>,
@@ -57,7 +58,7 @@ impl SA {
             gsol,
             gsys,
             gtweak,
-            charger: Box::new(Charger::new(None)),
+            charger: Box::new(Charger::new(config_path, None)),
             r: Default::default(),
             tf,
         };

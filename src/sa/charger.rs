@@ -1,5 +1,10 @@
 //===============================================================================
+// External Crates
+use yaml_rust::Yaml;
+
+//===============================================================================
 // Import modules
+use crate::util::fileio::yaml_loader;
 
 //===============================================================================
 /// Structure to consolidate the bus assignment information
@@ -15,7 +20,12 @@ pub struct Assignment {
 //
 #[allow(dead_code)]
 pub struct Charger {
+    // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
+
+    // Private
+    config: Yaml,
+    free_time: Vec<Vec<(f32, f32)>>, // Lists of free times
 }
 
 //===============================================================================
@@ -28,24 +38,24 @@ impl Charger {
     /// Constructor that returns a Charger object
     ///
     /// # Input
-    /// * NONE
+    /// * q: Optional number of chargers to create. Defaults to one.
     ///
     /// # Output
-    /// * NONE
+    /// * Return a charger object
     ///
-    pub fn new(q: Option<usize>) -> Charger {
+    pub fn new(config_path: &str, q: Option<usize>) -> Charger {
         // Extract the number of queues
-        let q = q.unwrap_or(1 as usize);
+        let q: usize = q.unwrap_or(1 as usize);
 
         // Create a charger
         let mut c: Charger = Charger {
             schedule: Vec::new(),
+            config: yaml_loader::load_yaml(config_path),
+            free_time: Vec::new(),
         };
 
         // Create the number of queues specified
         c.add_chargers(q);
-
-        // println!("{:?}", c.schedule);
 
         return c;
     }
@@ -86,6 +96,9 @@ impl Charger {
             assigned = true;
         }
 
+        // Update the free time for the qth charger
+        self.update_free_time(q);
+
         return assigned;
     }
 
@@ -111,6 +124,9 @@ impl Charger {
             // Remove the item
             self.schedule[q].retain(|s| s.t != c);
         }
+
+        // Update the free time for the qth charger
+        self.update_free_time(q);
 
         return rem;
     }
@@ -166,6 +182,7 @@ impl Charger {
     /// * exists: True if the time slice is in the queue, false otherwise
     ///
     pub fn exists(self: &mut Charger, q: &usize, c: &(f32, f32)) -> bool {
+        // Iterate through the vector and check if the time slice does not exist
         if let Some(_) = self.schedule[*q].iter().find(|s| s.t == *c) {
             return true;
         };
@@ -183,8 +200,43 @@ impl Charger {
     /// * NONE
     ///
     pub fn add_chargers(self: &mut Charger, q: usize) {
+        // Create the appropriate number of schedules and free time lists
         for _ in 0..q {
-            self.schedule.push(Vec::new())
+            self.schedule.push(Vec::new());
+            self.free_time.push(Vec::new());
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `update_free_time' function updates the times that charger q is available.
+    ///
+    /// # Input
+    /// * q: Index of the charger to update free time
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_free_time(self: &mut Charger, q: usize) {
+        // Extract the BOD and EOD
+        let bod = self.config.clone()["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod = self.config.clone()["time"]["EOD"].as_f64().unwrap() as f32;
+
+        // Create a new free time vector
+        let mut ft: Vec<(f32, f32)> = vec![];
+
+        // For each item in the schedule
+        for it in self.schedule[q].iter() {
+            let s = it;
+
+            // If the iterator is the first item in the list
+            if s == self.schedule[q].first().unwrap() {
+                ft.push((bod, s.t.0));
+            // Else if the iterator is the last item in the list
+            } else if s == self.schedule[q].last().unwrap() {
+                ft.push((s.t.1, eod));
+            // Else the iterator is in the middle of the list
+            } else {
+            }
         }
     }
 }

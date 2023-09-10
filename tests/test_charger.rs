@@ -9,6 +9,12 @@ mod test_charger {
     use super::sa_pap::sa::charger::Assignment;
     use super::sa_pap::sa::charger::Charger;
 
+    //---------------------------------------------------------------------------
+    //
+    fn yaml_path() -> &'static str {
+        return "./src/config/schedule-test.yaml";
+    }
+
     //--------------------------------------------------------------------------
     // Returns if the given time slice exists in the current chargers schedule
     //
@@ -25,7 +31,7 @@ mod test_charger {
     #[test]
     fn test_charger_addition() {
         // Create charger
-        let mut charger: Charger = Charger::new(None);
+        let mut charger: Charger = Charger::new(yaml_path(), None);
 
         // Make sure we have an empty charger queue
         assert_eq!(charger.schedule.is_empty(), false);
@@ -51,7 +57,7 @@ mod test_charger {
     #[test]
     fn test_charger_assignment() {
         // Create charger
-        let mut charger: Charger = Charger::new(None);
+        let mut charger: Charger = Charger::new(yaml_path(), None);
 
         // Add queues (four three chargers)
         charger.add_chargers(2);
@@ -204,7 +210,7 @@ mod test_charger {
     #[test]
     fn test_charger_deletion() {
         // Create charger
-        let mut charger: Charger = Charger::new(None);
+        let mut charger: Charger = Charger::new(yaml_path(), None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -257,7 +263,7 @@ mod test_charger {
     #[test]
     fn test_charger_ordering() {
         // Create charger
-        let mut charger: Charger = Charger::new(None);
+        let mut charger: Charger = Charger::new(yaml_path(), None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -294,7 +300,7 @@ mod test_charger {
     #[test]
     fn test_charger_avail() {
         // Create charger
-        let mut charger: Charger = Charger::new(None);
+        let mut charger: Charger = Charger::new(yaml_path(), None);
 
         // Add queues (four total chargers)
         charger.add_chargers(3);
