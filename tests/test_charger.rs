@@ -4,6 +4,8 @@ extern crate sa_pap;
 //
 #[cfg(test)]
 mod test_charger {
+    use std::char;
+
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Assignment;
@@ -357,5 +359,38 @@ mod test_charger {
         let q: usize = 0;
         let c: (f32, f32) = (0.401, 0.403);
         assert_eq!(charger.avail(&q, &c), false);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_free_time() {
+        // Create charger
+        let q: usize = 0;
+        let mut charger: Charger = Charger::new(yaml_path(), None);
+
+        // Test 0
+        assert_eq!(charger.free_time[q].is_empty(), false);
+        assert_eq!(charger.free_time[q][0], (0.0, 10.0));
+
+        // Create a simple schedule
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.4, 0.5);
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.7, 0.8);
+        charger.assign(q, c, id);
+
+        // Test 1
+        assert_eq!(charger.free_time[q].is_empty(), false);
+
+        // Test 2
+        assert_eq!(charger.free_time[q][0], (0.0, 0.1));
+        assert_eq!(charger.free_time[q][1], (0.2, 0.4));
+        assert_eq!(charger.free_time[q][2], (0.5, 0.7));
+        assert_eq!(charger.free_time[q][3], (0.8, 10.0));
     }
 }

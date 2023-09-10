@@ -22,10 +22,10 @@ pub struct Assignment {
 pub struct Charger {
     // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
+    pub free_time: Vec<Vec<(f32, f32)>>, // Lists of free times
 
     // Private
     config: Yaml,
-    free_time: Vec<Vec<(f32, f32)>>, // Lists of free times
 }
 
 //===============================================================================
@@ -200,10 +200,14 @@ impl Charger {
     /// * NONE
     ///
     pub fn add_chargers(self: &mut Charger, q: usize) {
+        // Extract the BOD and EOD
+        let bod = self.config.clone()["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod = self.config.clone()["time"]["EOD"].as_f64().unwrap() as f32;
+
         // Create the appropriate number of schedules and free time lists
         for _ in 0..q {
             self.schedule.push(Vec::new());
-            self.free_time.push(Vec::new());
+            self.free_time.push(vec![(bod, eod)]);
         }
     }
 
@@ -232,9 +236,6 @@ impl Charger {
             // If the iterator is the first item in the list
             if s == self.schedule[q].first().unwrap() {
                 ft.push((bod, s.t.0));
-            // Else if the iterator is the last item in the list
-            } else if s == self.schedule[q].last().unwrap() {
-                ft.push((s.t.1, eod));
             // Else the iterator is in the middle of the list
             } else {
                 match s_prev {
@@ -243,8 +244,16 @@ impl Charger {
                 }
             }
 
+            // If the iterator is the last item in the list
+            if s == self.schedule[q].last().unwrap() {
+                ft.push((s.t.1, eod));
+            }
+
             // Update the previous iterator
             s_prev = Some(s);
         }
+
+        // Update the free time vector
+        self.free_time[q] = ft;
     }
 }
