@@ -6,6 +6,8 @@ extern crate sa_pap;
 mod test_charger {
     use std::char;
 
+    use sa_pap::sa::charger;
+
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Assignment;
@@ -392,5 +394,21 @@ mod test_charger {
         assert_eq!(charger.free_time[q][1], (0.2, 0.4));
         assert_eq!(charger.free_time[q][2], (0.5, 0.7));
         assert_eq!(charger.free_time[q][3], (0.8, 10.0));
+
+        // Test 3
+        let c: (f32, f32) = (0.1, 0.2);
+        charger.remove(q, c);
+        assert_eq!(charger.free_time[q][0], (0.0, 0.4));
+        assert_eq!(charger.free_time[q][1], (0.5, 0.7));
+        assert_eq!(charger.free_time[q][2], (0.8, 10.0));
+
+        let c: (f32, f32) = (0.4, 0.5);
+        charger.remove(q, c);
+        assert_eq!(charger.free_time[q][0], (0.0, 0.7));
+        assert_eq!(charger.free_time[q][1], (0.8, 10.0));
+
+        let c: (f32, f32) = (0.7, 0.8);
+        charger.remove(q, c);
+        assert_eq!(charger.free_time[q][0], (0.0, 10.0));
     }
 }

@@ -229,6 +229,11 @@ impl Charger {
         // Create a new free time vector
         let mut ft: Vec<(f32, f32)> = vec![];
 
+        // If there is nothing in the schedule the free time is the entire day
+        if self.schedule[q].is_empty() {
+            ft.push((bod, eod));
+        }
+
         // For each item in the schedule
         for it in self.schedule[q].iter() {
             let s = it;
