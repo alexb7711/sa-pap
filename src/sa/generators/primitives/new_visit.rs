@@ -24,14 +24,33 @@ mod new_visit {
     ///
     #[allow(dead_code)]
     pub fn run(ch: &mut Charger, q_cnt: usize, b: usize) -> bool {
-        // Create random object
-        let mut rand = rand::thread_rng();
-
         // Select a random charger
-        let q: usize = rand.gen_range(0..(q_cnt - 1));
+        let q: usize = rand::thread_rng().gen_range(0..(q_cnt - 1));
 
-        let ts: (f32, f32) = (0.1, 0.2);
+        // Find a free time slice
+        let ts: (f32, f32) = find_free_time(ch, q);
 
         return ch.assign(q, ts, b);
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `find_free_time` function returns a random free time given the charger.
+    ///
+    /// # Input
+    /// * ch: Charger object
+    /// * q: Charger queue index
+    ///
+    /// # Output
+    /// * ts: Time slice of selected free time
+    ///
+    fn find_free_time(ch: &mut Charger, q: usize) -> (f32, f32) {
+        // Get the number of open time slots
+        let ft_cnt: usize = ch.free_time[q].len();
+
+        // Select a random time slot
+        let ft_idx = rand::thread_rng().gen_range(0..ft_cnt);
+
+        // Reserve the time and return the success
+        return ch.free_time[q][ft_idx];
     }
 }
