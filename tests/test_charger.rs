@@ -12,7 +12,7 @@ mod test_charger {
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_csv_load() {
+    fn test_charger_creation() {
         // Create charger
         let mut charger: Charger = Charger::new(None);
 
@@ -32,4 +32,19 @@ mod test_charger {
 
         assert_eq!(charger.schedule[0][0], Assignment { t: c, b: id });
     }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_charger_availability() {}
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_charger_deletion() {}
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_charger_addition() {}
 }
