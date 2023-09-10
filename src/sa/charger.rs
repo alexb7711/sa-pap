@@ -6,8 +6,8 @@
 ///
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Assignment {
-    t: (f32, f32),
-    b: usize,
+    pub t: (f32, f32),
+    pub b: usize,
 }
 
 //===============================================================================
@@ -15,7 +15,7 @@ pub struct Assignment {
 //
 #[allow(dead_code)]
 pub struct Charger {
-    schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
+    pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
 }
 
 //===============================================================================
@@ -31,10 +31,21 @@ impl Charger {
     /// # Output
     /// * NONE
     ///
-    pub fn new() -> Charger {
-        return Charger {
+    pub fn new(q: Option<usize>) -> Charger {
+        // Extract the number of queues
+        let q = q.unwrap_or(1 as usize);
+
+        // Create a charger
+        let mut c: Charger = Charger {
             schedule: Vec::new(),
         };
+
+        // Create the number of queues specified
+        c.add_chargers(q);
+
+        // println!("{:?}", c.schedule);
+
+        return c;
     }
 
     //--------------------------------------------------------------------------
@@ -109,14 +120,29 @@ impl Charger {
     ///
     pub fn avail(self: &mut Charger, q: &usize, c: &(f32, f32)) -> bool {
         // Default to indicate that the time slice item was not removed
-        let mut avail: bool = false;
+        let mut avail: bool = true;
 
         // Check if the time slice exists in the charger queue
         if let Some(_) = self.schedule[*q].iter().find(|s| s.t == *c) {
             // State that the item is being removed
-            avail = true;
+            avail = false;
         };
 
         return avail;
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `add_chargers' function adds charger queues.
+    ///
+    /// # Input
+    /// * q: Number of chargers to add
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    pub fn add_chargers(self: &mut Charger, q: usize) {
+        for _ in 0..q {
+            self.schedule.push(Vec::new())
+        }
     }
 }
