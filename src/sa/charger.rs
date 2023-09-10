@@ -220,6 +220,7 @@ impl Charger {
         // Extract the BOD and EOD
         let bod = self.config.clone()["time"]["BOD"].as_f64().unwrap() as f32;
         let eod = self.config.clone()["time"]["EOD"].as_f64().unwrap() as f32;
+        let mut s_prev: std::option::Option<&Assignment> = None;
 
         // Create a new free time vector
         let mut ft: Vec<(f32, f32)> = vec![];
@@ -236,7 +237,14 @@ impl Charger {
                 ft.push((s.t.1, eod));
             // Else the iterator is in the middle of the list
             } else {
+                match s_prev {
+                    Some(s_prev) => ft.push((s_prev.t.1, s.t.0)),
+                    None => panic!("'s_prev' is empty: charger.rs"),
+                }
             }
+
+            // Update the previous iterator
+            s_prev = Some(s);
         }
     }
 }
