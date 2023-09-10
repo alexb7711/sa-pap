@@ -65,6 +65,11 @@ impl Charger {
         // Default the assigned to false
         let mut assigned: bool = false;
 
+        // Check that the time slice is increasing
+        if c.0 > c.1 {
+            return assigned;
+        }
+
         // If the space is available, assign the bus to that time slot
         if self.avail(&q, &c) {
             // Create Assignment
@@ -99,7 +104,7 @@ impl Charger {
         let mut rem: bool = false;
 
         // Check if the time slice exists in the charger queue
-        if self.avail(&q, &c) {
+        if self.exists(&q, &c) {
             // State that the item is being removed
             rem = true;
 
@@ -138,12 +143,33 @@ impl Charger {
             // * the candidates initial and final times are not greater than the current time slice's final time
             //
             if (c.0 < ts.t.0 && c.1 < ts.t.0) || (c.0 > ts.t.1 && c.1 > ts.t.1) {
-                // Return that there is an available time
-                return true;
+                continue;
+            } else {
+                // Return that there is no availability
+                println!("here: candidate: {:?}, time slice: {:?}", c, ts.t);
+                return false;
             }
         }
 
-        // Return that there is no availability
+        // Return that there is an available time
+        return true;
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `exists` function checks if given candidate time slice exists in the current queue
+    ///
+    /// # Input
+    /// * q: Charger queue index
+    /// * c: Candidate time frame tuple
+    ///
+    /// # Output
+    /// * exists: True if the time slice is in the queue, false otherwise
+    ///
+    pub fn exists(self: &mut Charger, q: &usize, c: &(f32, f32)) -> bool {
+        if let Some(_) = self.schedule[*q].iter().find(|s| s.t == *c) {
+            return true;
+        };
+
         return false;
     }
 
