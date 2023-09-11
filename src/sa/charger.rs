@@ -1,5 +1,6 @@
 //===============================================================================
 // External Crates
+use rand::Rng;
 use yaml_rust::Yaml;
 
 //===============================================================================
@@ -158,7 +159,7 @@ impl Charger {
             // * the candidates initial and final times are not less than the current time slice's initial time or
             // * the candidates initial and final times are not greater than the current time slice's final time
             //
-            if (c.0 < ts.t.0 && c.1 < ts.t.0) || (c.0 > ts.t.1 && c.1 > ts.t.1) {
+            if (c.0 <= ts.t.0 && c.1 <= ts.t.0) || (c.0 >= ts.t.1 && c.1 >= ts.t.1) {
                 continue;
             } else {
                 // Return that there is no availability
@@ -188,6 +189,61 @@ impl Charger {
         };
 
         return false;
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `find_free_time` function checks if the arrival/departure time fits in the time slice. If it is smaller than
+    /// the time slice, return itself. Otherwise, return the sub-time slice if available.
+    ///
+    /// # Input
+    /// * ae: Arrival/departure times
+    /// * ts: Available time slice
+    ///
+    /// # Output
+    /// * (fits, ud) : The tuple indicating that the arrival/departure time fits and the charge start/stop charge times
+    ///
+    pub fn find_free_time(
+        self: &mut Charger,
+        ae: &(f32, f32),
+        ts: &(f32, f32),
+    ) -> (bool, (f32, f32)) {
+        let lower = ts.0;
+        let upper = ts.1;
+        let a = ae.0;
+        let e = ae.1;
+
+        // Create random object
+        let mut rng = rand::thread_rng();
+
+        // Create start/stop charging tuple
+        let mut ud: (f32, f32) = *ae;
+        let mut fits = true;
+
+        // Create charge start/stop buffers
+        let u: f32;
+        let d: f32;
+
+        if lower <= a && upper >= e {
+            u = rng.gen_range(a..e);
+            d = rng.gen_range(u..e);
+        } else if lower > a && upper >= e {
+            u = rng.gen_range(lower..e);
+            d = rng.gen_range(u..e);
+        } else if lower <= a && upper < e {
+            u = rng.gen_range(a..upper);
+            d = rng.gen_range(u..upper);
+        // BUG: There should be two ranges to generate a time slice over. Need to add that logic in. :(
+        } else if lower > a && upper < e {
+            u = rng.gen_range(a..upper);
+            d = rng.gen_range(u..upper);
+        } else {
+            fits = false;
+        }
+
+        // Assign the start/stop charge time
+        ud = (u, d);
+
+        return (fits, ud);
     }
 
     //--------------------------------------------------------------------------

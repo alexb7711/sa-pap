@@ -1,7 +1,7 @@
 //==============================================================================
 /// The `new_charger` primitive is used to assign a bus to an available charger.
 //
-mod new_visit {
+pub mod new_visit {
     // Import standard library
     use rand::Rng;
 
@@ -11,30 +11,46 @@ mod new_visit {
     //--------------------------------------------------------------------------
     /// The run function executes the `new_charger` module. Given the set of routes and a bus ID and visit, the run
     /// function shall assign a bus to an available charger and return the new schedule. Return false if assignment
-    // failed and true if successful.
+    /// failed and true if successful.
     ///
     /// # Input
     /// * ch: Charger object
-    /// * q_cnt: Number of queues available
-    /// * ts: Time slice to assign to queue
     /// * b: Bus id
+    /// * ae: Arrive/Exit times of the bus
     ///
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    #[allow(dead_code)]
-    pub fn run(ch: &mut Charger, q_cnt: usize, b: usize) -> bool {
-        // Select a random charger
-        let q: usize = rand::thread_rng().gen_range(0..(q_cnt - 1));
+    pub fn run(ch: &mut Charger, b: usize, ae: (f32, f32)) -> bool {
+        // Extract the number of chargers
+        let q_cnt: usize = ch.schedule.len();
 
-        // Find a free time slice
-        let ts: (f32, f32) = find_free_time(ch, q);
+        // Set the attach/detach time as the arrival/departure time
+        let mut ud: &(f32, f32) = &ae;
 
-        return ch.assign(q, ts, b);
+        // Index of the charging queue
+        let mut q: usize;
+
+        loop {
+            // Select a random charger
+            q = rand::thread_rng().gen_range(0..q_cnt);
+
+            // Find a free time slice
+            let ts: (f32, f32) = find_ts(ch, q);
+
+            // Check if the arrival/departure fits in the time slice
+            let (fits, ud) = ch.find_free_time(&ae, &ts);
+
+            if true {
+                break;
+            }
+        }
+
+        return ch.assign(q, ud, b);
     }
 
     //--------------------------------------------------------------------------
-    /// The `find_free_time` function returns a random free time given the charger.
+    /// The `find_ts` function returns a random free time slice given the charger.
     ///
     /// # Input
     /// * ch: Charger object
@@ -43,7 +59,7 @@ mod new_visit {
     /// # Output
     /// * ts: Time slice of selected free time
     ///
-    fn find_free_time(ch: &mut Charger, q: usize) -> (f32, f32) {
+    fn find_ts(ch: &mut Charger, q: usize) -> (f32, f32) {
         // Get the number of open time slots
         let ft_cnt: usize = ch.free_time[q].len();
 
