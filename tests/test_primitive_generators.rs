@@ -64,5 +64,13 @@ mod test_primitive_generators {
         // Test 4 - Assign a new bus to be charged in a busy schedule
         assert!(new_visit::run(&mut charger, id, (0.7, 1.0)));
         assert_eq!(charger.free_time[q].len(), 5);
+
+        // Test 5 - Assign a new bus to be charged in a busy schedule
+        assert!(new_visit::run(&mut charger, id, (0.2, 0.5)));
+        assert_eq!(charger.free_time[q].len(), 6);
+
+        // Test 5 - Assign a new bus to be charged in a busy schedule
+        // assert!(!new_visit::run(&mut charger, id, (0.1, 0.2)));
+        // assert_eq!(charger.free_time[q].len(), 6);
     }
 }

@@ -216,34 +216,39 @@ impl Charger {
         let mut rng = rand::thread_rng();
 
         // Create start/stop charging tuple
-        let mut ud: (f32, f32) = *ae;
         let mut fits = true;
 
         // Create charge start/stop buffers
-        let u: f32;
-        let d: f32;
+        let mut u: f32 = a;
+        let mut d: f32 = e;
 
+        // If the time slice and the arrival/departure times don't match up, immediately return a fail
+        if (a <= lower && e <= lower) || (a >= upper && e >= upper) {
+            fits = false;
+            return (fits, (*ae));
+        }
+
+        // The arrival/departure times are fully within the free time
         if lower <= a && upper >= e {
             u = rng.gen_range(a..e);
             d = rng.gen_range(u..e);
-        } else if lower > a && upper >= e {
+        // The departure time is fully within the free time and the arrival time is less than the lower bound
+        } else if lower >= a && upper >= e {
             u = rng.gen_range(lower..e);
             d = rng.gen_range(u..e);
-        } else if lower <= a && upper < e {
+        // The arrival time is fully within the free time and the departure time is greater than the lower bound
+        } else if lower <= a && upper <= e {
             u = rng.gen_range(a..upper);
             d = rng.gen_range(u..upper);
-        // BUG: There should be two ranges to generate a time slice over. Need to add that logic in. :(
-        } else if lower > a && upper < e {
-            u = rng.gen_range(a..upper);
+        // The arrival/departure times are less than and greater than the lower and upper bound, respectively
+        } else if lower >= a && upper <= e {
+            u = rng.gen_range(lower..upper);
             d = rng.gen_range(u..upper);
         } else {
             fits = false;
         }
 
-        // Assign the start/stop charge time
-        ud = (u, d);
-
-        return (fits, ud);
+        return (fits, (u, d));
     }
 
     //--------------------------------------------------------------------------

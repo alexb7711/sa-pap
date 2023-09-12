@@ -5,6 +5,10 @@ extern crate sa_pap;
 #[cfg(test)]
 mod test_charger {
 
+    use std::char;
+
+    use sa_pap::sa::charger;
+
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Assignment;
@@ -407,5 +411,67 @@ mod test_charger {
         let c: (f32, f32) = (0.7, 0.8);
         charger.remove(q, c);
         assert_eq!(charger.free_time[q][0], (0.0, 10.0));
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_find_free_time() {
+        // Create charger
+        let q: usize = 0;
+        let mut charger: Charger = Charger::new(yaml_path(), None);
+
+        // Create a simple schedule
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.4, 0.5);
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.7, 0.8);
+        charger.assign(q, c, id);
+
+        // Test 1 - fully valid request
+        let ts = charger.free_time[q][0];
+        let (fits, ud) = charger.find_free_time(&(0.0, 0.9), &ts);
+        assert!(fits);
+        assert!(ud.0 >= 0.0);
+        assert!(ud.1 <= 0.9);
+
+        // Test 2 - lower bound overlap
+        let ts = charger.free_time[q][1];
+        let (fits, ud) = charger.find_free_time(&(0.19, 0.3), &ts);
+        assert!(fits);
+        assert!(ud.0 >= 0.2);
+        assert!(ud.1 <= 0.3);
+
+        // Test 3 - upper bound overlap
+        let ts = charger.free_time[q][1];
+        let (fits, ud) = charger.find_free_time(&(0.2, 0.51), &ts);
+        assert!(fits);
+        assert!(ud.0 >= 0.2);
+        assert!(ud.1 <= 0.4);
+
+        // Test 4 - lower/upper bound overlap
+        let ts = charger.free_time[q][1];
+        let (fits, ud) = charger.find_free_time(&(0.0, 0.51), &ts);
+        assert!(fits);
+        assert!(ud.0 >= 0.2);
+        assert!(ud.1 <= 0.4);
+
+        // Test 5 - times do not match up
+        let ts = charger.free_time[q][1];
+        let (fits, ud) = charger.find_free_time(&(0.11, 0.19), &ts);
+        assert!(!fits);
+        assert!(ud.0 == 0.11);
+        assert!(ud.1 == 0.19);
+
+        // Test 6 - invalid request
+        let ts = charger.free_time[q][0];
+        let (fits, ud) = charger.find_free_time(&(0.1, 0.2), &ts);
+        assert!(!fits);
+        assert!(ud.0 == 0.1);
+        assert!(ud.1 == 0.2);
     }
 }

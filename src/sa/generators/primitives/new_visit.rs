@@ -26,22 +26,36 @@ pub mod new_visit {
         let q_cnt: usize = ch.schedule.len();
 
         // Set the attach/detach time as the arrival/departure time
-        let mut ud: &(f32, f32) = &ae;
+        let mut ud: (f32, f32);
+
+        // Indicate that the desired schedule reservation does not fit
+        let mut fits: bool;
+
+        // Indicate that the desired schedule reservation does not fit
+        let mut checked_indices: Vec<bool> = vec![false; b];
 
         // Index of the charging queue
         let mut q: usize;
 
+        // Flag to indicate whether all the queues have been checked
+        let mut exhausted: bool;
+
         loop {
-            // Select a random charger
-            q = rand::thread_rng().gen_range(0..q_cnt);
+            (exhausted, q) = get_rand_queue(q_cnt, &mut checked_indices);
+
+            // If all the options have been exhausted, return that the assignment could not be made
+            if exhausted {
+                return false;
+            }
 
             // Find a free time slice
-            let ts: (f32, f32) = find_ts(ch, q);
+            let ts: (f32, f32) = get_rand_ts(ch, q);
 
             // Check if the arrival/departure fits in the time slice
-            let (fits, ud) = ch.find_free_time(&ae, &ts);
+            (fits, ud) = ch.find_free_time(&ae, &ts);
 
-            if true {
+            // If the arrival/exit fits in the time slice, exit
+            if fits {
                 break;
             }
         }
@@ -50,7 +64,7 @@ pub mod new_visit {
     }
 
     //--------------------------------------------------------------------------
-    /// The `find_ts` function returns a random free time slice given the charger.
+    /// The `get_rand_ts` function returns a random free time slice given the charger.
     ///
     /// # Input
     /// * ch: Charger object
@@ -59,7 +73,7 @@ pub mod new_visit {
     /// # Output
     /// * ts: Time slice of selected free time
     ///
-    fn find_ts(ch: &mut Charger, q: usize) -> (f32, f32) {
+    fn get_rand_ts(ch: &mut Charger, q: usize) -> (f32, f32) {
         // Get the number of open time slots
         let ft_cnt: usize = ch.free_time[q].len();
 
@@ -68,5 +82,46 @@ pub mod new_visit {
 
         // Reserve the time and return the success
         return ch.free_time[q][ft_idx];
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `gen_rand_queue` function generates a new random number in the range of the queues available. If all the
+    /// queues have been checked, return that all the routes have been exhausted
+    ///
+    /// # Input
+    /// * cnt: Number of charger queues
+    /// * tested_indices: Vector of indices that have been tested
+    ///
+    /// # Output
+    /// * ts: Time slice of selected free time
+    ///
+    fn get_rand_queue(cnt: usize, tested_index: &mut Vec<bool>) -> (bool, usize) {
+        // Flag to indicate that all the queues have been searched
+        let mut exhausted = false;
+
+        // Index of the queue found
+        let mut q: usize;
+
+        loop {
+            // Generate random number
+            q = rand::thread_rng().gen_range(0..cnt);
+
+            // If the queue has not been tested
+            if !tested_index[q] {
+                // Update list of checked indices
+                tested_index[q] = true;
+
+                // Exit loop
+                break;
+            // If all the routes have been exhausted
+            } else if tested_index.iter().all(|x| *x) {
+                // Indicate all the routes have been checked with no success
+                exhausted = true;
+
+                // Exit the loop
+                break;
+            }
+        }
+        return (exhausted, q);
     }
 }
