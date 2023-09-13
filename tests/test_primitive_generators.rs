@@ -142,4 +142,10 @@ mod test_primitive_generators {
         assert_eq!(time_slice_exists(&charger, &q, &(0.3, 0.5)), false);
         assert_eq!(charger.schedule[q].len(), 0);
     }
+
+    //---------------------------------------------------------------------------
+    //
+    fn test_new_window() {
+        assert!(false, "Implement test");
+    }
 }
