@@ -4,11 +4,6 @@ extern crate sa_pap;
 //
 #[cfg(test)]
 mod test_charger {
-
-    use std::char;
-
-    use sa_pap::sa::charger;
-
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Assignment;

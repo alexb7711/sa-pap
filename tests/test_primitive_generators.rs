@@ -36,7 +36,7 @@ mod test_primitive_generators {
         assert_eq!(charger.free_time[q].len(), 1);
 
         // Test 2 - Create a new visit in an empty schedule
-        assert!(new_visit::run(&mut charger, id, (0.01, 0.09)));
+        assert!(new_visit::run(&mut charger, id, &(0.01, 0.09)));
 
         // Test 3 - Ensure the size of free times is now 2
         assert_eq!(charger.free_time[q].len(), 2);
@@ -62,15 +62,20 @@ mod test_primitive_generators {
         assert_eq!(charger.free_time[q].len(), 4);
 
         // Test 4 - Assign a new bus to be charged in a busy schedule
-        assert!(new_visit::run(&mut charger, id, (0.7, 1.0)));
+        assert!(new_visit::run(&mut charger, id, &(0.7, 1.0)));
         assert_eq!(charger.free_time[q].len(), 5);
 
-        // Test 5 - Assign a new bus to be charged in a busy schedule
-        assert!(new_visit::run(&mut charger, id, (0.2, 0.5)));
+        // Test 5 - Assign a bus to be charged with an invalid time
+        assert_eq!(new_visit::run(&mut charger, id, &(0.2, 0.5)), false);
+        assert_eq!(charger.free_time[q].len(), 5);
+
+        // Test 6 - Assign a new bus to be charged in a busy schedule
+        assert!(new_visit::run(&mut charger, id, &(0.0, 0.1)));
         assert_eq!(charger.free_time[q].len(), 6);
 
-        // Test 5 - Assign a new bus to be charged in a busy schedule
-        // assert!(!new_visit::run(&mut charger, id, (0.1, 0.2)));
-        // assert_eq!(charger.free_time[q].len(), 6);
+        // Test 7 - Assign two buses to be charged clone to each other
+        assert!(new_visit::run(&mut charger, id, &(0.5, 0.55)));
+        assert!(new_visit::run(&mut charger, id, &(0.55, 0.6)));
+        assert_eq!(charger.free_time[q].len(), 8);
     }
 }
