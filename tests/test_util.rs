@@ -114,4 +114,31 @@ mod test_rand_utils {
         v = rand_utils::rand_range(lower, upper);
         assert!(v >= lower && v <= upper);
     }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_shuffle_vec() {
+        let v: Vec<u16> = (0..10).collect();
+        let v_shuffle = rand_utils::shuffle_vec(&v);
+
+        // Test 1 - first shuffle
+        let match_cnt = v
+            .iter()
+            .zip(v_shuffle.iter())
+            .filter(|&(a, b)| a == b)
+            .count();
+        assert!(match_cnt < v.len());
+
+        // Test 2 - Shuffle the shuffle
+        let v: Vec<u16> = v_shuffle.clone();
+        let v_shuffle = rand_utils::shuffle_vec(&v);
+
+        let match_cnt = v
+            .iter()
+            .zip(v_shuffle.iter())
+            .filter(|&(a, b)| a == b)
+            .count();
+        assert!(match_cnt < v.len());
+    }
 }

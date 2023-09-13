@@ -2,12 +2,10 @@
 /// The `new_charger` primitive is used to assign a bus to an available charger.
 //
 pub mod new_visit {
-    // Import standard library
-    use rand::seq::SliceRandom;
-    use rand::thread_rng;
 
     // Import modules
     use crate::sa::charger::Charger;
+    use crate::util::rand_utils;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_charger` module. Given the set of routes and a bus ID and visit, the run
@@ -28,13 +26,13 @@ pub mod new_visit {
 
         // Create a list of queue indices and shuffle them
         let mut queues: Vec<usize> = (0..q_cnt).collect();
-        queues.shuffle(&mut thread_rng());
+        queues = rand_utils::shuffle_vec(&queues);
 
         // Iterate the shuffled queue indices
         for q in queues.into_iter() {
             // Create a list of time slices and shuffle them
             let mut time_slice = ch.free_time[q].clone();
-            time_slice.shuffle(&mut thread_rng());
+            time_slice = rand_utils::shuffle_vec(&time_slice);
 
             // Iterate through the shuffled time slices
             for ts in time_slice.iter() {
