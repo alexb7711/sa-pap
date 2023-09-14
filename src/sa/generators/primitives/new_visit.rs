@@ -2,10 +2,11 @@
 /// The `new_visit` primitive is used to assign a bus to an available charger.
 //
 pub mod new_visit {
+    // Import standard lib
+    use crate::util::rand_utils;
 
     // Import modules
     use crate::sa::charger::Charger;
-    use crate::util::rand_utils;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_visit` module. Given the set of routes and a bus ID and visit, the run
@@ -42,7 +43,6 @@ pub mod new_visit {
                 // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
                 // times
                 if fits {
-                    println!("Here");
                     return ch.assign(q, ud, b);
                 }
             }

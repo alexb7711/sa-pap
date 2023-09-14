@@ -5,11 +5,10 @@ extern crate sa_pap;
 #[cfg(test)]
 mod test_primitive_generators {
 
-    use sa_pap::sa::charger;
-
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Charger;
+    use super::sa_pap::sa::generators::primitives::new_charger::*;
     use super::sa_pap::sa::generators::primitives::new_visit::*;
     use super::sa_pap::sa::generators::primitives::new_window::*;
     use super::sa_pap::sa::generators::primitives::remove::*;
@@ -185,5 +184,91 @@ mod test_primitive_generators {
         assert_eq!(charger.schedule[q].len(), 3);
         assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
         assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_slide() {
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), None);
+
+        // Create a simple schedule
+        let q: usize = 0;
+        let id: usize = 3;
+
+        let c: (f32, f32) = (0.1, 0.2);
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.0, 0.02);
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.3, 0.5);
+        charger.assign(q, c, id);
+
+        // Test 1 - Check the number of assignments
+        assert_eq!(charger.schedule[q].len(), 3);
+
+        // Test 2 - Un-assign and reassign bus
+        assert_eq!(
+            new_window::run(&mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            true
+        );
+        assert_eq!(charger.schedule[q].len(), 3);
+
+        // Un-assign and reassign bus
+        assert_eq!(
+            new_window::run(&mut charger, q, &(0.3, 0.5), &(0.3, 0.5)),
+            true
+        );
+        assert_eq!(charger.schedule[q].len(), 3);
+        assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
+        assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_new_charger() {
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), Some(2));
+
+        // Create a simple schedule
+        let q: usize = 1;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+        charger.assign(q, c, id);
+
+        let q: usize = 0;
+        let id: usize = 1;
+        let c: (f32, f32) = (0.0, 0.02);
+        charger.assign(q, c, id);
+
+        let q: usize = 1;
+        let id: usize = 2;
+        let c: (f32, f32) = (0.3, 0.5);
+        charger.assign(q, c, id);
+
+        // Test 1 - Check the number of assignments
+        assert_eq!(charger.schedule[q].len(), 2);
+
+        // Test 2 - Un-assign and reassign bus
+        let q: usize = 1;
+        let id: usize = 3;
+        assert_eq!(new_charger::run(&mut charger, q, id, &(0.1, 0.2)), true);
+        assert_eq!(charger.schedule[q].len(), 1);
+
+        // Un-assign and reassign bus
+        let q: usize = 1;
+        let id: usize = 2;
+        assert_eq!(new_charger::run(&mut charger, q, id, &(0.3, 0.5)), true);
+
+        if charger.exists(&1, &(0.3, 0.5)) {
+            assert_eq!(charger.schedule[1].len(), 1);
+            assert_eq!(charger.exists(&1, &(0.3, 0.5)), true);
+        } else {
+            assert_eq!(charger.schedule[0].len(), 1);
+            assert_eq!(charger.exists(&0, &(0.3, 0.5)), true);
+        }
     }
 }
