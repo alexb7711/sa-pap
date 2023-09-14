@@ -19,7 +19,6 @@ pub struct Assignment {
 //===============================================================================
 /// Structure to track charger information
 //
-#[allow(dead_code)]
 pub struct Charger {
     // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
@@ -31,8 +30,6 @@ pub struct Charger {
 
 //===============================================================================
 /// Implementation of Charger
-//
-// BUG: The charger does not make sure that the times are within the time horizon
 //
 impl Charger {
     //---------------------------------------------------------------------------
@@ -77,7 +74,7 @@ impl Charger {
         let mut assigned: bool = false;
 
         // Check that the time slice is increasing
-        if c.0 > c.1 {
+        if !self.check_in_bounds(&c) {
             return assigned;
         }
 
@@ -321,5 +318,31 @@ impl Charger {
 
         // Update the free time vector
         self.free_time[q] = ft;
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `check_in_bounds' function checks if the specified times are within the time horizon
+    ///
+    /// # Input
+    /// * q: Index of the charger to update free time
+    ///
+    /// # Output
+    /// * bool: true if the values are within the time horizon, false otherwise
+    ///
+    fn check_in_bounds(self: &mut Charger, c: &(f32, f32)) -> bool {
+        let bod = self.config.clone()["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod = self.config.clone()["time"]["EOD"].as_f64().unwrap() as f32;
+
+        // Check the ordering
+        //
+        // - BOD <= c.0
+        // - c.0 <= c.1
+        // - c.1 <= EOD
+        //
+        if bod <= c.0 && c.0 <= c.1 && c.1 <= eod {
+            return true;
+        }
+
+        return false;
     }
 }
