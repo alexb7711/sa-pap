@@ -5,10 +5,13 @@ extern crate sa_pap;
 #[cfg(test)]
 mod test_primitive_generators {
 
+    use sa_pap::sa::charger;
+
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::generators::primitives::new_visit::*;
+    use super::sa_pap::sa::generators::primitives::new_window::*;
     use super::sa_pap::sa::generators::primitives::remove::*;
 
     //---------------------------------------------------------------------------
@@ -93,6 +96,7 @@ mod test_primitive_generators {
 
     //---------------------------------------------------------------------------
     //
+    #[test]
     fn test_remove() {
         // Create charger
         let mut charger: Charger = Charger::new(yaml_path(), None);
@@ -145,7 +149,41 @@ mod test_primitive_generators {
 
     //---------------------------------------------------------------------------
     //
+    #[test]
     fn test_new_window() {
-        assert!(false, "Implement test");
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), None);
+
+        // Create a simple schedule
+        let q: usize = 0;
+        let id: usize = 3;
+
+        let c: (f32, f32) = (0.1, 0.2);
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.0, 0.02);
+        charger.assign(q, c, id);
+
+        let c: (f32, f32) = (0.3, 0.5);
+        charger.assign(q, c, id);
+
+        // Test 1 - Check the number of assignments
+        assert_eq!(charger.schedule[q].len(), 3);
+
+        // Un-assign and reassign bus
+        assert_eq!(
+            new_window::run(&mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            true
+        );
+        assert_eq!(charger.schedule[q].len(), 3);
+
+        // Un-assign and reassign bus
+        assert_eq!(
+            new_window::run(&mut charger, q, &(0.3, 0.5), &(0.3, 0.5)),
+            true
+        );
+        assert_eq!(charger.schedule[q].len(), 3);
+        assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
+        assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
     }
 }
