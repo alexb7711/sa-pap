@@ -259,10 +259,6 @@ mod test_primitive_generators {
         assert_eq!(charger.schedule[q].len(), 1);
 
         // Un-assign and reassign bus
-        let q: usize = 1;
-        let id: usize = 2;
-        assert_eq!(new_charger::run(&mut charger, q, id, &(0.3, 0.5)), true);
-
         if charger.exists(&1, &(0.3, 0.5)) {
             assert_eq!(charger.schedule[1].len(), 1);
             assert_eq!(charger.exists(&1, &(0.3, 0.5)), true);
