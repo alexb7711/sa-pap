@@ -51,7 +51,7 @@ pub fn rand_range(lower_bound: f32, upper_bound: f32) -> f32 {
 /// * `rand_vec`: randomized `vec`
 ///
 /// # References:
-/// https://stackoverflow.com/questions/26033976/how-do-i-create-a-vec-from-a-range-and-shuffle-it
+/// <https://stackoverflow.com/questions/26033976/how-do-i-create-a-vec-from-a-range-and-shuffle-it>
 ///
 pub fn shuffle_vec<T: Clone>(vec: &Vec<T>) -> Vec<T> {
     // Copy the vector

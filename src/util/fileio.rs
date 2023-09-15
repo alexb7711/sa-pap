@@ -1,10 +1,11 @@
+#[allow(rustdoc::invalid_html_tags)]
+
 /// module: yaml_loader
 ///
 /// Description:
 /// This module is used to load in a YAML file and parse it.
 ///
-pub mod yaml_loader
-{
+pub mod yaml_loader {
     //---------------------------------------------------------------------------
     // Public Crates
     extern crate yaml_rust;
@@ -13,7 +14,7 @@ pub mod yaml_loader
     // Import Crates
     use std::fs::File;
     use std::io::Read;
-    use yaml_rust::{YamlLoader, Yaml};
+    use yaml_rust::{Yaml, YamlLoader};
 
     //---------------------------------------------------------------------------
     /// Returns a `String` from a specified file
@@ -24,8 +25,7 @@ pub mod yaml_loader
     /// # Output
     /// * `text`: String object with text from `file_path`
     ///
-    fn create_yaml_string(file_path: &str) -> Result<String, std::io::Error>
-    {
+    fn create_yaml_string(file_path: &str) -> Result<String, std::io::Error> {
         // Set up file handler and empty buffer
         let mut file = File::open(file_path)?;
         let mut text = String::new();
@@ -45,15 +45,14 @@ pub mod yaml_loader
     /// # Output
     /// * `yaml`: Vec<Yaml> object
     ///
-    pub fn load_yaml(config_path: &str) -> Yaml
-    {
+    pub fn load_yaml(config_path: &str) -> Yaml {
         // Parse file as String
-        let text: std::io::Result<String> = crate::util::fileio::yaml_loader::create_yaml_string(&config_path);
+        let text: std::io::Result<String> =
+            crate::util::fileio::yaml_loader::create_yaml_string(&config_path);
 
         // Parse YAML
-        let yaml = match text
-        {
-            Ok(text)  => YamlLoader::load_from_str(&text).unwrap(),
+        let yaml = match text {
+            Ok(text) => YamlLoader::load_from_str(&text).unwrap(),
             Err(error) => panic!("Problem opening the file: {:?}", error),
         };
 

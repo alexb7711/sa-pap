@@ -160,7 +160,6 @@ impl Charger {
                 continue;
             } else {
                 // Return that there is no availability
-                println!("here: candidate: {:?}, time slice: {:?}", c, ts.t);
                 return false;
             }
         }
