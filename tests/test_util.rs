@@ -31,8 +31,8 @@ mod test_yaml_loader {
 
         assert_eq!(yaml["time"]["EOD"].as_f64().unwrap(), 10.0);
         assert_eq!(yaml["final_charge"].as_f64().unwrap(), 0.95);
-        assert_eq!(yaml["initial_charge"][0].as_f64().unwrap(), 0.90);
-        assert_eq!(yaml["initial_charge"][1].as_f64().unwrap(), 0.95);
+        assert_eq!(yaml["initial_charge"]["min"].as_f64().unwrap(), 0.90);
+        assert_eq!(yaml["initial_charge"]["max"].as_f64().unwrap(), 0.95);
     }
 }
 
@@ -113,5 +113,32 @@ mod test_rand_utils {
 
         v = rand_utils::rand_range(lower, upper);
         assert!(v >= lower && v <= upper);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_shuffle_vec() {
+        let v: Vec<u16> = (0..10).collect();
+        let v_shuffle = rand_utils::shuffle_vec(&v);
+
+        // Test 1 - first shuffle
+        let match_cnt = v
+            .iter()
+            .zip(v_shuffle.iter())
+            .filter(|&(a, b)| a == b)
+            .count();
+        assert!(match_cnt < v.len());
+
+        // Test 2 - Shuffle the shuffle
+        let v: Vec<u16> = v_shuffle.clone();
+        let v_shuffle = rand_utils::shuffle_vec(&v);
+
+        let match_cnt = v
+            .iter()
+            .zip(v_shuffle.iter())
+            .filter(|&(a, b)| a == b)
+            .count();
+        assert!(match_cnt < v.len());
     }
 }

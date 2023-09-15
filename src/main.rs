@@ -3,12 +3,12 @@
 
 // Import Modules
 // use sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
-use sa_pap::sa::SA;
 use sa_pap::sa::generators::schedule_generator::ScheduleGenerator;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
-use sa_pap::sa::route::Route;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
+use sa_pap::sa::route::Route;
 use sa_pap::sa::temp_func::{CoolSchedule::Geometric, TempFunc};
+use sa_pap::sa::SA;
 // use sa_pap::util::bool_util;
 // use sa_pap::util::fileio::yaml_loader;
 // use yaml_rust::Yaml;
@@ -31,7 +31,8 @@ fn main() {
 
     let mut gsys = Box::new(RouteCSVGenerator::new(
         "./src/config/schedule.yaml",
-        "./src/config/routes.csv"));
+        "./src/config/routes.csv",
+    ));
 
     // Generate the schedule
     gsys.run();
@@ -42,7 +43,7 @@ fn main() {
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
     // Pass schedule generator, temperature function, solution generator, and solution tweaker into the SA module
-    let mut sa: SA = SA::new(gsol, gsys, gtweak, tf);
+    let mut sa: SA = SA::new("./src/config/schedule.yaml", gsol, gsys, gtweak, tf);
 
     // Run simulated annealing simulation
     sa.run();
