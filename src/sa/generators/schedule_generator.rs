@@ -1,19 +1,17 @@
 //===============================================================================
 // Import modules
+use crate::sa::charger::Charger;
+use crate::sa::data::Data;
 use crate::sa::generators::Generator;
 
 //===============================================================================
 /// Structure defining the information to create a charge schedule
-//
-#[derive(Default)]
-pub struct ScheduleGenerator
-{}
+pub struct ScheduleGenerator {}
 
 //===============================================================================
 /// Implementation of `ScheduleGenerator`
 //
-impl ScheduleGenerator
-{
+impl ScheduleGenerator {
     //---------------------------------------------------------------------------
     /// Initialize the `ScheduleGenerator` object
     ///
@@ -23,8 +21,7 @@ impl ScheduleGenerator
     /// # Output
     /// * `ScheduleGenerator`: Simulated annealing structure
     ///
-    pub fn new() -> ScheduleGenerator
-    {
+    pub fn new() -> ScheduleGenerator {
         return ScheduleGenerator {};
     }
 }
@@ -32,8 +29,6 @@ impl ScheduleGenerator
 //===============================================================================
 /// Implementation of `Generator` for `ScheduleGenerator`
 //
-impl Generator for ScheduleGenerator
-{
-    fn run(self: &mut ScheduleGenerator)
-    {}
+impl Generator for ScheduleGenerator {
+    fn run(self: &mut ScheduleGenerator, c: &mut Charger, d: &mut Data) {}
 }
