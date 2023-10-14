@@ -7,11 +7,10 @@ pub mod tweak_schedule; // Alter a charge schedule // Pool of all the SA generat
 // Import modules
 use crate::sa::charger::Charger;
 use crate::sa::route::Route;
-use crate::sa::data::Data;
 
 //===============================================================================
 /// Trait to define `Generator` interfaces
 //
 pub trait Generator {
-    fn run(&mut self, s: &mut dyn Route, c: &mut Charger, d: &mut Data);
+    fn run(&mut self, s: &mut dyn Route, c: &mut Charger);
 }

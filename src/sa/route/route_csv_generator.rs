@@ -7,7 +7,7 @@ pub mod parse_routes;
 //===============================================================================
 // External Crates
 use csv;
-use std::cell::RefCell;
+use std::boxed::Box;
 use std::collections::HashMap;
 use yaml_rust::Yaml;
 
@@ -394,10 +394,23 @@ impl Route for RouteCSVGenerator {
     /// * NONE
     ///
     /// # Output
-    /// * `route: Vector of route data
+    /// * `route`: Vector of route data
     ///
-    fn get_route_data(self: RouteCSVGenerator) -> RefCell<Vec<RouteEvent>> {
-        return RefCell::new(self.route);
+    fn get_route_data(self: &RouteCSVGenerator) -> Box<&Vec<RouteEvent>> {
+        return Box::new(&self.route);
+    }
+
+    //---------------------------------------------------------------------------
+    /// Return the data object
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * `data`: Data object
+    ///
+    fn get_data(self: &RouteCSVGenerator) -> Box<&Data> {
+        return Box::new(&self.data);
     }
 }
 

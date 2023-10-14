@@ -13,7 +13,6 @@ mod test_route_rand_generator {
     use super::sa_pap::sa::route::route_event::RouteEvent;
     use super::sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
     use sa_pap::util::fileio::yaml_loader;
-    use std::cell::Ref;
 
     //---------------------------------------------------------------------------
     //
@@ -45,8 +44,8 @@ mod test_route_rand_generator {
 
         rg.run();
 
-        assert_eq!(rg.route.get_mut().capacity(), get_route_size());
-        assert_eq!(rg.buses.get_mut().capacity(), get_bus_size());
+        assert_eq!(rg.route.capacity(), get_route_size());
+        assert_eq!(rg.buses.capacity(), get_bus_size());
     }
 
     //---------------------------------------------------------------------------
@@ -57,7 +56,7 @@ mod test_route_rand_generator {
 
         rg.run();
 
-        let e: Ref<Vec<RouteEvent>> = rg.route.borrow();
+        let e: Vec<RouteEvent> = rg.route;
 
         // Test 1: Make sure all buses start with an arrival time of 0
         assert!(e[0].arrival_time == e[1].arrival_time);
