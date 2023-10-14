@@ -68,14 +68,19 @@ impl Generator for ScheduleGenerator {
                     let q = b+offset;
                     let ad = (i.arrival_time, i.departure_time);
 
-                    // Check if the bus can be assigned
+                    // Check if the bus can be assigned, assign the bus to a fast charger
                     if c.assign(q, ad, b) {
+                        // Update route event
                         i.attach_time = ad.0;
                         i.detatch_time = ad.1;
+                        i.queue = q as u16;
                     }
                 }
-                // Assign bus to fast charger
             }
         }
+
+        // Update route and charger
+        r.set_data(data);
+        r.set_route_events(route);
     }
 }
