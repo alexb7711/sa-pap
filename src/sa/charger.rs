@@ -23,6 +23,7 @@ pub struct Charger {
     // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
     pub free_time: Vec<Vec<(f32, f32)>>, // Lists of free times
+    pub charger_speed: Vec<f32>,        // Lists charger speeds
 
     // Private
     config: Yaml,
@@ -41,16 +42,29 @@ impl Charger {
     /// # Output
     /// * Return a charger object
     ///
-    pub fn new(config_path: &str, q: Option<usize>) -> Charger {
-        // Extract the number of queues
-        let q: usize = q.unwrap_or(1 as usize);
-
+    pub fn new(config_path: &str, load_c_from_yaml: bool, q_force: Option<usize>) -> Charger {
         // Create a charger
         let mut c: Charger = Charger {
             schedule: Vec::new(),
-            config: yaml_loader::load_yaml(config_path),
             free_time: Vec::new(),
+            charger_speed: Vec::new(),
+            config: yaml_loader::load_yaml(config_path),
         };
+
+        // Extract the number of queues
+        let mut q: usize = q_force.unwrap_or(1 as usize);
+
+        // Load chargers file if specified
+        if load_c_from_yaml {
+            // Extract the number of queues from YAML
+            let q_slow: usize = c.config.clone()["chargers"]["slow"]["num"]
+                .as_i64()
+                .unwrap() as usize;
+            let q_fast: usize = c.config.clone()["chargers"]["fast"]["num"]
+                .as_i64()
+                .unwrap() as usize;
+            q = q_slow + q_fast;
+        }
 
         // Create the number of queues specified
         c.add_chargers(q);

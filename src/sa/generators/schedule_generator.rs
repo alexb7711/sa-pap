@@ -30,5 +30,5 @@ impl ScheduleGenerator {
 /// Implementation of `Generator` for `ScheduleGenerator`
 //
 impl Generator for ScheduleGenerator {
-    fn run(self: &mut ScheduleGenerator, c: &mut Charger, d: &mut Data) {}
+    fn run(self: &mut ScheduleGenerator, _c: &mut Charger, _d: &mut Data) {}
 }
