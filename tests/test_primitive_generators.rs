@@ -8,7 +8,6 @@ mod test_primitive_generators {
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Charger;
-    use super::sa_pap::sa::generators::primitives::new_charger::*;
     use super::sa_pap::sa::generators::primitives::new_visit::*;
     use super::sa_pap::sa::generators::primitives::new_window::*;
     use super::sa_pap::sa::generators::primitives::remove::*;

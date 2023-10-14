@@ -58,7 +58,7 @@ impl SA {
             gsol,
             gsys,
             gtweak,
-            charger: Box::new(Charger::new(config_path, false, None)),
+            charger: Box::new(Charger::new(config_path, true, None)),
             r: Default::default(),
             tf,
         };

@@ -1,6 +1,7 @@
 //===============================================================================
 // Import modules
 use crate::sa::charger::Charger;
+use crate::sa::route::Route;
 use crate::sa::data::Data;
 use crate::sa::generators::Generator;
 
@@ -32,5 +33,5 @@ impl TweakSchedule {
 /// Implementation of `Generator` for `TweakSchedule`
 //
 impl Generator for TweakSchedule {
-    fn run(self: &mut TweakSchedule, _c: &mut Charger, _d: &mut Data) {}
+    fn run(self: &mut TweakSchedule, _s: &mut dyn Route, _c: &mut Charger, _d: &mut Data) {}
 }
