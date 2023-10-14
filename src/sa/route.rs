@@ -21,6 +21,12 @@ use crate::sa::route::route_event::RouteEvent;                              // K
 //
 pub trait Route {
     fn run(&mut self);
-    fn get_route_data(&self) -> Box<&Vec<RouteEvent>>;
-    fn get_data(&self) -> Box<&Data>;
+
+    // Getters
+    fn get_route_events(&self) -> Box<Vec<RouteEvent>>;
+    fn get_data(&self) -> Box<Data>;
+
+    // Setters
+    fn set_route_events(&mut self, b: Box<Vec<RouteEvent>>);
+    fn set_data(&mut self, d: Box<Data>);
 }

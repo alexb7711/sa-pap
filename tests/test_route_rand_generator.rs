@@ -56,7 +56,7 @@ mod test_route_rand_generator {
 
         rg.run();
 
-        let e: Vec<RouteEvent> = rg.route;
+        let e = rg.route;
 
         // Test 1: Make sure all buses start with an arrival time of 0
         assert!(e[0].arrival_time == e[1].arrival_time);

@@ -396,11 +396,11 @@ impl Route for RouteCSVGenerator {
     /// # Output
     /// * `route`: Vector of route data
     ///
-    fn get_route_data(self: &RouteCSVGenerator) -> Box<&Vec<RouteEvent>> {
-        return Box::new(&self.route);
+    fn get_route_events(self: &RouteCSVGenerator) -> Box<Vec<RouteEvent>> {
+        return Box::new(self.route.clone());
     }
 
-    //---------------------------------------------------------------------------
+    //-----------------------------------
     /// Return the data object
     ///
     /// # Input
@@ -409,8 +409,34 @@ impl Route for RouteCSVGenerator {
     /// # Output
     /// * `data`: Data object
     ///
-    fn get_data(self: &RouteCSVGenerator) -> Box<&Data> {
-        return Box::new(&self.data);
+    fn get_data(self: &RouteCSVGenerator) -> Box<Data> {
+        return Box::new(self.data.clone());
+    }
+
+    //---------------------------------------------------------------------------
+    /// Update the route data
+    ///
+    /// # Input
+    /// * `route: Vector of route data
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn set_route_events(self: &mut RouteCSVGenerator, r: Box<Vec<RouteEvent>>) {
+        self.route = *r;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Update the data object
+    ///
+    /// # Input
+    /// * `data`: Data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn set_data(self: &mut RouteCSVGenerator, d: Box<Data>) {
+        self.data = *d;
     }
 }
 

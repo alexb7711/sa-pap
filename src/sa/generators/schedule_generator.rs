@@ -46,38 +46,36 @@ impl Generator for ScheduleGenerator {
     /// * Updated charger object
     ///
     fn run(self: &mut ScheduleGenerator, r: &mut dyn Route, c: &mut Charger) {
-        // // Calculate offset to fast charger index
-        // let offset: usize = c.charger_count.0 + c.charger_count.1 - 1;
-        // 
-        // // Get solver data
-        // let route_data = r.get_data();
-        // let route_data = route_data.borrow();
-        // 
-        // // Get information about the route
-        // let route = r.get_route_data();
-        // let mut route = route.borrow_mut();
-        // 
-        // // Determine the amount of BEBs
-        // let A: usize = route_data.param.A;
-        // 
-        // // For each bus
-        // for b in 0..A {
-        // // For each visit
-        //     for i in route.iter_mut() {
-        //         // If the bus id matches `b`
-        //         if i.id == b as u16 {
-        //             // Determine the index
-        //             let q = b+offset;
-        //             let ad = (i.arrival_time, i.departure_time);
-        // 
-        //             // Check if the bus can be assigned
-        //             if c.assign(q, ad, b) {
-        //                 i.attach_time = ad.0;
-        //                 i.detatch_time = ad.1;
-        //             }
-        //         }
-        //         // Assign bus to fast charger
-        //     }
-        // }
+        // Calculate offset to fast charger index
+        let offset: usize = c.charger_count.0 + c.charger_count.1 - 1;
+
+        // Get information about the route
+        let mut route = r.get_route_events();
+
+        // Get information about the route
+        let data = r.get_data();
+
+        // Determine the amount of BEBs
+        let A: usize = data.param.A;
+
+        // For each bus
+        for b in 0..A {
+        // For each visit
+            for i in route.iter_mut() {
+                // If the bus id matches `b`
+                if i.id == b as u16 {
+                    // Determine the index
+                    let q = b+offset;
+                    let ad = (i.arrival_time, i.departure_time);
+
+                    // Check if the bus can be assigned
+                    if c.assign(q, ad, b) {
+                        i.attach_time = ad.0;
+                        i.detatch_time = ad.1;
+                    }
+                }
+                // Assign bus to fast charger
+            }
+        }
     }
 }

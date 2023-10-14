@@ -27,9 +27,9 @@ use crate::util::rand_utils;
 #[allow(dead_code)]
 pub struct RouteRandGenerator {
     // PUBLIC
-    pub route: Vec<RouteEvent>,
-    pub data: Data,
-    pub buses: Box<Vec<Bus>>,
+    pub route: Box<Vec<RouteEvent>>,
+    pub data: Box<Data>,
+    pub buses: Vec<Bus>,
 
     // PRIVATE
     config: Yaml,
@@ -55,9 +55,9 @@ impl RouteRandGenerator {
     pub fn new(load_from_file: bool, config_path: &str) -> RouteRandGenerator {
         // Create new RouteGenerator
         let rg = RouteRandGenerator {
-            route: Vec::new(),
-            data: Default::default(),
-            buses: Box::new(Vec::new()),
+            route: Box::new(Vec::new()),
+            data: Box::new(Default::default()),
+            buses: Vec::new(),
 
             config: yaml_loader::load_yaml(config_path),
             load_from_file,
@@ -357,8 +357,8 @@ impl Route for RouteRandGenerator {
     /// # Output
     /// * `route: Vector of route data
     ///
-    fn get_route_data(self: &RouteRandGenerator) -> Box<&Vec<RouteEvent>> {
-        return Box::new(&self.route);
+    fn get_route_events(self: &RouteRandGenerator) -> Box<Vec<RouteEvent>> {
+        return self.route.clone();
     }
 
     //---------------------------------------------------------------------------
@@ -370,8 +370,34 @@ impl Route for RouteRandGenerator {
     /// # Output
     /// * `data`: Data object
     ///
-    fn get_data(self: &RouteRandGenerator) -> Box<&Data> {
-        return Box::new(&self.data);
+    fn get_data(self: &RouteRandGenerator) -> Box<Data> {
+        return self.data.clone();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Update the route data
+    ///
+    /// # Input
+    /// * `route: Vector of route data
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn set_route_events(self: &mut RouteRandGenerator, r: Box<Vec<RouteEvent>>) {
+        self.route = r;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Update the data object
+    ///
+    /// # Input
+    /// * `data`: Data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn set_data(self: &mut RouteRandGenerator, d: Box<Data>) {
+        self.data = d;
     }
 }
 
