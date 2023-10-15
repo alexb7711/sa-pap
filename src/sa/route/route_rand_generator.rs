@@ -558,9 +558,9 @@ mod priv_test_route_gen {
         assert_eq!(rg.buses[5].final_charge, fc);
 
         // Test 3
-        assert_eq!(rg.buses[24].bat_capacity, bat_capacity);
-        assert_eq!(rg.buses[24].discharge_rate, dis_rat);
-        assert_eq!(rg.buses[24].final_charge, fc);
+        assert_eq!(rg.buses[9].bat_capacity, bat_capacity);
+        assert_eq!(rg.buses[9].discharge_rate, dis_rat);
+        assert_eq!(rg.buses[9].final_charge, fc);
     }
 
     //---------------------------------------------------------------------------

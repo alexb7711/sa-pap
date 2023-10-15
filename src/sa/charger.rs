@@ -23,8 +23,8 @@ pub struct Charger {
     // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
     pub free_time: Vec<Vec<(f32, f32)>>, // Lists of free times
-    pub charger_count: (usize, usize,usize),    // Charger counts (slow, fast)
-    pub charger_speed: (f32, f32,f32),    // Charger speeds (slow, fast)
+    pub charger_count: (usize, usize,usize),    // Charger counts (wait, slow, fast)
+    pub charger_speed: (f32, f32,f32),    // Charger speeds (wait, slow, fast)
 
     // Private
     config: Yaml,

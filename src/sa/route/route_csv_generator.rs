@@ -478,8 +478,8 @@ mod priv_test_route_gen {
         };
 
         assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![19200.0, 19200.0]);
-        assert_eq!(r[2], vec![21660.0, 29070.0]);
+        assert_eq!(r[1], vec![5.3333335, 5.3333335]);
+        assert_eq!(r[2], vec![6.016667, 8.075]);
 
         let r = match route.get(&10) {
             Some(r) => r.clone(),
@@ -487,8 +487,8 @@ mod priv_test_route_gen {
         };
 
         assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![21600.0, 40350.0]);
-        assert_eq!(r[2], vec![42060.0, 49620.0]);
+        assert_eq!(r[1], vec![6.0, 11.208333]);
+        assert_eq!(r[2], vec![11.683333, 13.783334]);
     }
 
     //---------------------------------------------------------------------------

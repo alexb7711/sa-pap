@@ -42,6 +42,9 @@ pub fn parse_csv(
     csv_h: &mut csv::Reader<std::fs::File>,
     config: &Yaml,
 ) -> (Vec<u16>, Vec<Vec<f32>>) {
+    // Seconds to hour
+    let hr2sec: f32 = 3600.0;
+
     // Stores the route data
     let mut routes: (Vec<u16>, Vec<Vec<f32>>) = (Vec::new(), Vec::from(Vec::new()));
     let mut b: u16 = 0;
@@ -77,8 +80,8 @@ pub fn parse_csv(
 
         // Append the routes, skip the first element (queue index)
         for s in r.iter().skip(1) {
-            // Convert the jth variable to float
-            let f: f32 = s.trim().parse::<f32>().unwrap();
+            // Convert the jth variable to float and convert to hours
+            let f: f32 = s.trim().parse::<f32>().unwrap() / hr2sec;
 
             // Append the float to the ith route vector
             route_i.push(f);

@@ -29,6 +29,26 @@ mod test_charger {
     //---------------------------------------------------------------------------
     //
     #[test]
+    fn test_charger_initilazation() {
+        // Load charger parameters from YAML file
+        let charger: Charger = Charger::new(yaml_path(), true, None);
+
+        // Test 0 - Ensure the correct amount of chargers have been created
+        let cc = charger.charger_count.1 + charger.charger_count.2;
+        // assert_eq!(cc, 14);
+
+        // Test 1 - include the non-charger spots
+        let cc = charger.charger_count.0 + charger.charger_count.1 + charger.charger_count.2;
+        // assert_eq!(cc, 24);
+
+        // Test 2 - charger speeds
+        let cc = charger.charger_speed;
+        assert_eq!(cc, (0.0, 100.0, 400.0));
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
     fn test_charger_addition() {
         // Create charger
         let mut charger: Charger = Charger::new(yaml_path(), false, None);

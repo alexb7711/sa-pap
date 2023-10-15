@@ -46,9 +46,6 @@ impl Generator for ScheduleGenerator {
     /// * Updated charger object
     ///
     fn run(self: &mut ScheduleGenerator, r: &mut dyn Route, c: &mut Charger) {
-        // Calculate offset to fast charger index
-        let offset: usize = c.charger_count.0 + c.charger_count.1 - 1;
-
         // Get information about the route
         let mut route = r.get_route_events();
 
@@ -64,16 +61,16 @@ impl Generator for ScheduleGenerator {
             for i in route.iter_mut() {
                 // If the bus id matches `b`
                 if i.id == b as u16 {
-                    // Determine the index
-                    let q = b+offset;
+
+                    // Set the start/stop charge times
                     let ad = (i.arrival_time, i.departure_time);
 
-                    // Check if the bus can be assigned, assign the bus to a fast charger
-                    if c.assign(q, ad, b) {
+                    // Check if the bus can be assigned, assign the bus wait queue
+                    if c.assign(b.clone(), ad.clone(), b.clone()) {
                         // Update route event
-                        i.attach_time = ad.0;
-                        i.detatch_time = ad.1;
-                        i.queue = q as u16;
+                        i.attach_time = ad.0.clone();
+                        i.detatch_time = ad.1.clone();
+                        i.queue = b.clone() as u16;
                     }
                 }
             }

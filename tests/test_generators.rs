@@ -3,12 +3,13 @@ extern crate sa_pap;
 //===============================================================================
 //
 #[cfg(test)]
-mod test_primitive_generators {
+mod test_generators {
 
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
+    use super::sa_pap::sa::route::Route;
     use super::sa_pap::sa::generators::Generator;
     use super::sa_pap::sa::generators::schedule_generator::ScheduleGenerator;
 
@@ -29,10 +30,11 @@ mod test_primitive_generators {
     #[test]
     fn test_schedule_generator() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), true, None);
 
         // Create CSV generator
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        rg.run();
 
         // Create the generator
         let mut sg = ScheduleGenerator::new();
@@ -40,16 +42,35 @@ mod test_primitive_generators {
         // Run the generator
         sg.run(&mut rg, &mut charger);
 
-        // Queue index
-        let _q: usize = 0;
-
         // Bus ID
-        let _id: usize = 3;
+        let _id: usize = 0;
 
-        // Test 0 - Ensure that the free time is (BOD, EOD)
-        // assert_eq!(charger.free_time[q][0], (0.0, 10.0));
+        // Test 0 - Check first index of a few chargers
+        assert_eq!(charger.schedule[0][0].t, (0.0,0.0));
+        assert_eq!(charger.schedule[0][0].b, 0);
 
-        // Test 1 - Ensure the size of free times is 1
-        // assert_eq!(charger.free_time[q].len(), 1);
+        assert_eq!(charger.schedule[1][0].t, (0.0,0.0));
+        assert_eq!(charger.schedule[1][0].b, 1);
+
+        assert_eq!(charger.schedule[2][0].t, (0.0,0.0));
+        assert_eq!(charger.schedule[2][0].b, 2);
+
+        assert_eq!(charger.schedule[9][0].t, (0.0,0.0));
+        assert_eq!(charger.schedule[9][0].b, 9);
+
+        // Test 1 - Test first index of a few chargers
+        println!("{:?}", charger.schedule);
+        assert_eq!(charger.schedule[0][1].t, (5.3333335, 5.3333335));
+        assert_eq!(charger.schedule[0][1].b, 0);
+
+        assert_eq!(charger.schedule[1][1].t, (5.6666665, 5.6666665));
+        assert_eq!(charger.schedule[1][1].b, 1);
+
+        assert_eq!(charger.schedule[2][1].t, (6.0,6.0));
+        assert_eq!(charger.schedule[2][1].b, 2);
+
+        assert_eq!(charger.schedule[18][1].t, (6.0,6.375));
+        assert_eq!(charger.schedule[18][1].b, 18);
+
     }
 }
