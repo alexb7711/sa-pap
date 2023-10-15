@@ -35,11 +35,11 @@ mod test_charger {
 
         // Test 0 - Ensure the correct amount of chargers have been created
         let cc = charger.charger_count.1 + charger.charger_count.2;
-        // assert_eq!(cc, 14);
+        assert_eq!(cc, 11);
 
         // Test 1 - include the non-charger spots
         let cc = charger.charger_count.0 + charger.charger_count.1 + charger.charger_count.2;
-        // assert_eq!(cc, 24);
+        assert_eq!(cc, 36);
 
         // Test 2 - charger speeds
         let cc = charger.charger_speed;

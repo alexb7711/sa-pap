@@ -45,7 +45,7 @@ impl Generator for ScheduleGenerator {
     /// # Output
     /// * Updated charger object
     ///
-    fn run(self: &mut ScheduleGenerator, r: &mut dyn Route, c: &mut Charger) {
+    fn run(self: &mut ScheduleGenerator, r: &mut dyn Route, c: &mut Charger) -> bool {
         // Get information about the route
         let mut route = r.get_route_events();
 
@@ -79,5 +79,7 @@ impl Generator for ScheduleGenerator {
         // Update route and charger
         r.set_data(data);
         r.set_route_events(route);
+
+        return true;
     }
 }
