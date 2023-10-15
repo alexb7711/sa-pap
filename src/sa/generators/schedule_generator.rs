@@ -60,7 +60,7 @@ impl Generator for ScheduleGenerator {
 
         // For each bus
         for b in 0..A {
-        // For each visit
+            // For each visit
             for i in route.iter_mut() {
                 // If the bus id matches `b`
                 if i.id == b as u16 {
