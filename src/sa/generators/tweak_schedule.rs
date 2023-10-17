@@ -72,14 +72,15 @@ impl Generator for TweakSchedule {
         // Get random visit
         let rv = r.get_route_events();
         let ri = rand::thread_rng().gen_range(0..rv.len());
+        let id = rv[ri].id as usize;
         let ud = &(rv[ri].attach_time, rv[ri].detatch_time);
         let ae = &(rv[ri].arrival_time, rv[ri].departure_time);
 
         return match p {
-            Primitives::NewCharger => new_charger::run(c, q, 0, ud),
+            Primitives::NewCharger => new_charger::run(c, q, id, ud),
             Primitives::NewWindow => new_window::run(c, q, ae, ud),
-            Primitives::Remove => remove::run(c, q, ud),
-            Primitives::SlideVisit => slide_visit::run(c, 0, q, ae, ud),
+            Primitives::Remove => remove::run(c, q, id, ud),
+            Primitives::SlideVisit => slide_visit::run(c, id, q, ae, ud),
         };
     }
 }

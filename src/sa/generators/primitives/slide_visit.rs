@@ -8,7 +8,7 @@ pub mod slide_visit {
 
     // Import modules
     use crate::sa::charger::Charger;
-    use crate::sa::generators::primitives::remove::*;
+    use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `slide_visit` module. This modules attempts to allocate a different charge time in
@@ -26,7 +26,7 @@ pub mod slide_visit {
     ///
     pub fn run(ch: &mut Charger, b: usize, q: usize, ae: &(f32, f32), ud: &(f32, f32)) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !remove::run(ch, q, ud) {
+        if !purge::run(ch, q, ud) {
             return false;
         }
 

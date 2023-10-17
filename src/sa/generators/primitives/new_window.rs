@@ -6,10 +6,11 @@ pub mod new_window {
     // Import modules
     use crate::sa::charger::Charger;
     use crate::sa::generators::primitives::new_visit::*;
-    use crate::sa::generators::primitives::remove::*;
+    use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `new_window` module. This module encapsulates a `remove` then `new_visit`.
+    /// The run function executes the `new_window` module. This module encapsulates
+    /// a `purge` then `new_visit`.
     ///
     /// # Input
     /// * ch: Charger object
@@ -21,7 +22,7 @@ pub mod new_window {
     ///
     pub fn run(ch: &mut Charger, q: usize, ad: &(f32, f32), ud: &(f32, f32)) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !remove::run(ch, q, ud) {
+        if !purge::run(ch, q, ud) {
             return false;
         }
 

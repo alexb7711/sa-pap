@@ -10,6 +10,7 @@ mod test_primitive_generators {
     use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::generators::primitives::new_visit::*;
     use super::sa_pap::sa::generators::primitives::new_window::*;
+    use super::sa_pap::sa::generators::primitives::purge::*;
     use super::sa_pap::sa::generators::primitives::remove::*;
 
     //---------------------------------------------------------------------------
@@ -95,7 +96,7 @@ mod test_primitive_generators {
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_remove() {
+    fn test_remove_purge() {
         // Create charger
         let mut charger: Charger = Charger::new(yaml_path(), false, None);
 
@@ -124,23 +125,28 @@ mod test_primitive_generators {
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 1
-        assert!(remove::run(&mut charger, q, &(0.1, 0.2)));
+        assert!(remove::run(&mut charger, q, id, &(0.1, 0.2)));
+        assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), true);
+        assert_eq!(charger.schedule[q].len(), 3);
+
+        // Test 2
+        assert!(purge::run(&mut charger, q, &(0.1, 0.2)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
         assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 2
         println!("{:?}", charger.schedule[0]);
-        assert_eq!(remove::run(&mut charger, q, &(0.1, 0.2)), false);
+        assert_eq!(remove::run(&mut charger, q, id, &(0.1, 0.2)), false);
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
         assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 3
-        assert!(remove::run(&mut charger, q, &(0.0, 0.02)));
-        assert_eq!(time_slice_exists(&charger, &q, &(0.0, 0.02)), false);
-        assert_eq!(charger.schedule[q].len(), 1);
+        assert!(remove::run(&mut charger, q, id, &(0.0, 0.02)));
+        assert_eq!(time_slice_exists(&charger, &q, &(0.0, 0.02)), true);
+        assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 4
-        assert!(remove::run(&mut charger, q, &(0.3, 0.5)));
+        assert!(purge::run(&mut charger, q, &(0.3, 0.5)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.3, 0.5)), false);
         assert_eq!(charger.schedule[q].len(), 0);
     }

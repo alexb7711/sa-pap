@@ -23,7 +23,7 @@ use crate::util::fileio::yaml_loader;
 // Import modules
 
 //===============================================================================
-// Implementation of ScheduleGenerator
+// Implementation of RouteCSVGenerator
 #[allow(dead_code)]
 pub struct RouteCSVGenerator {
     // PUBLIC
@@ -50,7 +50,7 @@ impl RouteCSVGenerator {
     /// * `csv_path`      : Path to CSV file
     ///
     /// # Output
-    /// * `ScheduleGenerator`
+    /// * `RouteCSVGenerator`
     ///
     pub fn new(config_path: &str, csv_path: &str) -> RouteCSVGenerator {
         // Create new RouteGenerator

@@ -1,17 +1,18 @@
 //==============================================================================
-/// The `new_charger` primitive is used to remove then add a bus back in.
+/// The `wait` primitive is used to move the bus to its waiting queue
 //
-pub mod new_charger {
+pub mod wait {
 
     // Import standard lib
     use crate::util::rand_utils;
 
     // Import modules
     use crate::sa::charger::Charger;
-    use crate::sa::generators::primitives::remove::*;
+    use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `new_charger` module. This module encapsulates a `remove` then `new_visit`.
+    /// The run function executes the `wait` module. This module moves a queued
+    /// bus to its waiting queue
     ///
     /// # Input
     /// * ch: Charger object
@@ -24,7 +25,7 @@ pub mod new_charger {
     ///
     pub fn run(ch: &mut Charger, q: usize, b: usize, ud: &(f32, f32)) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !remove::run(ch, q, b, ud) {
+        if !purge::run(ch, q, ud) {
             return false;
         }
 
