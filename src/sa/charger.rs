@@ -23,6 +23,8 @@ pub struct Charger {
     // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
     pub free_time: Vec<Vec<(f32, f32)>>, // Lists of free times
+    pub charger_count: (usize, usize,usize),    // Charger counts (wait, slow, fast)
+    pub charger_speed: (f32, f32,f32),    // Charger speeds (wait, slow, fast)
 
     // Private
     config: Yaml,
@@ -41,16 +43,50 @@ impl Charger {
     /// # Output
     /// * Return a charger object
     ///
-    pub fn new(config_path: &str, q: Option<usize>) -> Charger {
-        // Extract the number of queues
-        let q: usize = q.unwrap_or(1 as usize);
-
+    pub fn new(config_path: &str, load_c_from_yaml: bool, q_force: Option<usize>) -> Charger {
         // Create a charger
         let mut c: Charger = Charger {
             schedule: Vec::new(),
-            config: yaml_loader::load_yaml(config_path),
             free_time: Vec::new(),
+            charger_count: (0, 0, 1),
+            charger_speed: (0.0, 30.0, 910.0),
+            config: yaml_loader::load_yaml(config_path),
         };
+
+        // Extract the number of queues
+        let mut q: usize = q_force.unwrap_or(1 as usize);
+
+        // Set the charger count
+        c.charger_count = (0, 0, q);
+
+        // Load chargers file if specified
+        if load_c_from_yaml {
+            // Extract the number of queues from YAML
+            let q_wait: usize = c.config.clone()["buses"]["num_bus"]
+                .as_i64()
+                .unwrap() as usize;
+            let q_slow: usize = c.config.clone()["chargers"]["slow"]["num"]
+                .as_i64()
+                .unwrap() as usize;
+            let q_fast: usize = c.config.clone()["chargers"]["fast"]["num"]
+                .as_i64()
+                .unwrap() as usize;
+
+            // Update charger count
+            q = q_wait + q_slow + q_fast;
+
+            // Set the charger count
+            c.charger_count = (q_wait, q_slow, q_fast);
+
+            // Set charger speeds
+            let slow_c = c.config.clone()["chargers"]["slow"]["rate"]
+                .as_f64()
+                .unwrap() as f32;
+            let fast_c = c.config.clone()["chargers"]["fast"]["rate"]
+                .as_f64()
+                .unwrap() as f32;
+            c.charger_speed = (0.0, slow_c, fast_c);
+        }
 
         // Create the number of queues specified
         c.add_chargers(q);

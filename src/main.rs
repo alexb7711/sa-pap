@@ -3,7 +3,7 @@
 
 // Import Modules
 // use sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
-use sa_pap::sa::generators::schedule_generator::ScheduleGenerator;
+use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
 use sa_pap::sa::route::Route;
@@ -39,7 +39,7 @@ fn main() {
 
     // Create solution temperature function, generator and tweaker
     let tf: Box<TempFunc> = Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
-    let gsol: Box<ScheduleGenerator> = Box::new(ScheduleGenerator::new());
+    let gsol: Box<GenWaitQueue> = Box::new(GenWaitQueue::new());
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
     // Pass schedule generator, temperature function, solution generator, and solution tweaker into the SA module

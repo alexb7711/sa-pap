@@ -44,20 +44,20 @@ mod test_route_csv_generator {
 
         // Test route times
         assert_eq!(rg.csv_schedule.1[0][0], 0.0);
-        assert_eq!(rg.csv_schedule.1[0][7], 39600.0);
-        assert_eq!(rg.csv_schedule.1[0][15], 82800.0);
+        assert_eq!(rg.csv_schedule.1[0][7], 11.0);
+        assert_eq!(rg.csv_schedule.1[0][15], 23.0);
 
         assert_eq!(rg.csv_schedule.1[1][0], 0.0);
-        assert_eq!(rg.csv_schedule.1[1][5], 31830.0);
-        assert_eq!(rg.csv_schedule.1[1][9], 49950.0);
+        assert_eq!(rg.csv_schedule.1[1][5], 8.841666);
+        assert_eq!(rg.csv_schedule.1[1][9], 13.875);
 
         assert_eq!(rg.csv_schedule.1[10][0], 0.0);
-        assert_eq!(rg.csv_schedule.1[10][10], 78420.0);
-        assert_eq!(rg.csv_schedule.1[10][15], 86370.0);
+        assert_eq!(rg.csv_schedule.1[10][10], 21.783333);
+        assert_eq!(rg.csv_schedule.1[10][15], 23.991667);
 
         assert_eq!(rg.csv_schedule.1[12][0], 0.0);
-        assert_eq!(rg.csv_schedule.1[12][6], 66060.0);
-        assert_eq!(rg.csv_schedule.1[12][10], 82800.0);
+        assert_eq!(rg.csv_schedule.1[12][6], 18.35);
+        assert_eq!(rg.csv_schedule.1[12][10], 23.0);
     }
 
     //---------------------------------------------------------------------------

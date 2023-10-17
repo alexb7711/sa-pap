@@ -7,7 +7,7 @@ pub mod parse_routes;
 //===============================================================================
 // External Crates
 use csv;
-use std::cell::RefCell;
+use std::boxed::Box;
 use std::collections::HashMap;
 use yaml_rust::Yaml;
 
@@ -394,10 +394,49 @@ impl Route for RouteCSVGenerator {
     /// * NONE
     ///
     /// # Output
+    /// * `route`: Vector of route data
+    ///
+    fn get_route_events(self: &RouteCSVGenerator) -> Box<Vec<RouteEvent>> {
+        return Box::new(self.route.clone());
+    }
+
+    //-----------------------------------
+    /// Return the data object
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * `data`: Data object
+    ///
+    fn get_data(self: &RouteCSVGenerator) -> Box<Data> {
+        return Box::new(self.data.clone());
+    }
+
+    //---------------------------------------------------------------------------
+    /// Update the route data
+    ///
+    /// # Input
     /// * `route: Vector of route data
     ///
-    fn get_route_data(self: RouteCSVGenerator) -> RefCell<Vec<RouteEvent>> {
-        return RefCell::new(self.route);
+    /// # Output
+    /// * NONE
+    ///
+    fn set_route_events(self: &mut RouteCSVGenerator, r: Box<Vec<RouteEvent>>) {
+        self.route = *r;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Update the data object
+    ///
+    /// # Input
+    /// * `data`: Data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn set_data(self: &mut RouteCSVGenerator, d: Box<Data>) {
+        self.data = *d;
     }
 }
 
@@ -439,8 +478,8 @@ mod priv_test_route_gen {
         };
 
         assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![19200.0, 19200.0]);
-        assert_eq!(r[2], vec![21660.0, 29070.0]);
+        assert_eq!(r[1], vec![5.3333335, 5.3333335]);
+        assert_eq!(r[2], vec![6.016667, 8.075]);
 
         let r = match route.get(&10) {
             Some(r) => r.clone(),
@@ -448,8 +487,8 @@ mod priv_test_route_gen {
         };
 
         assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![21600.0, 40350.0]);
-        assert_eq!(r[2], vec![42060.0, 49620.0]);
+        assert_eq!(r[1], vec![6.0, 11.208333]);
+        assert_eq!(r[2], vec![11.683333, 13.783334]);
     }
 
     //---------------------------------------------------------------------------
