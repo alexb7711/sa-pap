@@ -1,39 +1,38 @@
 //===============================================================================
 // Import modules
 use crate::sa::charger::Charger;
-use crate::sa::route::Route;
 use crate::sa::generators::Generator;
+use crate::sa::route::Route;
 
 //===============================================================================
 /// Structure defining the information to create a charge schedule
-pub struct ScheduleGenerator {}
+pub struct GenWaitQueue {}
 
 //===============================================================================
-/// Implementation of `ScheduleGenerator`
+/// Implementation of `GenWaitQueue`
 //
-impl ScheduleGenerator {
+impl GenWaitQueue {
     //---------------------------------------------------------------------------
-    /// Initialize the `ScheduleGenerator` object
+    /// Initialize the `GenWaitQueue` object
     ///
     /// # Input
     /// * NONE
     ///
     /// # Output
-    /// * `ScheduleGenerator`: Simulated annealing structure
+    /// * `GenWaitQueue`: Simulated annealing structure
     ///
-    pub fn new() -> ScheduleGenerator {
-        return ScheduleGenerator {};
+    pub fn new() -> GenWaitQueue {
+        return GenWaitQueue {};
     }
 }
 
 //===============================================================================
-/// Implementation of `Generator` for `ScheduleGenerator`
+/// Implementation of `Generator` for `GenWaitQueue`
 //
-impl Generator for ScheduleGenerator {
+impl Generator for GenWaitQueue {
     #[allow(non_snake_case)]
-
     //---------------------------------------------------------------------------
-    /// The `run` function for `ScheduleGenerator` creates a schedule by first
+    /// The `run` function for `GenWaitQueue` creates a schedule by first
     /// assigning all the buses to fast chargers. If all the fast chargers are
     /// are utilized, then assign buses to slow chargers.
     ///
@@ -45,7 +44,7 @@ impl Generator for ScheduleGenerator {
     /// # Output
     /// * Updated charger object
     ///
-    fn run(self: &mut ScheduleGenerator, r: &mut dyn Route, c: &mut Charger) -> bool {
+    fn run(self: &mut GenWaitQueue, r: &mut dyn Route, c: &mut Charger) -> bool {
         // Get information about the route
         let mut route = r.get_route_events();
 
@@ -61,7 +60,6 @@ impl Generator for ScheduleGenerator {
             for i in route.iter_mut() {
                 // If the bus id matches `b`
                 if i.id == b as u16 {
-
                     // Set the start/stop charge times
                     let ad = (i.arrival_time, i.departure_time);
 
