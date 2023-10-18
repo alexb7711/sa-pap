@@ -7,8 +7,9 @@ pub mod remove {
     use crate::sa::charger::Charger;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `remove` module. Given the set queue and start/stop charging times, remove that
-    /// scheduled time from the charger queue and place it in its waiting queue.
+    /// The run function executes the `remove` module. Given the set queue and
+    /// start/stop charging times, remove that scheduled time from the charger
+    /// queue and place it in its waiting queue.
     ///
     /// # Input
     /// * ch: Charger object

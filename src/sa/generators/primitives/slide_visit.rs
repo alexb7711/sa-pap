@@ -11,8 +11,8 @@ pub mod slide_visit {
     use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `slide_visit` module. This modules attempts to allocate a different charge time in
-    /// the same queue.
+    /// The run function executes the `slide_visit` module. This modules attempts
+    /// to allocate a different charge time in the same queue.
     ///
     /// # Input
     /// * ch: Charger object

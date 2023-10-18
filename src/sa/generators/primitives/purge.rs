@@ -7,8 +7,8 @@ pub mod purge {
     use crate::sa::charger::Charger;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `purge` module. Given the set queue and start/stop charging times, purge that
-    /// scheduled time from the charger queue.
+    /// The run function executes the `purge` module. Given the set queue and
+    /// start/stop charging times, purge that scheduled time from the charger queue.
     ///
     /// # Input
     /// * ch: Charger object

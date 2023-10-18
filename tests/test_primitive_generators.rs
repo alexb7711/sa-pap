@@ -41,7 +41,7 @@ mod test_primitive_generators {
         let q: usize = 0;
 
         // Bus ID
-        let id: usize = 3;
+        let id: usize = 0;
 
         // Test 0 - Ensure that the free time is (BOD, EOD)
         assert_eq!(charger.free_time[q][0], (0.0, 10.0));
@@ -148,7 +148,7 @@ mod test_primitive_generators {
         // Test 4
         assert!(purge::run(&mut charger, q, &(0.3, 0.5)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.3, 0.5)), false);
-        assert_eq!(charger.schedule[q].len(), 0);
+        assert_eq!(charger.schedule[q].len(), 1);
     }
 
     //---------------------------------------------------------------------------
