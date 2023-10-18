@@ -10,8 +10,8 @@ use strum::{EnumIter, IntoEnumIterator};
 use crate::sa::charger::Charger;
 use crate::sa::generators::primitives::new_charger::*;
 use crate::sa::generators::primitives::new_window::*;
-use crate::sa::generators::primitives::remove::*;
 use crate::sa::generators::primitives::slide_visit::*;
+use crate::sa::generators::primitives::wait::*;
 use crate::sa::generators::Generator;
 use crate::sa::route::Route;
 
@@ -22,7 +22,7 @@ use crate::sa::route::Route;
 enum Primitives {
     NewCharger,
     NewWindow,
-    Remove,
+    Wait,
     SlideVisit,
 }
 
@@ -34,7 +34,7 @@ impl Distribution<Primitives> for Standard {
         match rng.gen_range(0..3) {
             0 => Primitives::NewCharger,
             1 => Primitives::NewWindow,
-            2 => Primitives::Remove,
+            2 => Primitives::Wait,
             _ => Primitives::SlideVisit,
         }
     }
@@ -92,7 +92,7 @@ impl Generator for TweakSchedule {
             success = match p {
                 Primitives::NewCharger => new_charger::run(c, q, id, ud),
                 Primitives::NewWindow => new_window::run(c, q, ae, ud),
-                Primitives::Remove => remove::run(c, q, id, ud),
+                Primitives::Wait => wait::run(c, q, id, ud),
                 Primitives::SlideVisit => slide_visit::run(c, id, q, ae, ud),
             };
 

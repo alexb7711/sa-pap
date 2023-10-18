@@ -19,6 +19,6 @@ pub mod purge {
     /// * bool: Assignment failure/success
     ///
     pub fn run(ch: &mut Charger, q: usize, ud: &(f32, f32)) -> bool {
-        return ch.remove(q, (*ud).clone());
+        return ch.remove(q, *ud);
     }
 }
