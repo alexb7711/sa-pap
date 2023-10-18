@@ -8,10 +8,12 @@ pub mod new_charger {
 
     // Import modules
     use crate::sa::charger::Charger;
-    use crate::sa::generators::primitives::remove::*;
+    use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `new_charger` module. This module encapsulates a `remove` then `new_visit`.
+    /// The run function executes the `new_charger` module. This module
+    /// purges the visit from the schedule and places that same BEB schedule
+    /// on a random queue.
     ///
     /// # Input
     /// * ch: Charger object
@@ -24,15 +26,22 @@ pub mod new_charger {
     ///
     pub fn run(ch: &mut Charger, q: usize, b: usize, ud: &(f32, f32)) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !remove::run(ch, q, ud) {
+        if !purge::run(ch, q, ud) {
             return false;
         }
 
         // Extract the number of chargers
         let q_cnt: usize = ch.schedule.len();
 
+        // Determine the charger offset from waiting queues
+        let offset: usize = ch.charger_count.0;
+
+        // Create a vector with the bus wait queue and all the charger queues
+        let mut queues: Vec<usize> = vec![b];
+        let mut c_queues: Vec<usize> = (offset..q_cnt).collect();
+
         // Create a list of queue indices and shuffle them
-        let mut queues: Vec<usize> = (0..q_cnt).collect();
+        queues.append(&mut c_queues);
         queues = rand_utils::shuffle_vec(&queues);
 
         // Iterate the shuffled queue indices

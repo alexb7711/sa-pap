@@ -1,22 +1,28 @@
 //===============================================================================
-// Import modules
+// Import standard library modules
+use crate::util::rand_utils;
+use rand::distributions::{Distribution, Standard};
+use rand::Rng;
+use strum::{EnumIter, IntoEnumIterator};
+
+//===============================================================================
+// Import developed modules
 use crate::sa::charger::Charger;
 use crate::sa::generators::primitives::new_charger::*;
 use crate::sa::generators::primitives::new_window::*;
-use crate::sa::generators::primitives::remove::*;
 use crate::sa::generators::primitives::slide_visit::*;
+use crate::sa::generators::primitives::wait::*;
 use crate::sa::generators::Generator;
 use crate::sa::route::Route;
-use rand::distributions::{Distribution, Standard};
-use rand::Rng;
 
 //===============================================================================
 /// Structure defining the information to create a charge schedule
 //
+#[derive(Clone, Debug, EnumIter)]
 enum Primitives {
     NewCharger,
     NewWindow,
-    Remove,
+    Wait,
     SlideVisit,
 }
 
@@ -28,7 +34,7 @@ impl Distribution<Primitives> for Standard {
         match rng.gen_range(0..3) {
             0 => Primitives::NewCharger,
             1 => Primitives::NewWindow,
-            2 => Primitives::Remove,
+            2 => Primitives::Wait,
             _ => Primitives::SlideVisit,
         }
     }
@@ -63,8 +69,12 @@ impl TweakSchedule {
 //
 impl Generator for TweakSchedule {
     fn run(self: &mut TweakSchedule, r: &mut dyn Route, c: &mut Charger) -> bool {
-        // Create a Primitive enumeration
-        let p: Primitives = rand::random();
+        // Track the success of tweak
+        let mut success: bool = false;
+
+        // Create a vector of `Primitives` and shuffle the vector
+        let primitives = Primitives::iter().collect::<Vec<_>>();
+        let primitives = rand_utils::shuffle_vec(&primitives);
 
         // Extract the number of chargers
         let q: usize = rand::thread_rng().gen_range(0..c.schedule.len());
@@ -72,15 +82,27 @@ impl Generator for TweakSchedule {
         // Get random visit
         let rv = r.get_route_events();
         let ri = rand::thread_rng().gen_range(0..rv.len());
+        let id = rv[ri].id as usize;
         let ud = &(rv[ri].attach_time, rv[ri].detatch_time);
         let ae = &(rv[ri].arrival_time, rv[ri].departure_time);
 
-        return match p {
-            Primitives::NewCharger => new_charger::run(c, q, 0, ud),
-            Primitives::NewWindow => new_window::run(c, q, ae, ud),
-            Primitives::Remove => remove::run(c, q, ud),
-            Primitives::SlideVisit => slide_visit::run(c, 0, q, ae, ud),
-        };
+        // Loop through the primitives
+        for p in primitives {
+            // Try running the primitive and store the result
+            success = match p {
+                Primitives::NewCharger => new_charger::run(c, q, id, ud),
+                Primitives::NewWindow => new_window::run(c, q, ae, ud),
+                Primitives::Wait => wait::run(c, q, id, ud),
+                Primitives::SlideVisit => slide_visit::run(c, id, q, ae, ud),
+            };
+
+            // If successful, break out of loop
+            if success {
+                break;
+            }
+        }
+
+        return success;
     }
 }
 

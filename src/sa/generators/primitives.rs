@@ -2,5 +2,6 @@
 pub mod new_charger;
 pub mod new_visit;
 pub mod new_window;
-pub mod remove;
+pub mod purge;
 pub mod slide_visit;
+pub mod wait;

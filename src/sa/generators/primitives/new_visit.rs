@@ -9,8 +9,9 @@ pub mod new_visit {
     use crate::sa::charger::Charger;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `new_visit` module. Given the set of routes and a bus ID and visit, the run
-    /// function shall assign a bus to an available charger and return the new schedule. Return false if assignment
+    /// The run function executes the `new_visit` module. Given the set of
+    /// routes and a bus ID and visit, the run function shall assign a bus to an
+    /// available charger and return the new schedule. Return false if assignment
     /// failed and true if successful.
     ///
     /// # Input
@@ -25,8 +26,15 @@ pub mod new_visit {
         // Extract the number of chargers
         let q_cnt: usize = ch.schedule.len();
 
+        // Determine the charger offset from waiting queues
+        let offset: usize = ch.charger_count.0;
+
+        // Create a vector with the bus wait queue and all the charger queues
+        let mut queues: Vec<usize> = vec![b];
+        let mut c_queues: Vec<usize> = (offset..q_cnt).collect();
+
         // Create a list of queue indices and shuffle them
-        let mut queues: Vec<usize> = (0..q_cnt).collect();
+        queues.append(&mut c_queues);
         queues = rand_utils::shuffle_vec(&queues);
 
         // Iterate the shuffled queue indices

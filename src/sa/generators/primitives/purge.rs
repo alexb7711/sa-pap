@@ -1,14 +1,14 @@
 //==============================================================================
-/// The `remove` primitive is used to assign a bus to an available charger.
+/// The `purge` primitive is used to assign a bus to an available charger.
 //
-pub mod remove {
+pub mod purge {
 
     // Import modules
     use crate::sa::charger::Charger;
 
     //--------------------------------------------------------------------------
-    /// The run function executes the `remove` module. Given the set queue and start/stop charging times, remove that
-    /// scheduled time from the charger queue.
+    /// The run function executes the `purge` module. Given the set queue and
+    /// start/stop charging times, purge that scheduled time from the charger queue.
     ///
     /// # Input
     /// * ch: Charger object
@@ -19,6 +19,6 @@ pub mod remove {
     /// * bool: Assignment failure/success
     ///
     pub fn run(ch: &mut Charger, q: usize, ud: &(f32, f32)) -> bool {
-        return ch.remove(q, (*ud).clone());
+        return ch.remove(q, *ud);
     }
 }
