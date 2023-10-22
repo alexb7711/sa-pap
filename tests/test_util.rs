@@ -142,3 +142,103 @@ mod test_rand_utils {
         assert!(match_cnt < v.len());
     }
 }
+
+//===============================================================================
+//
+#[cfg(test)]
+mod test_triangular_fuzzy_number {
+    //---------------------------------------------------------------------------
+    // Import modules
+    use sa_pap::util::triangle_fuzzy_number::TriangleFuzzyNumber;
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_add_fuzzy_number() {
+        let tfn1: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(1, 2, 3);
+        let tfn2: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(2, 3, 4);
+
+        assert_eq!(tfn1 + tfn2, TriangleFuzzyNumber::new(3, 5, 7));
+        assert_eq!(tfn2 + tfn1, TriangleFuzzyNumber::new(3, 5, 7));
+        assert_eq!(tfn1 + tfn1, TriangleFuzzyNumber::new(2, 4, 6));
+        assert_eq!(tfn2 + tfn2, TriangleFuzzyNumber::new(4, 6, 8));
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_subtract_fuzzy_number() {
+        let tfn1: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(1, 2, 3);
+        let tfn2: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(2, 3, 4);
+
+        assert_eq!(tfn2 - tfn1, TriangleFuzzyNumber::new(1, 1, 1));
+        assert_eq!(tfn1 - tfn2, TriangleFuzzyNumber::new(-1, -1, -1));
+        assert_eq!(tfn1 - tfn1, TriangleFuzzyNumber::new(0, 0, 0));
+        assert_eq!(tfn2 - tfn2, TriangleFuzzyNumber::new(0, 0, 0));
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_mult_fuzzy_number() {
+        let tfn1: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(1, 2, 3);
+        let tfn2: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(2, 3, 4);
+
+        assert_eq!(tfn1 * tfn2, TriangleFuzzyNumber::new(2, 6, 12));
+        assert_eq!(tfn2 * tfn1, TriangleFuzzyNumber::new(2, 6, 12));
+        assert_eq!(tfn1 * tfn1, TriangleFuzzyNumber::new(1, 4, 9));
+        assert_eq!(tfn2 * tfn2, TriangleFuzzyNumber::new(4, 9, 16));
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_idx_fuzzy_number() {
+        let tfn: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(1, 2, 3);
+
+        assert_eq!(tfn[0], 1);
+        assert_eq!(tfn[1], 2);
+        assert_eq!(tfn[2], 3);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    #[should_panic]
+    fn test_idx_oob_fuzzy_number() {
+        let tfn: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(1, 2, 3);
+
+        tfn[4];
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_idx_mut_fuzzy_number() {
+        let mut tfn: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(1, 2, 3);
+
+        assert_eq!(tfn[0], 1);
+        assert_eq!(tfn[1], 2);
+        assert_eq!(tfn[2], 3);
+
+        // Update tfn
+        tfn[0] = 5;
+
+        assert_eq!(tfn[0], 5);
+        assert_eq!(tfn[1], 2);
+        assert_eq!(tfn[2], 3);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    #[should_panic]
+    fn test_idx_mut_oob_fuzzy_number() {
+        let mut tfn: TriangleFuzzyNumber<i16> = TriangleFuzzyNumber::new(1, 2, 3);
+
+        // Update tfn
+        tfn[3] = 5;
+
+        tfn[4];
+    }
+}
