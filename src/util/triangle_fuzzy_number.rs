@@ -6,12 +6,18 @@ use std::ops;
 //===============================================================================
 // Import modules
 
+pub trait FuzzyNumberTrait {}
+
+impl FuzzyNumberTrait for u32 {}
+impl FuzzyNumberTrait for i32 {}
+impl FuzzyNumberTrait for f32 {}
+
 //==============================================================================
 /// The `TriangleFuzzyNumber` structure encapsulates the triangular fuzzy number
 /// datatype.
 //
-#[derive(Debug)]
-pub struct TriangleFuzzyNumber<T> {
+#[derive(Debug, PartialEq)]
+pub struct TriangleFuzzyNumber<T: FuzzyNumberTrait> {
     a: T,
     b: T,
     c: T,
@@ -21,11 +27,11 @@ pub struct TriangleFuzzyNumber<T> {
 /// Implementation of `triangle_fuzzy_number`.
 //
 impl<
-        T: std::ops::Add<Output = T>
+        T: FuzzyNumberTrait
+            + std::ops::Add<Output = T>
             + std::ops::Sub
             + std::ops::Mul
-            + std::ops::Div<Output = T>
-            + Into<f32>,
+            + std::ops::Div<Output = T>,
     > TriangleFuzzyNumber<T>
 {
     //---------------------------------------------------------------------------
@@ -54,8 +60,9 @@ impl<
     ///
     pub fn ranking_function(self: TriangleFuzzyNumber<T>) -> f32
     where
-        <T as Add>::Output: Add<T>,
+        <T as Add>::Output: Add<T> + Into<f32>,
     {
+        // return 0.0;
         return (self.a.into() + self.b.into() + self.c.into()) / 3.0;
     }
 }
@@ -67,12 +74,12 @@ impl<
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded copy trait for `triangle_fuzzy_number`.
 //
-impl<T: Copy> Copy for TriangleFuzzyNumber<T> {}
+impl<T: Copy + FuzzyNumberTrait> Copy for TriangleFuzzyNumber<T> {}
 
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded clone trait for `triangle_fuzzy_number`.
 //
-impl<T: Clone> Clone for TriangleFuzzyNumber<T> {
+impl<T: Clone + FuzzyNumberTrait> Clone for TriangleFuzzyNumber<T> {
     fn clone(&self) -> TriangleFuzzyNumber<T> {
         return TriangleFuzzyNumber {
             a: self.a.clone(),
@@ -89,7 +96,9 @@ impl<T: Clone> Clone for TriangleFuzzyNumber<T> {
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded addition for `triangle_fuzzy_number`.
 //
-impl<T: ops::Add<Output = T>> ops::Add<TriangleFuzzyNumber<T>> for TriangleFuzzyNumber<T> {
+impl<T: ops::Add<Output = T> + FuzzyNumberTrait> ops::Add<TriangleFuzzyNumber<T>>
+    for TriangleFuzzyNumber<T>
+{
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -104,7 +113,7 @@ impl<T: ops::Add<Output = T>> ops::Add<TriangleFuzzyNumber<T>> for TriangleFuzzy
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded add assign for `triangle_fuzzy_number`.
 //
-impl<T: Copy + ops::Add<Output = T>> ops::AddAssign<TriangleFuzzyNumber<T>>
+impl<T: Copy + ops::Add<Output = T> + FuzzyNumberTrait> ops::AddAssign<TriangleFuzzyNumber<T>>
     for TriangleFuzzyNumber<T>
 {
     fn add_assign(&mut self, other: Self) {
@@ -119,7 +128,9 @@ impl<T: Copy + ops::Add<Output = T>> ops::AddAssign<TriangleFuzzyNumber<T>>
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded subtraction operator for `triangle_fuzzy_number`.
 //
-impl<T: ops::Sub<Output = T>> ops::Sub<TriangleFuzzyNumber<T>> for TriangleFuzzyNumber<T> {
+impl<T: ops::Sub<Output = T> + FuzzyNumberTrait> ops::Sub<TriangleFuzzyNumber<T>>
+    for TriangleFuzzyNumber<T>
+{
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
@@ -134,7 +145,7 @@ impl<T: ops::Sub<Output = T>> ops::Sub<TriangleFuzzyNumber<T>> for TriangleFuzzy
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded subtract assign for `triangle_fuzzy_number`.
 //
-impl<T: Copy + ops::Sub<Output = T>> ops::SubAssign<TriangleFuzzyNumber<T>>
+impl<T: Copy + ops::Sub<Output = T> + FuzzyNumberTrait> ops::SubAssign<TriangleFuzzyNumber<T>>
     for TriangleFuzzyNumber<T>
 {
     fn sub_assign(&mut self, other: Self) {
@@ -149,7 +160,9 @@ impl<T: Copy + ops::Sub<Output = T>> ops::SubAssign<TriangleFuzzyNumber<T>>
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded subtraction operator for `triangle_fuzzy_number`.
 //
-impl<T: ops::Mul<Output = T>> ops::Mul<TriangleFuzzyNumber<T>> for TriangleFuzzyNumber<T> {
+impl<T: ops::Mul<Output = T> + FuzzyNumberTrait> ops::Mul<TriangleFuzzyNumber<T>>
+    for TriangleFuzzyNumber<T>
+{
     type Output = Self;
 
     fn mul(self, other: Self) -> Self {
@@ -164,7 +177,7 @@ impl<T: ops::Mul<Output = T>> ops::Mul<TriangleFuzzyNumber<T>> for TriangleFuzzy
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded multiply assign for `triangle_fuzzy_number`.
 //
-impl<T: Copy + ops::Mul<Output = T>> ops::MulAssign<TriangleFuzzyNumber<T>>
+impl<T: Copy + ops::Mul<Output = T> + FuzzyNumberTrait> ops::MulAssign<TriangleFuzzyNumber<T>>
     for TriangleFuzzyNumber<T>
 {
     fn mul_assign(&mut self, other: Self) {
@@ -183,7 +196,7 @@ impl<T: Copy + ops::Mul<Output = T>> ops::MulAssign<TriangleFuzzyNumber<T>>
 //-------------------------------------------------------------------------------
 /// Implementation of overloaded indexing operator for `triangle_fuzzy_number`.
 //
-impl<T> ops::Index<usize> for TriangleFuzzyNumber<T> {
+impl<T: FuzzyNumberTrait> ops::Index<usize> for TriangleFuzzyNumber<T> {
     type Output = T;
 
     fn index(&self, index: usize) -> &T {
@@ -200,7 +213,7 @@ impl<T> ops::Index<usize> for TriangleFuzzyNumber<T> {
 /// Implementation of overloaded mutable indexing operator for
 /// `triangle_fuzzy_number`.
 //
-impl<T> ops::IndexMut<usize> for TriangleFuzzyNumber<T> {
+impl<T: FuzzyNumberTrait> ops::IndexMut<usize> for TriangleFuzzyNumber<T> {
     fn index_mut(&mut self, index: usize) -> &mut T {
         return match index {
             0 => &mut self.a,
@@ -212,23 +225,25 @@ impl<T> ops::IndexMut<usize> for TriangleFuzzyNumber<T> {
 }
 
 //===============================================================================
-/// Implementation of overloaded partial equality `triangle_fuzzy_number`.
-//
+// Implementation of overloaded equality `triangle_fuzzy_number`.
 
 //-------------------------------------------------------------------------------
-/// Implementation of the equality operator for `triangular_fuzzy_number`.
+// Implementation of the inequality operator for `triangular_fuzzy_number`.
 //
-impl<T: std::cmp::PartialEq> PartialEq for TriangleFuzzyNumber<T> {
-    fn eq(&self, other: &Self) -> bool {
-        return self.a == other.a && self.b == other.b && self.c == other.c;
+impl<
+        T: FuzzyNumberTrait
+            + std::cmp::PartialEq
+            + Copy
+            + std::ops::Sub
+            + std::ops::Mul
+            + std::ops::Add<Output = T>
+            + std::ops::Div<Output = T>
+            + Into<f32>,
+    > PartialOrd for TriangleFuzzyNumber<T>
+{
+    fn partial_cmp(&self, other: &TriangleFuzzyNumber<T>) -> Option<std::cmp::Ordering> {
+        let s = self.ranking_function();
+        let o = other.ranking_function();
+        return Some(s.total_cmp(&o));
     }
 }
-
-//-------------------------------------------------------------------------------
-// Implementation of the equality operator for `triangular_fuzzy_number`.
-//
-// impl<T: std::cmp::PartialEq> PartialEq for TriangleFuzzyNumber<T> {
-//     fn eq(&self, other: &Self) -> bool {
-//         return self.a == other.b && self.b == other.b && self.c == other.c;
-//     }
-// }
