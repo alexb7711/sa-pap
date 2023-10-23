@@ -246,14 +246,14 @@ impl<
             + std::ops::Sub
             + std::ops::Mul
             + std::ops::Add<Output = T>
-            + std::ops::Div<Output = T>,
+            + std::ops::Div<Output = T>
+            + Into<f64>,
     > PartialOrd for TriangleFuzzyNumber<T>
 {
-    fn partial_cmp(&self, _other: &TriangleFuzzyNumber<T>) -> Option<std::cmp::Ordering> {
-        // let s = self.ranking_function();
-        // let o = other.ranking_function();
-        // return Some(s.total_cmp(&o));
-        return None;
+    fn partial_cmp(&self, other: &TriangleFuzzyNumber<T>) -> Option<std::cmp::Ordering> {
+        let s = self.ranking_function();
+        let o = other.ranking_function();
+        return Some(s.total_cmp(&o));
     }
 }
 

@@ -158,10 +158,20 @@ mod test_triangular_fuzzy_number {
         let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
         let tfn2: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(2, 3, 4);
 
+        // Test 0 - Maths
         assert_eq!(tfn1 + tfn2, TriangleFuzzyNumber::new(3, 5, 7));
         assert_eq!(tfn2 + tfn1, TriangleFuzzyNumber::new(3, 5, 7));
         assert_eq!(tfn1 + tfn1, TriangleFuzzyNumber::new(2, 4, 6));
         assert_eq!(tfn2 + tfn2, TriangleFuzzyNumber::new(4, 6, 8));
+
+        let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
+        let tfn2: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(2.0, 3.0, 4.0);
+
+        // Test 0 - Maths
+        assert_eq!(tfn1 + tfn2, TriangleFuzzyNumber::new(3, 5, 7));
+        // assert_eq!(tfn2 + tfn1, TriangleFuzzyNumber::new(3, 5, 7));
+        // assert_eq!(tfn1 + tfn1, TriangleFuzzyNumber::new(2, 4, 6));
+        // assert_eq!(tfn2 + tfn2, TriangleFuzzyNumber::new(4, 6, 8));
     }
 
     //---------------------------------------------------------------------------
@@ -171,6 +181,7 @@ mod test_triangular_fuzzy_number {
         let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
         let tfn2: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(2, 3, 4);
 
+        // Test 0 - Maths
         assert_eq!(tfn2 - tfn1, TriangleFuzzyNumber::new(1, 1, 1));
         assert_eq!(tfn1 - tfn2, TriangleFuzzyNumber::new(-1, -1, -1));
         assert_eq!(tfn1 - tfn1, TriangleFuzzyNumber::new(0, 0, 0));
@@ -184,6 +195,7 @@ mod test_triangular_fuzzy_number {
         let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
         let tfn2: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(2, 3, 4);
 
+        // Test 0 - Maths
         assert_eq!(tfn1 * tfn2, TriangleFuzzyNumber::new(2, 6, 12));
         assert_eq!(tfn2 * tfn1, TriangleFuzzyNumber::new(2, 6, 12));
         assert_eq!(tfn1 * tfn1, TriangleFuzzyNumber::new(1, 4, 9));
@@ -196,6 +208,7 @@ mod test_triangular_fuzzy_number {
     fn test_idx_fuzzy_number() {
         let tfn: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
 
+        // Test 0 - Check values
         assert_eq!(tfn[0], 1);
         assert_eq!(tfn[1], 2);
         assert_eq!(tfn[2], 3);
@@ -208,6 +221,7 @@ mod test_triangular_fuzzy_number {
     fn test_idx_oob_fuzzy_number() {
         let tfn: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
 
+        // Panic
         tfn[4];
     }
 
@@ -217,6 +231,7 @@ mod test_triangular_fuzzy_number {
     fn test_idx_mut_fuzzy_number() {
         let mut tfn: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
 
+        // Test 0 - Check values
         assert_eq!(tfn[0], 1);
         assert_eq!(tfn[1], 2);
         assert_eq!(tfn[2], 3);
@@ -224,6 +239,7 @@ mod test_triangular_fuzzy_number {
         // Update tfn
         tfn[0] = 5;
 
+        // Test 1 - Check values
         assert_eq!(tfn[0], 5);
         assert_eq!(tfn[1], 2);
         assert_eq!(tfn[2], 3);
@@ -239,6 +255,7 @@ mod test_triangular_fuzzy_number {
         // Update tfn
         tfn[3] = 5;
 
+        // Panic
         tfn[4];
     }
 
@@ -246,9 +263,11 @@ mod test_triangular_fuzzy_number {
     //
     #[test]
     fn test_ranking_function() {
+        // Test 0
         let tfn: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
         assert_eq!(tfn.ranking_function(), 2.0);
 
+        // Test 1
         let tfn: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(2.0, 3.0, 4.0);
         assert_eq!(tfn.ranking_function(), 3.0);
     }
@@ -259,6 +278,8 @@ mod test_triangular_fuzzy_number {
     fn test_iterator() {
         let tfn: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
         let mut i = 0;
+
+        // Check the value of the iterator
         for t in tfn {
             if i == 0 {
                 assert_eq!(t, 1);
@@ -275,11 +296,19 @@ mod test_triangular_fuzzy_number {
     //
     #[test]
     fn test_compare_fuzzy_numbers() {
-        // let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
-        // let tfn2: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(2.0, 3.0, 4.0);
+        let tfn1: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(1.0, 2.0, 3.0);
+        let tfn2: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(2.0, 3.0, 4.0);
 
-        // let ineq = tfn1.partial_cmp(&tfn2);
-        //
-        // assert!()
+        // Test 0 - Less than
+        let ineq = tfn1.partial_cmp(&tfn2);
+        assert_eq!(ineq.unwrap(), std::cmp::Ordering::Less);
+
+        // Test 0 - Greater than
+        let ineq = tfn2.partial_cmp(&tfn1);
+        assert_eq!(ineq.unwrap(), std::cmp::Ordering::Greater);
+
+        // Test 0 - Equal to
+        let ineq = tfn1.partial_cmp(&tfn1);
+        assert_eq!(ineq.unwrap(), std::cmp::Ordering::Equal);
     }
 }
