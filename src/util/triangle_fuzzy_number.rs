@@ -1,6 +1,5 @@
 //===============================================================================
 // Import standard library
-use core::ops::Add;
 use std::ops;
 
 //===============================================================================
@@ -23,6 +22,15 @@ pub struct TriangleFuzzyNumber<T: FuzzyNumberTrait> {
     c: T,
 }
 
+//==============================================================================
+/// The `TriangleFuzzyNumberIntoIterator` structure encapsulates the triangular fuzzy number
+/// iterator datatype.
+//
+pub struct TriangleFuzzyNumberIntoIterator<T: FuzzyNumberTrait> {
+    tfn: TriangleFuzzyNumber<T>,
+    index: usize,
+}
+
 //===============================================================================
 /// Implementation of `triangle_fuzzy_number`.
 //
@@ -33,6 +41,8 @@ impl<
             + std::ops::Mul
             + std::ops::Div<Output = T>,
     > TriangleFuzzyNumber<T>
+where
+    TriangleFuzzyNumber<T>: IntoIterator,
 {
     //---------------------------------------------------------------------------
     /// Initialize the triangular fuzzy number object
@@ -58,11 +68,10 @@ impl<
     /// # Output
     /// * `T`: Value of the ranking function
     ///
-    pub fn ranking_function(self: TriangleFuzzyNumber<T>) -> f32
+    pub fn ranking_function(self: TriangleFuzzyNumber<T>) -> f64
     where
-        <T as Add>::Output: Add<T> + Into<f32>,
+        T: Into<f64>,
     {
-        // return 0.0;
         return (self.a.into() + self.b.into() + self.c.into()) / 3.0;
     }
 }
@@ -228,7 +237,7 @@ impl<T: FuzzyNumberTrait> ops::IndexMut<usize> for TriangleFuzzyNumber<T> {
 // Implementation of overloaded equality `triangle_fuzzy_number`.
 
 //-------------------------------------------------------------------------------
-// Implementation of the inequality operator for `triangular_fuzzy_number`.
+/// Implementation of the inequality operator for `triangular_fuzzy_number`.
 //
 impl<
         T: FuzzyNumberTrait
@@ -237,13 +246,48 @@ impl<
             + std::ops::Sub
             + std::ops::Mul
             + std::ops::Add<Output = T>
-            + std::ops::Div<Output = T>
-            + Into<f32>,
+            + std::ops::Div<Output = T>,
     > PartialOrd for TriangleFuzzyNumber<T>
 {
-    fn partial_cmp(&self, other: &TriangleFuzzyNumber<T>) -> Option<std::cmp::Ordering> {
-        let s = self.ranking_function();
-        let o = other.ranking_function();
-        return Some(s.total_cmp(&o));
+    fn partial_cmp(&self, _other: &TriangleFuzzyNumber<T>) -> Option<std::cmp::Ordering> {
+        // let s = self.ranking_function();
+        // let o = other.ranking_function();
+        // return Some(s.total_cmp(&o));
+        return None;
+    }
+}
+
+//===============================================================================
+// Implementation of overloaded iterator for `triangle_fuzzy_number`.
+
+//-------------------------------------------------------------------------------
+/// Implementation of the into iterator operator for `triangular_fuzzy_number`.
+//
+impl<T: FuzzyNumberTrait + Copy> IntoIterator for TriangleFuzzyNumber<T> {
+    type Item = T;
+    type IntoIter = TriangleFuzzyNumberIntoIterator<T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        TriangleFuzzyNumberIntoIterator {
+            tfn: self,
+            index: 0,
+        }
+    }
+}
+
+//-------------------------------------------------------------------------------
+/// Implementation of the iterator operator for `triangular_fuzzy_number`.
+//
+impl<T: FuzzyNumberTrait + Copy> Iterator for TriangleFuzzyNumberIntoIterator<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<T> {
+        let result = match self.index {
+            0 => self.tfn.a,
+            1 => self.tfn.b,
+            2 => self.tfn.c,
+            _ => return None,
+        };
+        self.index += 1;
+        Some(result)
     }
 }

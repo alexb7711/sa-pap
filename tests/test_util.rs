@@ -256,8 +256,26 @@ mod test_triangular_fuzzy_number {
     //---------------------------------------------------------------------------
     //
     #[test]
+    fn test_iterator() {
+        let tfn: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
+        let mut i = 0;
+        for t in tfn {
+            if i == 0 {
+                assert_eq!(t, 1);
+            } else if i == 1 {
+                assert_eq!(t, 2);
+            } else if i == 2 {
+                assert_eq!(t, 3);
+            }
+            i += 1;
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
     fn test_compare_fuzzy_numbers() {
-        let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
+        // let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
         // let tfn2: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(2.0, 3.0, 4.0);
 
         // let ineq = tfn1.partial_cmp(&tfn2);
