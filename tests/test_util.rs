@@ -147,6 +147,7 @@ mod test_rand_utils {
 //
 #[cfg(test)]
 mod test_triangular_fuzzy_number {
+    extern crate num;
     //---------------------------------------------------------------------------
     // Import modules
     use sa_pap::util::triangle_fuzzy_number::TriangleFuzzyNumber;
@@ -168,10 +169,16 @@ mod test_triangular_fuzzy_number {
         let tfn2: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(2.0, 3.0, 4.0);
 
         // Test 0 - Maths
-        assert_eq!(tfn1 + tfn2, TriangleFuzzyNumber::new(3, 5, 7));
-        // assert_eq!(tfn2 + tfn1, TriangleFuzzyNumber::new(3, 5, 7));
-        // assert_eq!(tfn1 + tfn1, TriangleFuzzyNumber::new(2, 4, 6));
-        // assert_eq!(tfn2 + tfn2, TriangleFuzzyNumber::new(4, 6, 8));
+        assert_eq!(
+            tfn1 + TriangleFuzzyNumber::<i32>::from(tfn2),
+            TriangleFuzzyNumber::new(3, 5, 7)
+        );
+        assert_eq!(
+            tfn2 + TriangleFuzzyNumber::<f32>::from(tfn1),
+            TriangleFuzzyNumber::new(3.0, 5.0, 7.0)
+        );
+        assert_eq!(tfn1 + tfn1, TriangleFuzzyNumber::new(2, 4, 6));
+        assert_eq!(tfn2 + tfn2, TriangleFuzzyNumber::new(4.0, 6.0, 8.0));
     }
 
     //---------------------------------------------------------------------------
@@ -303,12 +310,31 @@ mod test_triangular_fuzzy_number {
         let ineq = tfn1.partial_cmp(&tfn2);
         assert_eq!(ineq.unwrap(), std::cmp::Ordering::Less);
 
-        // Test 0 - Greater than
+        // Test 1 - Greater than
         let ineq = tfn2.partial_cmp(&tfn1);
         assert_eq!(ineq.unwrap(), std::cmp::Ordering::Greater);
 
-        // Test 0 - Equal to
+        // Test 2 - Equal to
         let ineq = tfn1.partial_cmp(&tfn1);
+        assert_eq!(ineq.unwrap(), std::cmp::Ordering::Equal);
+
+        let tfn1: TriangleFuzzyNumber<i32> = TriangleFuzzyNumber::new(1, 2, 3);
+        let tfn2: TriangleFuzzyNumber<f32> = TriangleFuzzyNumber::new(2.0, 3.0, 4.0);
+
+        // Test 3 - Less than
+        let ineq = tfn1.partial_cmp(&TriangleFuzzyNumber::<i32>::from(tfn2));
+        assert_eq!(ineq.unwrap(), std::cmp::Ordering::Less);
+
+        // Test 4 - Greater than
+        let ineq = tfn2.partial_cmp(&TriangleFuzzyNumber::<f32>::from(tfn1));
+        assert_eq!(ineq.unwrap(), std::cmp::Ordering::Greater);
+
+        // Test 5 - Equal to
+        let ineq = tfn1.partial_cmp(&tfn1);
+        assert_eq!(ineq.unwrap(), std::cmp::Ordering::Equal);
+
+        // Test 6 - Equal to
+        let ineq = tfn2.partial_cmp(&tfn2);
         assert_eq!(ineq.unwrap(), std::cmp::Ordering::Equal);
     }
 }

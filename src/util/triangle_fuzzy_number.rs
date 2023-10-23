@@ -1,3 +1,5 @@
+extern crate num;
+
 //===============================================================================
 // Import standard library
 use std::ops;
@@ -36,6 +38,8 @@ pub struct TriangleFuzzyNumberIntoIterator<T: FuzzyNumberTrait> {
 //
 impl<
         T: FuzzyNumberTrait
+            + Copy
+            + 'static
             + std::ops::Add<Output = T>
             + std::ops::Sub
             + std::ops::Mul
@@ -73,6 +77,25 @@ where
         T: Into<f64>,
     {
         return (self.a.into() + self.b.into() + self.c.into()) / 3.0;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Primitive caster for `TriangleFuzzyNumber`
+    ///
+    /// # Input:
+    /// * other<U>: The `TriangleFuzzyNumber` that is wanting to be casted
+    ///
+    /// # Output:
+    /// * other<T>: The `TriangleFuzzyNumber` casted to type $T$
+    ///
+    pub fn from<U: FuzzyNumberTrait + num::cast::AsPrimitive<T>>(
+        other: TriangleFuzzyNumber<U>,
+    ) -> TriangleFuzzyNumber<T> {
+        TriangleFuzzyNumber {
+            a: other.a.as_(),
+            b: other.b.as_(),
+            c: other.c.as_(),
+        }
     }
 }
 
@@ -243,6 +266,7 @@ impl<
         T: FuzzyNumberTrait
             + std::cmp::PartialEq
             + Copy
+            + 'static
             + std::ops::Sub
             + std::ops::Mul
             + std::ops::Add<Output = T>
