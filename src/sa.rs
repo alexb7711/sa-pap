@@ -23,19 +23,19 @@ pub struct Results {}
 /// Structure for simulated annealing
 //
 #[allow(dead_code)]
-pub struct SA {
+pub struct SA<'a> {
     gsol: Box<dyn Generator>,   // Solution generator
     gsys: Box<dyn Route>,       // Route generator
     gtweak: Box<dyn Generator>, // Solution perterber
     charger: Box<Charger>,      // Charge schedule keeper
     r: Results,                 // Results
-    tf: Box<TempFunc>,          // Cooling Schedule
+    tf: &'a Box<TempFunc>,      // Cooling Schedule
 }
 
 //===============================================================================
 /// Implementation of SA
 //
-impl SA {
+impl<'a> SA<'a> {
     //---------------------------------------------------------------------------
     /// Initialize the SA object
     ///
@@ -48,12 +48,12 @@ impl SA {
     /// * `sa`: Simulated annealing structure
     ///
     pub fn new(
-        config_path: &str,
+        config_path: &'a str,
         gsol: Box<dyn Generator>,
         gsys: Box<dyn Route>,
         gtweak: Box<dyn Generator>,
-        tf: Box<TempFunc>,
-    ) -> SA {
+        tf: &'a Box<TempFunc>,
+    ) -> SA<'a> {
         let sa: SA = SA {
             gsol,
             gsys,
@@ -67,7 +67,7 @@ impl SA {
     }
 
     //---------------------------------------------------------------------------
-    /// Run the SA algorithm
+    /// Initialize and run the SA algorithm
     ///
     /// # Input
     /// * NONE
@@ -75,7 +75,35 @@ impl SA {
     /// # Output
     /// * `Results`: Output of SA algorithm
     ///
-    pub fn run(self: &mut SA) -> Option<Results> {
+    pub fn run(self: &mut SA<'a>) -> Option<Results> {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Initialize
+
+        // Generate schedule
+        self.gsys.run();
+
+        // Create initial solution (`gen_new_visit` or `gen_wait_queue`)
+        let _sol_init = self.gsol.run(&mut self.gsys, &mut self.charger);
+
+        // Select temperature schedule (T) and initialize temperature (t_k)
+        let _t = self.tf;
+        let _tk: u32 = 1000;
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Execute SA
+        return self.execute();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Execute the SA algorithm
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * `Results`: Output of SA algorithm
+    ///
+    fn execute(self: &SA<'a>) -> Option<Results> {
         return None;
     }
 }

@@ -6,7 +6,6 @@
 use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
-use sa_pap::sa::route::Route;
 use sa_pap::sa::temp_func::{CoolSchedule::Geometric, TempFunc};
 use sa_pap::sa::SA;
 // use sa_pap::util::bool_util;
@@ -29,16 +28,13 @@ fn main() {
     //     "./src/config/schedule.yaml",
     // ));
 
-    let mut gsys = Box::new(RouteCSVGenerator::new(
+    let gsys = Box::new(RouteCSVGenerator::new(
         "./src/config/schedule.yaml",
         "./src/config/routes.csv",
     ));
 
-    // Generate the schedule
-    gsys.run();
-
     // Create solution temperature function, generator and tweaker
-    let tf: Box<TempFunc> = Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
+    let tf: &Box<TempFunc> = &Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
     let gsol: Box<GenWaitQueue> = Box::new(GenWaitQueue::new());
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 

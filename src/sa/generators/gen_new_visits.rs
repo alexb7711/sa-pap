@@ -45,7 +45,7 @@ impl Generator for GenNewVisits {
     /// # Output
     /// * Updated charger object
     ///
-    fn run(self: &mut GenNewVisits, r: &mut dyn Route, c: &mut Charger) -> bool {
+    fn run(self: &mut GenNewVisits, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get information about the route
         let mut route = r.get_route_events();
 

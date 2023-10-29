@@ -13,5 +13,5 @@ use crate::sa::route::Route;
 /// Trait to define `Generator` interfaces
 //
 pub trait Generator {
-    fn run(&mut self, s: &mut dyn Route, c: &mut Charger) -> bool;
+    fn run(&mut self, s: &mut Box<dyn Route>, c: &mut Charger) -> bool;
 }
