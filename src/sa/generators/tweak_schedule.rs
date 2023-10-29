@@ -18,7 +18,7 @@ use crate::sa::route::Route;
 //===============================================================================
 /// Structure defining the information to create a charge schedule
 //
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, EnumIter)]
 enum Primitives {
     NewCharger,
     NewWindow,

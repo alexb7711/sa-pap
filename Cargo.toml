@@ -10,3 +10,4 @@ rand      = "0.8.4"
 yaml-rust = "0.4"
 csv       = "1.1"
 num       = "0.4.1"
+strum     = { version = "0.25", features = ["derive"] }
