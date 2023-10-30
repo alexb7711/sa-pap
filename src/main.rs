@@ -34,7 +34,7 @@ fn main() {
     ));
 
     // Create solution temperature function, generator and tweaker
-    let tf: &Box<TempFunc> = &Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
+    let tf: &mut Box<TempFunc> = &mut Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
     let gsol: Box<GenWaitQueue> = Box::new(GenWaitQueue::new());
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 

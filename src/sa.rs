@@ -29,7 +29,7 @@ pub struct SA<'a> {
     gtweak: Box<dyn Generator>, // Solution perterber
     charger: Box<Charger>,      // Charge schedule keeper
     r: Results,                 // Results
-    tf: &'a Box<TempFunc>,      // Cooling Schedule
+    tf: &'a mut Box<TempFunc>,      // Cooling Schedule
 }
 
 //===============================================================================
@@ -52,7 +52,7 @@ impl<'a> SA<'a> {
         gsol: Box<dyn Generator>,
         gsys: Box<dyn Route>,
         gtweak: Box<dyn Generator>,
-        tf: &'a Box<TempFunc>,
+        tf: &'a mut Box<TempFunc>,
     ) -> SA<'a> {
         let sa: SA = SA {
             gsol,
@@ -79,31 +79,34 @@ impl<'a> SA<'a> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
 
-        // Generate schedule
+        // Generate new solution
         self.gsys.run();
 
-        // Create initial solution (`gen_new_visit` or `gen_wait_queue`)
-        let _sol_init = self.gsol.run(&mut self.gsys, &mut self.charger);
-
-        // Select temperature schedule (T) and initialize temperature (t_k)
-        let _t = self.tf;
-        let _tk: u32 = 1000;
+        // Set local search iteration count
+        let k = 1000;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
-        return self.execute();
-    }
 
-    //---------------------------------------------------------------------------
-    /// Execute the SA algorithm
-    ///
-    /// # Input
-    /// * NONE
-    ///
-    /// # Output
-    /// * `Results`: Output of SA algorithm
-    ///
-    fn execute(self: &SA<'a>) -> Option<Results> {
+        // While the temperature function is cooling down
+        while let Some(_t) = self.tf.step() {
+            // Generate new solution
+            self.gsys.run();
+
+            // Calculate objective function
+
+            // Compare the objective functions
+
+            // Iterate though local search
+            for _ in 0..k {
+                // Tweak the schedule
+
+                // Calculate objective function
+
+                // Compare the objective functions
+            }
+        }
+
         return None;
     }
 }
