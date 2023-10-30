@@ -33,7 +33,8 @@ mod test_generators {
         let mut charger: Charger = Charger::new(yaml_path(), true, None);
 
         // Create CSV generator
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: Box<dyn Route> = Box::new(rg);
         rg.run();
 
         // Create the generator
