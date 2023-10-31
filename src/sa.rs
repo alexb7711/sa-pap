@@ -75,7 +75,7 @@ impl<'a> SA<'a> {
     /// # Output
     /// * `Results`: Output of SA algorithm
     ///
-    pub fn run(self: &mut SA<'a>, lff: bool) -> Option<Results> {
+    pub fn run(self: &mut SA<'a>, _lff: bool) -> Option<Results> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
 
