@@ -23,19 +23,19 @@ pub struct Results {}
 /// Structure for simulated annealing
 //
 #[allow(dead_code)]
-pub struct SA {
+pub struct SA<'a> {
     gsol: Box<dyn Generator>,   // Solution generator
     gsys: Box<dyn Route>,       // Route generator
     gtweak: Box<dyn Generator>, // Solution perterber
     charger: Box<Charger>,      // Charge schedule keeper
     r: Results,                 // Results
-    tf: Box<TempFunc>,          // Cooling Schedule
+    tf: &'a mut Box<TempFunc>,  // Cooling Schedule
 }
 
 //===============================================================================
 /// Implementation of SA
 //
-impl SA {
+impl<'a> SA<'a> {
     //---------------------------------------------------------------------------
     /// Initialize the SA object
     ///
@@ -48,12 +48,12 @@ impl SA {
     /// * `sa`: Simulated annealing structure
     ///
     pub fn new(
-        config_path: &str,
+        config_path: &'a str,
         gsol: Box<dyn Generator>,
         gsys: Box<dyn Route>,
         gtweak: Box<dyn Generator>,
-        tf: Box<TempFunc>,
-    ) -> SA {
+        tf: &'a mut Box<TempFunc>,
+    ) -> SA<'a> {
         let sa: SA = SA {
             gsol,
             gsys,
@@ -67,15 +67,64 @@ impl SA {
     }
 
     //---------------------------------------------------------------------------
-    /// Run the SA algorithm
+    /// Initialize and run the SA algorithm
     ///
     /// # Input
-    /// * NONE
+    /// * lff: Load previous results from file
     ///
     /// # Output
     /// * `Results`: Output of SA algorithm
     ///
-    pub fn run(self: &mut SA) -> Option<Results> {
+    pub fn run(self: &mut SA<'a>, lff: bool) -> Option<Results> {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Initialize
+
+        // Generate new solution
+        self.gsys.run();
+
+        // Set local search iteration count
+        let k = 1000;
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Execute SA
+
+        // While the temperature function is cooling down
+        while let Some(_t) = self.tf.step() {
+            // Generate new solution
+            self.gsys.run();
+
+            // Calculate objective function
+
+            // Compare the objective functions
+            self.cmp_obj_fnc();
+
+            // Iterate though local search
+            for _ in 0..k {
+                // Tweak the schedule
+                self.gtweak.run(&mut self.gsys, &mut self.charger);
+
+                // Calculate objective function
+
+                // Compare the objective functions
+                self.cmp_obj_fnc();
+            }
+        }
+
         return None;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Compare objective functions and return the kept result.
+    ///
+    /// # Input
+    /// * j1: Previous objective function
+    /// * j2: New Objective function
+    /// * t : Temperature
+    ///
+    /// # Output
+    /// * `Results`: Output of SA algorithm
+    ///
+    fn cmp_obj_fnc(self: &mut SA<'a>) -> bool {
+        return false;
     }
 }

@@ -44,7 +44,7 @@ impl Generator for GenWaitQueue {
     /// # Output
     /// * Updated charger object
     ///
-    fn run(self: &mut GenWaitQueue, r: &mut dyn Route, c: &mut Charger) -> bool {
+    fn run(self: &mut GenWaitQueue, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get information about the route
         let mut route = r.get_route_events();
 

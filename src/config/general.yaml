@@ -4,6 +4,9 @@ jobs: 8
 # 1: True; 0: False
 plot: 1
 
+# "rand"; "csv"
+schedule: "csv"
+
 # Time limit to solve [s]
 time_limit: 100
 

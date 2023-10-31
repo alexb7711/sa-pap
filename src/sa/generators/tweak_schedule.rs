@@ -68,7 +68,7 @@ impl TweakSchedule {
 /// Implementation of `Generator` for `TweakSchedule`
 //
 impl Generator for TweakSchedule {
-    fn run(self: &mut TweakSchedule, r: &mut dyn Route, c: &mut Charger) -> bool {
+    fn run(self: &mut TweakSchedule, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Track the success of tweak
         let mut success: bool = false;
 
