@@ -29,7 +29,7 @@ pub struct SA<'a> {
     gtweak: Box<dyn Generator>, // Solution perterber
     charger: Box<Charger>,      // Charge schedule keeper
     r: Results,                 // Results
-    tf: &'a mut Box<TempFunc>,      // Cooling Schedule
+    tf: &'a mut Box<TempFunc>,  // Cooling Schedule
 }
 
 //===============================================================================
@@ -70,12 +70,12 @@ impl<'a> SA<'a> {
     /// Initialize and run the SA algorithm
     ///
     /// # Input
-    /// * NONE
+    /// * lff: Load previous results from file
     ///
     /// # Output
     /// * `Results`: Output of SA algorithm
     ///
-    pub fn run(self: &mut SA<'a>) -> Option<Results> {
+    pub fn run(self: &mut SA<'a>, lff: bool) -> Option<Results> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
 
@@ -96,17 +96,35 @@ impl<'a> SA<'a> {
             // Calculate objective function
 
             // Compare the objective functions
+            self.cmp_obj_fnc();
 
             // Iterate though local search
             for _ in 0..k {
                 // Tweak the schedule
+                self.gtweak.run(&mut self.gsys, &mut self.charger);
 
                 // Calculate objective function
 
                 // Compare the objective functions
+                self.cmp_obj_fnc();
             }
         }
 
         return None;
+    }
+
+    //---------------------------------------------------------------------------
+    /// Compare objective functions and return the kept result.
+    ///
+    /// # Input
+    /// * j1: Previous objective function
+    /// * j2: New Objective function
+    /// * t : Temperature
+    ///
+    /// # Output
+    /// * `Results`: Output of SA algorithm
+    ///
+    fn cmp_obj_fnc(self: &mut SA<'a>) -> bool {
+        return false;
     }
 }
