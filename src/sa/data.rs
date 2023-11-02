@@ -40,7 +40,7 @@ pub struct Parameter {
     pub e: Vec<f32>,     // Exit time for bus visit i                      [hr]
     pub ep: Vec<f32>,    // (epsilon) Cost of using charger q per unit time
     pub fast: usize,     // Number of fast chargers
-    pub gam: Vec<u16>,   // Array of values indicating the next index for bus i
+    pub gam: Vec<i16>,   // Array of values indicating the next index for bus i
     pub k: Vec<f32>,     // (kappa) Battery capacity for bus i             [MJ]
     pub l: Vec<f32>,     // (lambda) Discharge of bus visit over route i
     pub m: Vec<usize>,   // Cost of bus i being assigned to charger q

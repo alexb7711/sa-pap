@@ -23,15 +23,13 @@ pub struct BilinearLinearization {}
 impl Constraint for BilinearLinearization {
     fn run(&mut self, d: &mut Data, i: usize, j: usize) -> bool {
         // Extract parameters
-        let Gam = d.param.Gam;
         let M = d.param.T;
         let Q = d.param.Q;
-        let gam = d.param.gam;
 
         // Extract decision variables
-        let w = d.dec.w;
-        let s = d.dec.s;
-        let g = d.dec.g;
+        let w = &d.dec.w;
+        let s = &d.dec.s;
+        let g = &d.dec.g;
 
         // Constraint
 

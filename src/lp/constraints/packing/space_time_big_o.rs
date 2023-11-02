@@ -27,17 +27,17 @@ impl Constraint for SpaceTimeBigO {
         let S = d.param.S;
 
         // Extract decision variables
-        let psi = d.dec.psi;
-        let sig = d.dec.sigma;
-        let v = d.dec.v;
-        let s = d.dec.s;
-        let u = d.dec.u;
+        let psi = &d.dec.psi;
+        let sig = &d.dec.sigma;
+        let v = &d.dec.v;
+        let s = &d.dec.s;
+        let u = &d.dec.u;
 
         // Constraint
 
         if i != j {
             // Check the spatial allocations
-            if !(v[i] - v[j] - S - (psi[i][j] as usize - S) * Q >= 0) {
+            if !((v[i] - v[j] - S - (psi[i][j] as usize - S) * Q) as i32 >= 0) {
                 return false;
             }
 

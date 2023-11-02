@@ -24,13 +24,13 @@ impl Constraint for ValidInitDepEndTimes {
     fn run(&mut self, d: &mut Data, i: usize, j: usize) -> bool {
         // Extract parameters
         let T = d.param.T;
-        let a = d.param.a;
-        let e = d.param.e;
+        let a = &d.param.a;
+        let e = &d.param.e;
 
         // Extract decision variables
-        let c = d.dec.c;
-        let u = d.dec.u;
-        let s = d.dec.s;
+        let c = &d.dec.c;
+        let u = &d.dec.u;
+        let s = &d.dec.s;
 
         // Constraint
 
