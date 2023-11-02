@@ -41,12 +41,12 @@ impl Constraint for ChargePropogation {
         let charge: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q]).sum();
 
         // Ensure the charge does not exceed the battery limit
-        if !(eta[i] + charge <= kappa[Gam[i]]) {
+        if !(eta[i] + charge <= kappa[Gam[i] as usize]) {
             return false;
         }
 
         // Ensure the charge does not go below the minimum allowed threshold
-        if !(eta[i] + charge - l[i] >= nu * kappa[Gam[i]]) {
+        if !(eta[i] + charge - l[i] >= nu * kappa[Gam[i] as usize]) {
             return false;
         }
 

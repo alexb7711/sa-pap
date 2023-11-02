@@ -23,8 +23,8 @@ pub struct ChargePropogation {}
 impl Constraint for ChargePropogation {
     fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
         // Extract decision variables
-        let v = &mut d.dec.v;
-        let w = &d.dec.w;
+        let v = &d.dec.v;
+        let w = &mut d.dec.w;
 
         // Constraint
 
@@ -33,7 +33,7 @@ impl Constraint for ChargePropogation {
 
         // Ensure the visit vector does not have simultaneous assignments
         // https://stackoverflow.com/questions/69847288/is-there-an-easy-way-to-count-booleans-in-rust/69847395?noredirect=1#comment123467398_69847395
-        if w[i].into_iter().filter(|a| *a).count() > 1 {
+        if w[i].clone().into_iter().filter(|a| *a).count() > 1 {
             return false;
         }
 
