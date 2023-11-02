@@ -31,7 +31,7 @@ pub struct Parameter {
     pub K: u16,          // Discrete number of steps in T
     pub N: usize,        // Number of total visits
     pub Q: usize,        // Number of chargers
-    pub S: u16,          // Length of a single charger
+    pub S: usize,        // Length of a single bus
     pub T: f32,          // Time horizon                                   [hr]
     pub a: Vec<f32>,     // Arrival time of bus visit i                    [hr]
     pub alpha: Vec<f32>, // Initial charge percentage for bus a            [%]
@@ -65,6 +65,6 @@ pub struct DecisionVar {
     pub s: Vec<f32>,           //  Time to charge for bus visit i         [hr]
     pub sigma: Vec<Vec<bool>>, //  Determines if i is "fully below" j
     pub u: Vec<f32>,           //  Initial charge time for visit i        [hr]
-    pub v: Vec<u16>,           //  Assigned queue for visit i
+    pub v: Vec<usize>,         //  Assigned queue for visit i
     pub w: Vec<Vec<bool>>,     //  Matrix representation of bus charger assignments
 }

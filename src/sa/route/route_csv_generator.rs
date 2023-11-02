@@ -88,6 +88,7 @@ impl RouteCSVGenerator {
         self.data.param.N = self.count_visits(&self.config, &csv);
         self.data.param.T = eod - bod;
         self.data.param.K = self.config["time"]["K"].as_i64().unwrap() as u16;
+        self.data.param.S = 1;
 
         let A = self.data.param.A;
         let N = self.data.param.N;

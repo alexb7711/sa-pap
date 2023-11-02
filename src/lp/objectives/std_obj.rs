@@ -4,7 +4,8 @@ use crate::lp::objectives::Objective;
 use crate::sa::data::Data;
 
 //===============================================================================
-/// Structure defining the information to create a charge schedule
+/// Structure defining the data required to calculate the standard objective
+/// function for SA PAP
 //
 pub struct StdObj {}
 
