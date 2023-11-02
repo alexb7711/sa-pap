@@ -22,38 +22,19 @@ pub struct ChargePropogation {}
 #[allow(non_snake_case)]
 impl Constraint for ChargePropogation {
     fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
-        // Extract parameters
-        let Q = d.param.Q;
-        let Gam = &d.param.Gam;
-        let gam = &d.param.gam;
-        let nu = &d.param.nu;
-        let r = &d.param.r;
-        let kappa = &d.param.k;
-        let l = &d.param.l;
-
         // Extract decision variables
-        let eta = &mut d.dec.eta;
+        let v = &mut d.dec.v;
         let w = &d.dec.w;
 
         // Constraint
 
-        // Calculate charge amount
-        let charge: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q]).sum();
+        // Determine the queue vector `w` for visit `i`
+        w[i][v[i]] = true;
 
-        // Ensure the charge does not exceed the battery limit
-        if !(eta[i] + charge <= kappa[Gam[i]]) {
+        // Ensure the visit vector does not have simultaneous assignments
+        // https://stackoverflow.com/questions/69847288/is-there-an-easy-way-to-count-booleans-in-rust/69847395?noredirect=1#comment123467398_69847395
+        if w[i].into_iter().filter(|a| *a).count() > 1 {
             return false;
-        }
-
-        // Ensure the charge does not go below the minimum allowed threshold
-        if !(eta[i] + charge - l[i] >= nu * kappa[Gam[i]]) {
-            return false;
-        }
-
-        // If the BEB has another visit
-        if gam[i] >= 0 {
-            // Update the next charge
-            eta[gam[i] as usize] = eta[i] + charge - l[i];
         }
 
         return true;

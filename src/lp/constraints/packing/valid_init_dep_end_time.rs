@@ -21,7 +21,7 @@ pub struct ValidInitDepEndTimes {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ValidInitDepEndTimes {
-    fn run(&mut self, d: &mut Data, i: usize, j: usize) -> bool {
+    fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
         // Extract parameters
         let T = d.param.T;
         let a = &d.param.a;

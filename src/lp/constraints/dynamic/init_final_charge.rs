@@ -6,10 +6,10 @@ use crate::sa::data::Data;
 //===============================================================================
 /// Structure defining the information to calculate service time
 //
-pub struct ChargePropogation {}
+pub struct InitFinalCharge {}
 
 //===============================================================================
-/// Implementation of `Constraint` for `ChargePropogation` structure.
+/// Implementation of `Constraint` for `InitFinalCharge` structure.
 ///
 /// # Input
 /// * d: Data for the current model
@@ -20,40 +20,31 @@ pub struct ChargePropogation {}
 /// * bool: Constraint successfully applied and is true
 ///
 #[allow(non_snake_case)]
-impl Constraint for ChargePropogation {
+impl Constraint for InitFinalCharge {
     fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
         // Extract parameters
-        let Q = d.param.Q;
         let Gam = &d.param.Gam;
-        let gam = &d.param.gam;
-        let nu = &d.param.nu;
-        let r = &d.param.r;
+        let alpha = &d.param.alpha;
+        let beta = &d.param.beta;
         let kappa = &d.param.k;
-        let l = &d.param.l;
 
         // Extract decision variables
         let eta = &mut d.dec.eta;
-        let w = &d.dec.w;
 
         // Constraint
 
-        // Calculate charge amount
-        let charge: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q]).sum();
-
-        // Ensure the charge does not exceed the battery limit
-        if !(eta[i] + charge <= kappa[Gam[i]]) {
-            return false;
+        // If the current visit is the initial visit for BEB `i`
+        if alpha[i] > 0.0 {
+            if !(alpha[i] * kappa[Gam[i] as usize] == eta[i]) {
+                return false;
+            }
         }
 
-        // Ensure the charge does not go below the minimum allowed threshold
-        if !(eta[i] + charge - l[i] >= nu * kappa[Gam[i]]) {
-            return false;
-        }
-
-        // If the BEB has another visit
-        if gam[i] >= 0 {
-            // Update the next charge
-            eta[gam[i] as usize] = eta[i] + charge - l[i];
+        // If the current visit is the final visit for BEB `i`
+        if beta[i] > 0.0 {
+            if !(eta[i] >= beta[i] * kappa[Gam[i] as usize]) {
+                return false;
+            }
         }
 
         return true;

@@ -21,7 +21,7 @@ pub struct BilinearLinearization {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for BilinearLinearization {
-    fn run(&mut self, d: &mut Data, i: usize, j: usize) -> bool {
+    fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
         // Extract parameters
         let M = d.param.T;
         let Q = d.param.Q;
