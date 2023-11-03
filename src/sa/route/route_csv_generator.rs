@@ -88,6 +88,7 @@ impl RouteCSVGenerator {
         self.data.param.N = self.count_visits(&self.config, &csv);
         self.data.param.T = eod - bod;
         self.data.param.K = self.config["time"]["K"].as_i64().unwrap() as u16;
+        self.data.param.S = 1;
 
         let A = self.data.param.A;
         let N = self.data.param.N;
@@ -95,8 +96,8 @@ impl RouteCSVGenerator {
         self.data.param.a.reserve(N);
         self.data.param.e.reserve(N);
         self.data.param.D.reserve(N);
-        self.data.param.g.reserve(N);
-        self.data.param.G.reserve(N);
+        self.data.param.gam.reserve(N);
+        self.data.param.Gam.reserve(N);
 
         let slow_c = [self.config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
             .repeat(self.config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
@@ -118,7 +119,7 @@ impl RouteCSVGenerator {
             [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(A);
 
         let Q = self.data.param.Q;
-        self.data.param.m = (0..Q).map(|x| 1000 * x).collect();
+        self.data.param.m = (0..Q).map(|x| 1000 * (x + 1)).collect();
 
         self.data.param.nu = self.config["buses"]["min_charge"].as_f64().unwrap() as f32;
         self.data.param.D = [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);

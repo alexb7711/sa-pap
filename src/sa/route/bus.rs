@@ -10,7 +10,6 @@ use std::cmp::Ordering;
 /// * [Sorting structs](rust-lang-nursery.github.iol/rust-cookbook/algorithms/sorting.html)
 /// * [Implementation for partial equality](rosettacode.org/wiki/Sort_an_array_of_composite_structures#Rust)
 ///
-#[allow(dead_code)]
 #[derive(Debug, Default, Clone)]
 pub struct Bus {
     pub bat_capacity: f32,
