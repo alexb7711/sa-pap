@@ -353,8 +353,115 @@ impl RouteCSVGenerator {
     }
 
     //---------------------------------------------------------------------------
-    //
-    fn generate_schedule_params(self: &RouteCSVGenerator) {}
+    /// Populate all the input parameters with the data provided by the route
+    /// events.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn generate_schedule_params(self: &RouteCSVGenerator) {
+        // Determine Gamma array
+        self.gen_visit_id();
+
+        // Determine gamma array
+        self.find_next_visit();
+
+        // Assign initial charges
+        self.determine_initial_charges();
+
+        // Assign final charges
+        self.determine_final_charges();
+
+        // Assign arrival times to arrival array
+        self.assign_arrival_times();
+
+        // Assign departure times to departure array
+        self.assign_departure_times();
+
+        // Assign discharge quantities to discharge array
+        self.assign_discharge();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Create a list of BEB ids in order of arrival.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn gen_visit_id(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    /// Create a list indices that indicate the next arrival index for bus
+    /// Gamma[i].
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn find_next_visit(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    /// Assign initial charges to all BEBs.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn determine_initial_charges(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    /// Assign final charges to all BEBs.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn determine_final_charges(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    /// Create a list of arrival times for all visits in order.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn assign_arrival_times(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    /// Create a list of departure times for all visits in order.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn assign_departure_times(self: &RouteCSVGenerator) {}
+
+    //---------------------------------------------------------------------------
+    /// Create a list of discharge quantities for all visits in order.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn assign_discharge(self: &RouteCSVGenerator) {}
 }
 
 //===============================================================================
