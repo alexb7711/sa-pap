@@ -160,11 +160,11 @@ impl RouteCSVGenerator {
 
             // If the bus does not go on route immediately after the working day has
             // begun
-            if r.first().unwrap() > &bod {
+            if *r.first().unwrap() > bod {
                 N += 1 // Increment the visit counter
             }
             // If the bus arrives before the end of the working day
-            if r.last().unwrap() < &eod {
+            if *r.last().unwrap() < eod {
                 N += 1 // Increment the visit counter
             }
         }
@@ -210,11 +210,13 @@ impl RouteCSVGenerator {
 
                 // If the first visit is at the BOD
                 if j == 0 && r[j] > bod {
-                    tmp_route.push(vec![bod, bod]);
+                    // The first arrival time is at BOD
+                    tmp_route.push(vec![bod, departure]);
                     continue;
                 }
-                // Otherwise the first visit after the BOD
+                // Otherwise the first visit is after the BOD
                 else if j == 0 && r[j] == bod {
+                    // Put in dummy visit to propagate discharge
                     tmp_route.push(vec![bod, bod]);
                     continue;
                 }
@@ -362,7 +364,10 @@ impl RouteCSVGenerator {
     /// # Output
     /// * NONE
     ///
-    fn generate_schedule_params(self: &RouteCSVGenerator) {
+    fn generate_schedule_params(self: &mut RouteCSVGenerator) {
+        // Sort visits by arrival time
+        self.route.sort();
+
         // Determine Gamma array
         self.gen_visit_id();
 
@@ -394,7 +399,14 @@ impl RouteCSVGenerator {
     /// # Output
     /// * None
     ///
-    fn gen_visit_id(self: &RouteCSVGenerator) {}
+    fn gen_visit_id(self: &mut RouteCSVGenerator) {
+        self.data.param.Gam = self
+            .route
+            .iter()
+            .map(|i| i.id)
+            .collect::<Vec<u16>>()
+            .clone();
+    }
 
     //---------------------------------------------------------------------------
     /// Create a list indices that indicate the next arrival index for bus
