@@ -5,18 +5,19 @@
 pub mod parse_routes;
 
 //===============================================================================
-// External Crates
+// Standard library
 use csv;
 use std::boxed::Box;
 use std::collections::HashMap;
 use yaml_rust::Yaml;
 
 //===============================================================================
-// Import Crates
+// Import modules
 use crate::sa::data::Data;
 use crate::sa::route::bus::Bus;
 use crate::sa::route::route_event::RouteEvent;
 use crate::sa::route::Route;
+use crate::util::array_util::arry_util::{first, last};
 use crate::util::fileio::yaml_loader;
 
 //===============================================================================
@@ -66,6 +67,19 @@ impl RouteCSVGenerator {
         return rg;
     }
 
+    //---------------------------------------------------------------------------
+    /// Synchronize the `data` data with `route`.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    pub fn update(self: &mut RouteCSVGenerator) {
+        self.generate_schedule_params();
+    }
+
     //===========================================================================
     // PRIVATE
 
@@ -105,8 +119,8 @@ impl RouteCSVGenerator {
             .repeat(self.config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
         self.data.param.Q = slow_c.len() + fast_c.len();
 
-        self.data.param.alpha.reserve(A);
-        self.data.param.beta.reserve(A);
+        self.data.param.alpha = vec![0.0; A];
+        self.data.param.beta = vec![0.0; A];
 
         let T = self.data.param.T;
         let K = self.data.param.K;
@@ -160,11 +174,11 @@ impl RouteCSVGenerator {
 
             // If the bus does not go on route immediately after the working day has
             // begun
-            if r.first().unwrap() > &bod {
+            if *r.first().unwrap() > bod {
                 N += 1 // Increment the visit counter
             }
             // If the bus arrives before the end of the working day
-            if r.last().unwrap() < &eod {
+            if *r.last().unwrap() < eod {
                 N += 1 // Increment the visit counter
             }
         }
@@ -210,11 +224,13 @@ impl RouteCSVGenerator {
 
                 // If the first visit is at the BOD
                 if j == 0 && r[j] > bod {
-                    tmp_route.push(vec![bod, bod]);
+                    // The first arrival time is at BOD
+                    tmp_route.push(vec![bod, departure]);
                     continue;
                 }
-                // Otherwise the first visit after the BOD
+                // Otherwise the first visit is after the BOD
                 else if j == 0 && r[j] == bod {
+                    // Put in dummy visit to propagate discharge
                     tmp_route.push(vec![bod, bod]);
                     continue;
                 }
@@ -248,10 +264,10 @@ impl RouteCSVGenerator {
     ///   - route : Bus routes in start/stop form
     ///
     /// Output:
-    ///   - discharge : Battery discharge over each visit
+    ///   - discharge : Hash map of bus IDs with discharge vector
     ///
-    fn calc_discharge(self: &RouteCSVGenerator) -> Vec<Vec<f32>> {
-        let mut discharge: Vec<Vec<f32>> = Vec::new();
+    fn calc_discharge(self: &RouteCSVGenerator) -> HashMap<usize, Vec<f32>> {
+        let mut discharge: HashMap<usize, Vec<f32>> = HashMap::new();
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let routes = &self.csv_schedule;
 
@@ -273,7 +289,7 @@ impl RouteCSVGenerator {
             }
 
             // Append the list of discharges
-            discharge.push(discharge_tmp);
+            discharge.insert(*b as usize, discharge_tmp);
         }
 
         return discharge;
@@ -287,27 +303,28 @@ impl RouteCSVGenerator {
     /// * dis  : Vector of route discharges
     ///
     /// # Output
-    /// * route: Vector of RouteEvents consolidating the input parameters.
+    /// * route: Vector of RouteEvents consolidating the input parameters in order
+    ///          of arrival time.
     ///
     fn populate_route_events(
         self: &RouteCSVGenerator,
         visit: &HashMap<u16, Vec<Vec<f32>>>,
-        discharge: &Vec<Vec<f32>>,
+        discharge: &HashMap<usize, Vec<f32>>,
     ) -> Vec<RouteEvent> {
         // Allocate route buffer space
         let mut route: Vec<RouteEvent> = Vec::new();
 
         // Loop through each visit/discharge
-        for it in visit.into_iter().zip(discharge) {
+        for it in visit.into_iter() {
             // Extract visit and discharge
-            let (vis, dis) = it;
+            let vis = it;
 
             // Extract the bus ID and visit
-            let b: &u16 = vis.0;
+            let b: usize = *vis.0 as usize;
             let vis: &Vec<Vec<f32>> = vis.1;
 
             // Loop through each start/stop pair
-            for it in vis.into_iter().zip(dis) {
+            for it in vis.into_iter().zip(&discharge[&b]) {
                 // Extract iterator
                 let (v, d) = it;
 
@@ -317,7 +334,7 @@ impl RouteCSVGenerator {
                     bus: self.gen_bus(),
                     departure_time: v[1],
                     discharge: *d,
-                    id: *b,
+                    id: b as u16,
                     route_time: v[1] - v[0],
                     ..Default::default()
                 };
@@ -326,6 +343,9 @@ impl RouteCSVGenerator {
                 route.push(r)
             }
         }
+
+        // Sort visits by arrival time
+        route.sort();
 
         return route;
     }
@@ -353,8 +373,189 @@ impl RouteCSVGenerator {
     }
 
     //---------------------------------------------------------------------------
-    //
-    fn generate_schedule_params(self: &RouteCSVGenerator) {}
+    /// Populate all the input parameters with the data provided by the route
+    /// events.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn generate_schedule_params(self: &mut RouteCSVGenerator) {
+        // Determine Gamma array
+        self.gen_visit_id();
+
+        // Determine gamma array
+        self.find_next_visit();
+
+        // Assign initial charges
+        self.determine_initial_charges();
+
+        // Assign final charges
+        self.determine_final_charges();
+
+        // Assign arrival times to arrival array
+        self.assign_arrival_times();
+
+        // Assign departure times to departure array
+        self.assign_departure_times();
+
+        // Assign discharge quantities to discharge array
+        self.assign_discharge();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Create a list of BEB ids in order of arrival.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn gen_visit_id(self: &mut RouteCSVGenerator) {
+        self.data.param.Gam = self
+            .route
+            .iter()
+            .map(|i| i.id)
+            .collect::<Vec<u16>>()
+            .clone();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Create a list indices that indicate the next arrival index for bus
+    /// Gamma[i].
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn find_next_visit(self: &mut RouteCSVGenerator) {
+        // Local variables
+        let A = self.data.param.A;
+        let Gam = &mut self.data.param.Gam;
+
+        // Populate gamma buffer with "no next visit" value
+        self.data.param.gam = vec![-1; Gam.len()];
+        let gam = &mut self.data.param.gam;
+
+        // Keep track of the previous index each BEB has arrived at
+        let mut next_idx: Vec<usize> = (0..A).map(|x| last(&Gam, x as u16).unwrap()).collect();
+
+        // Keep track of the last instance each bus arrives
+        let last_idx = next_idx.clone();
+
+        // Loop through each BEB visit
+        for i in (0..self.route.len()).rev() {
+            // Make sure that the index being checked is greater than the first
+            // visit. If it is, set the previous index value equal to the current.
+            // In other words, index i's value indicates the next index the bus
+            // will visit.
+            if i < last_idx[Gam[i] as usize] {
+                // Update `gamma` array
+                gam[i] = next_idx[Gam[i] as usize] as i16;
+
+                // Update `next_idx`
+                next_idx[Gam[i] as usize] = i;
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    /// Assign initial charges to all BEBs.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn determine_initial_charges(self: &mut RouteCSVGenerator) {
+        // Local variables
+        let init_charge = self.config["initial_charge"]["max"]
+            .clone()
+            .into_f64()
+            .unwrap() as f32;
+        let Gam = &self.data.param.Gam;
+
+        // Loop through each BEB
+        for a in 0..self.data.param.A {
+            // Assign the initial charge for BEB `a`
+            self.data.param.alpha[first(Gam, a as u16).unwrap()] = init_charge;
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    /// Assign final charges to all BEBs.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn determine_final_charges(self: &mut RouteCSVGenerator) {
+        // Local variables
+        let final_charge = self.config["final_charge"].clone().into_f64().unwrap() as f32;
+        let gam = &self.data.param.gam;
+        let Gam = &self.data.param.Gam;
+        let beta = &mut self.data.param.beta;
+
+        // Loop through each BEB
+        for i in 0..gam.len() {
+            if gam[i] == -1 {
+                beta[Gam[i] as usize] = final_charge;
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    /// Create a list of arrival times for all visits in order.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn assign_arrival_times(self: &mut RouteCSVGenerator) {
+        self.data.param.a = (0..self.route.len())
+            .map(|x| self.route[x].arrival_time)
+            .collect();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Create a list of departure times for all visits in order.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn assign_departure_times(self: &mut RouteCSVGenerator) {
+        self.data.param.e = (0..self.route.len())
+            .map(|x| self.route[x].departure_time)
+            .collect();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Create a list of discharge quantities for all visits in order.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn assign_discharge(self: &mut RouteCSVGenerator) {
+        self.data.param.l = (0..self.route.len())
+            .map(|x| self.route[x].discharge)
+            .collect();
+    }
 }
 
 //===============================================================================
@@ -382,6 +583,7 @@ impl Route for RouteCSVGenerator {
         // Estimate discharge over routes
         let dis = self.calc_discharge();
 
+        // Populate route data
         self.route = self.populate_route_events(&visits, &dis);
 
         // Generate schedule parameters
@@ -441,13 +643,15 @@ impl Route for RouteCSVGenerator {
     }
 }
 
-//===============================================================================
+//==============================================================================
 // TEST PRIVATE METHODS IN ROUTE GENERATOR
 #[cfg(test)]
 mod priv_test_route_gen {
+    //==========================================================================
+    // Import modules
     use super::{Route, RouteCSVGenerator, RouteEvent};
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     fn create_object() -> RouteCSVGenerator {
         return RouteCSVGenerator::new(
@@ -456,7 +660,7 @@ mod priv_test_route_gen {
         );
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_convert_route_to_visit() {
@@ -492,7 +696,7 @@ mod priv_test_route_gen {
         assert_eq!(r[2], vec![11.683333, 13.783334]);
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_discharge() {
@@ -511,30 +715,32 @@ mod priv_test_route_gen {
         let b: usize = 0;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
 
         // Test 2
         let j: usize = 4;
         let b: usize = 2;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
 
         // Test 3
         let j: usize = 6;
         let b: usize = 8;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
 
         // Test 4
         let j: usize = 10;
         let b: usize = 15;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
     }
 
+    //--------------------------------------------------------------------------
+    //
     #[test]
     fn test_visit() {
         // Create the CSV Generator object
@@ -555,12 +761,205 @@ mod priv_test_route_gen {
             arrival_time: visit[&0][0][0],
             bus: rg.gen_bus(),
             departure_time: visit[&0][0][0],
-            discharge: dis[0][0],
+            discharge: dis[&0][0],
             id: 0,
             route_time: visit[&0][0][0] - visit[&0][0][0],
             ..Default::default()
         };
 
         assert_eq!(re[0], r);
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_gen_visit_id() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Get the visit identifiers
+        let Gam = rg.data.param.Gam.clone();
+
+        // Check the visits
+        for i in 0..Gam.len() {
+            // Ensure sure the IDs match
+            assert_eq!(
+                Gam[i], rg.route[i].id,
+                "The IDs do match route in Gamma and RouteEvents."
+            );
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_find_next_visit() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Get the initial visit and the next visit indices
+        let Gam = rg.data.param.Gam.clone();
+        let gam = rg.data.param.gam.clone();
+
+        // Check the visits
+        for i in 0..Gam.len() {
+            // If the BEB has another visit
+            if gam[i] > 0 {
+                // Ensure the next visit has the same ID
+                assert_eq!(
+                    Gam[i], rg.route[gam[i] as usize].id,
+                    "The ID of the current visit and next visit do not match."
+                );
+            }
+        }
+
+        assert_eq!(*gam.last().unwrap(), -1);
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_determine_initial_charges() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Get the charge percentage and the battery capacity
+        let alpha = rg.data.param.alpha.clone();
+        let kap = rg.data.param.k;
+
+        // Count the number of initial charges
+        let mut cnt = 0;
+
+        // Check initial charge
+        for i in 0..alpha.len() {
+            // If visit `i` is an initial visit
+            if alpha[i] > 0.0 {
+                // Increment the counter
+                cnt += 1;
+
+                // Ensure that the initial charge is the expected value
+                assert_eq!(
+                    kap[i] * alpha[i],
+                    rg.route[i].bus.initial_charge,
+                    "The initial charges do not match."
+                );
+            }
+        }
+
+        // Ensure the number of initial charges equals the number of BEBs
+        assert_eq!(
+            cnt, rg.data.param.A,
+            "The number of initial charges and BEBs do not match."
+        );
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_determine_final_charge() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Get the charge percentage and the battery capacity
+        let beta = rg.data.param.beta.clone();
+        let kap = rg.data.param.k;
+
+        // Count the number of initial charges
+        let mut cnt = 0;
+
+        // Check initial charge
+        for i in 0..beta.len() {
+            // If visit `i` is an initial visit
+            if beta[i] > 0.0 {
+                // Increment the counter
+                cnt += 1;
+
+                // Ensure that the initial charge is the expected value
+                assert_eq!(
+                    kap[i] * beta[i],
+                    rg.route[i].bus.initial_charge,
+                    "The initial charges do not match."
+                );
+            }
+        }
+
+        // Ensure the number of initial charges equals the number of BEBs
+        println!("{:?}", beta);
+        assert_eq!(
+            cnt, rg.data.param.A,
+            "The number of initial charges and BEBs do not match."
+        );
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_assign_arrival_times() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Loop through each visit
+        for i in 0..rg.data.param.a.len() {
+            // Ensure the arrival times are the same as the routes
+            assert_eq!(
+                rg.data.param.a[i], rg.route[i].arrival_time,
+                "The data arrival time does not match the route arrival time"
+            );
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_departure_times() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Loop through each visit
+        for i in 0..rg.data.param.a.len() {
+            // Ensure the departure times are the same as the routes
+            assert_eq!(
+                rg.data.param.e[i], rg.route[i].departure_time,
+                "The data departure time does not match the route departure time"
+            );
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_assign_discharge() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Loop through each visit
+        for i in 0..rg.data.param.a.len() {
+            // Ensure the departure times are the same as the routes
+            assert_eq!(
+                rg.data.param.l[i], rg.route[i].discharge,
+                "The data discharge quantity does not match the route departure time"
+            );
+        }
     }
 }

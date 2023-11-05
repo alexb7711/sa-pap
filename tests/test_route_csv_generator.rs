@@ -78,19 +78,50 @@ mod test_route_csv_generator {
         rg.run();
 
         // Test the route counts
-        assert_eq!(rg.data.param.N, 303);
+        assert_eq!(
+            rg.data.param.N,
+            rg.route.len(),
+            "The amount of visits in N differ from the length of route data."
+        );
     }
 
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_route_count() {
+    fn test_route_data() {
+        let hr2sec: f32 = 3600.0;
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
 
         // Test the route counts
-        assert_eq!(rg.data.param.N, 303);
+        assert_eq!(
+            rg.route[0].arrival_time, 0.0,
+            "Initial arrival time was not at BOD."
+        );
+        assert!(
+            rg.route[0].departure_time == 0.0,
+            "The departure time for should equal to the BOD."
+        );
+        assert_eq!(rg.route[35].arrival_time, 18000.0 / hr2sec);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_route_sort() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Ensure the arrival times are increasing
+        for i in 0..rg.route.len() - 1 {
+            assert!(
+                rg.route[i].arrival_time <= rg.route[i + 1].arrival_time,
+                "Arrival times are not increasing in time."
+            );
+        }
     }
 }
