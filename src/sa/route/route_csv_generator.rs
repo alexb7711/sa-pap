@@ -628,15 +628,15 @@ impl Route for RouteCSVGenerator {
     }
 }
 
-//===============================================================================
+//==============================================================================
 // TEST PRIVATE METHODS IN ROUTE GENERATOR
 #[cfg(test)]
 mod priv_test_route_gen {
-    use std::borrow::BorrowMut;
-
+    //==========================================================================
+    // Import modules
     use super::{Route, RouteCSVGenerator, RouteEvent};
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     fn create_object() -> RouteCSVGenerator {
         return RouteCSVGenerator::new(
@@ -645,7 +645,7 @@ mod priv_test_route_gen {
         );
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_convert_route_to_visit() {
@@ -681,7 +681,7 @@ mod priv_test_route_gen {
         assert_eq!(r[2], vec![11.683333, 13.783334]);
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_discharge() {
@@ -724,7 +724,7 @@ mod priv_test_route_gen {
         assert_eq!(dis[b][j / 2 as usize], l_dis);
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_visit() {
@@ -755,7 +755,7 @@ mod priv_test_route_gen {
         assert_eq!(re[0], r);
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_gen_visit_id() {
@@ -778,7 +778,7 @@ mod priv_test_route_gen {
         }
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_find_next_visit() {
@@ -807,7 +807,7 @@ mod priv_test_route_gen {
         assert_eq!(*gam.last().unwrap(), -1);
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_determine_initial_charges() {
@@ -848,7 +848,7 @@ mod priv_test_route_gen {
         );
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_determine_final_charge() {
@@ -889,7 +889,7 @@ mod priv_test_route_gen {
         );
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_assign_arrival_times() {
@@ -898,9 +898,18 @@ mod priv_test_route_gen {
 
         // Run the generator
         rg.run();
+
+        // Loop through each visit
+        for i in 0..rg.data.param.a.len() {
+            // Ensure the arrival times are the same as the routes
+            assert_eq!(
+                rg.data.param.a[i], rg.route[i].arrival_time,
+                "The data arrival time does not match the route arrival time"
+            );
+        }
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_departure_times() {
@@ -909,9 +918,18 @@ mod priv_test_route_gen {
 
         // Run the generator
         rg.run();
+
+        // Loop through each visit
+        for i in 0..rg.data.param.a.len() {
+            // Ensure the departure times are the same as the routes
+            assert_eq!(
+                rg.data.param.e[i], rg.route[i].departure_time,
+                "The data departure time does not match the route departure time"
+            );
+        }
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     //
     #[test]
     fn test_assign_discharge() {
@@ -920,5 +938,14 @@ mod priv_test_route_gen {
 
         // Run the generator
         rg.run();
+
+        // Loop through each visit
+        for i in 0..rg.data.param.a.len() {
+            // Ensure the departure times are the same as the routes
+            assert_eq!(
+                rg.data.param.l[i], rg.route[i].discharge,
+                "The data discharge quantity does not match the route departure time"
+            );
+        }
     }
 }
