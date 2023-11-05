@@ -338,3 +338,44 @@ mod test_triangular_fuzzy_number {
         assert_eq!(ineq.unwrap(), std::cmp::Ordering::Equal);
     }
 }
+
+//===============================================================================
+//
+#[cfg(test)]
+mod test_array_util {
+    //---------------------------------------------------------------------------
+    // Import modules
+    use sa_pap::util::array_util::arry_util::*;
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_first() {
+        // Create array
+        let v = vec![1, 2, 3, 6, 5, 4];
+
+        // Test
+        assert_eq!(first(&v, 1).unwrap(), 0);
+        assert_eq!(first(&v, 2).unwrap(), 1);
+        assert_eq!(first(&v, 3).unwrap(), 2);
+        assert_eq!(first(&v, 4).unwrap(), 5);
+        assert_eq!(first(&v, 5).unwrap(), 4);
+        assert_eq!(first(&v, 6).unwrap(), 3);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_last() {
+        // Create array
+        let v = vec![1, 2, 3, 6, 5, 4, 1, 2, 3, 6, 5, 4];
+
+        // Test
+        assert_eq!(last(&v, 1).unwrap(), 6);
+        assert_eq!(last(&v, 2).unwrap(), 7);
+        assert_eq!(last(&v, 3).unwrap(), 8);
+        assert_eq!(last(&v, 4).unwrap(), 11);
+        assert_eq!(last(&v, 5).unwrap(), 10);
+        assert_eq!(last(&v, 6).unwrap(), 9);
+    }
+}

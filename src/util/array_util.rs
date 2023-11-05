@@ -41,6 +41,14 @@ pub mod arry_util {
         vec.reverse();
 
         // Search for the first instance of the element in reverse order
-        return first(vec, element);
+        // If a match is made
+        if let Some(i) = first(vec, element) {
+            // Return the vector length minus the max index
+            return Some(vec.len() - i - 1);
+        // Otherwise the element was not found
+        } else {
+            // Return nothing
+            return None;
+        }
     }
 }

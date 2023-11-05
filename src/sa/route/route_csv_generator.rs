@@ -106,8 +106,8 @@ impl RouteCSVGenerator {
             .repeat(self.config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
         self.data.param.Q = slow_c.len() + fast_c.len();
 
-        self.data.param.alpha = vec![0.0; N];
-        self.data.param.beta = vec![0.0; N];
+        self.data.param.alpha = vec![0.0; A];
+        self.data.param.beta = vec![0.0; A];
 
         let T = self.data.param.T;
         let K = self.data.param.K;
@@ -436,7 +436,7 @@ impl RouteCSVGenerator {
         let last_idx = next_idx.clone();
 
         // Loop through each BEB visit
-        for i in (0..self.route.len() - 1).rev() {
+        for i in (0..self.route.len()).rev() {
             // Make sure that the index being checked is greater than the first
             // visit. If it is, set the previous index value equal to the current.
             // In other words, index i's value indicates the next index the bus
@@ -466,11 +466,11 @@ impl RouteCSVGenerator {
             .into_f64()
             .unwrap() as f32;
         let Gam = &self.data.param.Gam;
-        let alpha = &mut self.data.param.alpha;
 
         // Loop through each BEB
         for a in 0..self.data.param.A {
-            alpha[first(Gam, a as u16).unwrap()] = init_charge;
+            // Assign the initial charge for BEB `a`
+            self.data.param.alpha[first(Gam, a as u16).unwrap()] = init_charge;
         }
     }
 
@@ -490,9 +490,9 @@ impl RouteCSVGenerator {
         let beta = &mut self.data.param.beta;
 
         // Loop through each BEB
-        for i in 0..gam.len() {
-            if gam[i] == -1 {
-                beta[i] = final_charge;
+        for a in 0..self.data.param.A {
+            if gam[a] == -1 {
+                beta[a] = final_charge;
             }
         }
     }
@@ -631,6 +631,8 @@ impl Route for RouteCSVGenerator {
 // TEST PRIVATE METHODS IN ROUTE GENERATOR
 #[cfg(test)]
 mod priv_test_route_gen {
+    use std::borrow::BorrowMut;
+
     use super::{Route, RouteCSVGenerator, RouteEvent};
 
     //---------------------------------------------------------------------------
@@ -721,6 +723,8 @@ mod priv_test_route_gen {
         assert_eq!(dis[b][j / 2 as usize], l_dis);
     }
 
+    //---------------------------------------------------------------------------
+    //
     #[test]
     fn test_visit() {
         // Create the CSV Generator object
@@ -748,5 +752,141 @@ mod priv_test_route_gen {
         };
 
         assert_eq!(re[0], r);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_gen_visit_id() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Get the visit identifiers
+        let Gam = rg.data.param.Gam.clone();
+
+        // Check the visits
+        for i in 0..Gam.len() {
+            // Ensure sure the IDs match
+            assert_eq!(
+                Gam[i], rg.route[i].id,
+                "The IDs do match route in Gamma and RouteEvents."
+            );
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_find_next_visit() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Get the initial visit and the next visit indices
+        let Gam = rg.data.param.Gam.clone();
+        let gam = rg.data.param.gam.clone();
+
+        // Check the visits
+        for i in 0..Gam.len() {
+            // If the BEB has another visit
+            if gam[i] > 0 {
+                // Ensure the next visit has the same ID
+                assert_eq!(
+                    Gam[i], rg.route[gam[i] as usize].id,
+                    "The ID of the current visit and next visit do not match."
+                );
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_determine_initial_charges() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Get the
+
+        rg.run();
+
+        // Get the charge percentage and the battery capacity
+        let alpha = rg.data.param.alpha.clone();
+        let kap = rg.data.param.k;
+
+        // Count the number of initial charges
+        let mut cnt = 0;
+
+        // Check initial charge
+        for i in 0..alpha.len() {
+            // If visit `i` is an initial visit
+            if alpha[i] > 0.0 {
+                // Increment the counter
+                cnt += 1;
+
+                // Ensure that the initial charge is the expected value
+                assert_eq!(
+                    kap[i] * alpha[i],
+                    rg.route[i].bus.initial_charge,
+                    "The initial charges do not match."
+                );
+            }
+        }
+
+        // Ensure the number of initial charges equals the number of BEBs
+        println!("{:?}", alpha);
+        assert_eq!(
+            cnt, rg.data.param.A,
+            "The number of initial charges and BEBs do not match."
+        );
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_determine_final_charge() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_assign_arrival_times() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_departure_times() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_assign_discharge() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
     }
 }
