@@ -487,12 +487,13 @@ impl RouteCSVGenerator {
         // Local variables
         let final_charge = self.config["final_charge"].clone().into_f64().unwrap() as f32;
         let gam = &self.data.param.gam;
+        let Gam = &self.data.param.Gam;
         let beta = &mut self.data.param.beta;
 
         // Loop through each BEB
-        for a in 0..self.data.param.A {
-            if gam[a] == -1 {
-                beta[a] = final_charge;
+        for i in 0..gam.len() {
+            if gam[i] == -1 {
+                beta[Gam[i] as usize] = final_charge;
             }
         }
     }
@@ -802,6 +803,8 @@ mod priv_test_route_gen {
                 );
             }
         }
+
+        assert_eq!(*gam.last().unwrap(), -1);
     }
 
     //---------------------------------------------------------------------------
@@ -811,8 +814,7 @@ mod priv_test_route_gen {
         // Create the CSV Generator object
         let mut rg: RouteCSVGenerator = create_object();
 
-        // Get the
-
+        // Run the generator
         rg.run();
 
         // Get the charge percentage and the battery capacity
@@ -855,6 +857,36 @@ mod priv_test_route_gen {
 
         // Run the generator
         rg.run();
+
+        // Get the charge percentage and the battery capacity
+        let beta = rg.data.param.beta.clone();
+        let kap = rg.data.param.k;
+
+        // Count the number of initial charges
+        let mut cnt = 0;
+
+        // Check initial charge
+        for i in 0..beta.len() {
+            // If visit `i` is an initial visit
+            if beta[i] > 0.0 {
+                // Increment the counter
+                cnt += 1;
+
+                // Ensure that the initial charge is the expected value
+                assert_eq!(
+                    kap[i] * beta[i],
+                    rg.route[i].bus.initial_charge,
+                    "The initial charges do not match."
+                );
+            }
+        }
+
+        // Ensure the number of initial charges equals the number of BEBs
+        println!("{:?}", beta);
+        assert_eq!(
+            cnt, rg.data.param.A,
+            "The number of initial charges and BEBs do not match."
+        );
     }
 
     //---------------------------------------------------------------------------
