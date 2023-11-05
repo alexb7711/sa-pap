@@ -264,10 +264,10 @@ impl RouteCSVGenerator {
     ///   - route : Bus routes in start/stop form
     ///
     /// Output:
-    ///   - discharge : Battery discharge over each visit
+    ///   - discharge : Hash map of bus IDs with discharge vector
     ///
-    fn calc_discharge(self: &RouteCSVGenerator) -> Vec<Vec<f32>> {
-        let mut discharge: Vec<Vec<f32>> = Vec::new();
+    fn calc_discharge(self: &RouteCSVGenerator) -> HashMap<usize, Vec<f32>> {
+        let mut discharge: HashMap<usize, Vec<f32>> = HashMap::new();
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let routes = &self.csv_schedule;
 
@@ -289,7 +289,7 @@ impl RouteCSVGenerator {
             }
 
             // Append the list of discharges
-            discharge.push(discharge_tmp);
+            discharge.insert(*b as usize, discharge_tmp);
         }
 
         return discharge;
@@ -309,22 +309,22 @@ impl RouteCSVGenerator {
     fn populate_route_events(
         self: &RouteCSVGenerator,
         visit: &HashMap<u16, Vec<Vec<f32>>>,
-        discharge: &Vec<Vec<f32>>,
+        discharge: &HashMap<usize, Vec<f32>>,
     ) -> Vec<RouteEvent> {
         // Allocate route buffer space
         let mut route: Vec<RouteEvent> = Vec::new();
 
         // Loop through each visit/discharge
-        for it in visit.into_iter().zip(discharge) {
+        for it in visit.into_iter() {
             // Extract visit and discharge
-            let (vis, dis) = it;
+            let vis = it;
 
             // Extract the bus ID and visit
-            let b: &u16 = vis.0;
+            let b: usize = *vis.0 as usize;
             let vis: &Vec<Vec<f32>> = vis.1;
 
             // Loop through each start/stop pair
-            for it in vis.into_iter().zip(dis) {
+            for it in vis.into_iter().zip(&discharge[&b]) {
                 // Extract iterator
                 let (v, d) = it;
 
@@ -334,7 +334,7 @@ impl RouteCSVGenerator {
                     bus: self.gen_bus(),
                     departure_time: v[1],
                     discharge: *d,
-                    id: *b,
+                    id: b as u16,
                     route_time: v[1] - v[0],
                     ..Default::default()
                 };
@@ -463,6 +463,7 @@ impl RouteCSVGenerator {
             }
         }
     }
+
     //---------------------------------------------------------------------------
     /// Assign initial charges to all BEBs.
     ///
@@ -582,6 +583,7 @@ impl Route for RouteCSVGenerator {
         // Estimate discharge over routes
         let dis = self.calc_discharge();
 
+        // Populate route data
         self.route = self.populate_route_events(&visits, &dis);
 
         // Generate schedule parameters
@@ -713,28 +715,28 @@ mod priv_test_route_gen {
         let b: usize = 0;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
 
         // Test 2
         let j: usize = 4;
         let b: usize = 2;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
 
         // Test 3
         let j: usize = 6;
         let b: usize = 8;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
 
         // Test 4
         let j: usize = 10;
         let b: usize = 15;
         let r = rg.csv_schedule.1[b].clone();
         let l_dis = rg.data.param.zeta[b] * (r[j + 1] - r[j]);
-        assert_eq!(dis[b][j / 2 as usize], l_dis);
+        assert_eq!(dis[&b][j / 2 as usize], l_dis);
     }
 
     //--------------------------------------------------------------------------
@@ -759,7 +761,7 @@ mod priv_test_route_gen {
             arrival_time: visit[&0][0][0],
             bus: rg.gen_bus(),
             departure_time: visit[&0][0][0],
-            discharge: dis[0][0],
+            discharge: dis[&0][0],
             id: 0,
             route_time: visit[&0][0][0] - visit[&0][0][0],
             ..Default::default()
@@ -854,7 +856,6 @@ mod priv_test_route_gen {
         }
 
         // Ensure the number of initial charges equals the number of BEBs
-        println!("{:?}", alpha);
         assert_eq!(
             cnt, rg.data.param.A,
             "The number of initial charges and BEBs do not match."

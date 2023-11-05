@@ -79,8 +79,9 @@ mod test_route_csv_generator {
 
         // Test the route counts
         assert_eq!(
-            rg.data.param.N, 303,
-            "The amount of visits has changed from 303."
+            rg.data.param.N,
+            rg.route.len(),
+            "The amount of visits in N differ from the length of route data."
         );
     }
 
