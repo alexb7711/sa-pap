@@ -5,18 +5,19 @@
 pub mod parse_routes;
 
 //===============================================================================
-// External Crates
+// Standard library
 use csv;
 use std::boxed::Box;
 use std::collections::HashMap;
 use yaml_rust::Yaml;
 
 //===============================================================================
-// Import Crates
+// Import modules
 use crate::sa::data::Data;
 use crate::sa::route::bus::Bus;
 use crate::sa::route::route_event::RouteEvent;
 use crate::sa::route::Route;
+use crate::util::array_util::arry_util::{first, last};
 use crate::util::fileio::yaml_loader;
 
 //===============================================================================
@@ -105,8 +106,8 @@ impl RouteCSVGenerator {
             .repeat(self.config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
         self.data.param.Q = slow_c.len() + fast_c.len();
 
-        self.data.param.alpha.reserve(A);
-        self.data.param.beta.reserve(A);
+        self.data.param.alpha = vec![0.0; N];
+        self.data.param.beta = vec![0.0; N];
 
         let T = self.data.param.T;
         let K = self.data.param.K;
@@ -289,7 +290,8 @@ impl RouteCSVGenerator {
     /// * dis  : Vector of route discharges
     ///
     /// # Output
-    /// * route: Vector of RouteEvents consolidating the input parameters.
+    /// * route: Vector of RouteEvents consolidating the input parameters in order
+    ///          of arrival time.
     ///
     fn populate_route_events(
         self: &RouteCSVGenerator,
@@ -329,6 +331,9 @@ impl RouteCSVGenerator {
             }
         }
 
+        // Sort visits by arrival time
+        route.sort();
+
         return route;
     }
 
@@ -365,9 +370,6 @@ impl RouteCSVGenerator {
     /// * NONE
     ///
     fn generate_schedule_params(self: &mut RouteCSVGenerator) {
-        // Sort visits by arrival time
-        self.route.sort();
-
         // Determine Gamma array
         self.gen_visit_id();
 
@@ -418,8 +420,36 @@ impl RouteCSVGenerator {
     /// # Output
     /// * None
     ///
-    fn find_next_visit(self: &RouteCSVGenerator) {}
+    fn find_next_visit(self: &mut RouteCSVGenerator) {
+        // Local variables
+        let A = self.data.param.A;
+        let Gam = &mut self.data.param.Gam;
 
+        // Populate gamma buffer with "no next visit" value
+        self.data.param.gam = vec![-1; Gam.len()];
+        let gam = &mut self.data.param.gam;
+
+        // Keep track of the previous index each BEB has arrived at
+        let mut next_idx: Vec<usize> = (0..A).map(|x| last(&Gam, x as u16).unwrap()).collect();
+
+        // Keep track of the last instance each bus arrives
+        let last_idx = next_idx.clone();
+
+        // Loop through each BEB visit
+        for i in (0..self.route.len() - 1).rev() {
+            // Make sure that the index being checked is greater than the first
+            // visit. If it is, set the previous index value equal to the current.
+            // In other words, index i's value indicates the next index the bus
+            // will visit.
+            if i < last_idx[Gam[i] as usize] {
+                // Update `gamma` array
+                gam[i] = next_idx[Gam[i] as usize] as i16;
+
+                // Update `next_idx`
+                next_idx[Gam[i] as usize] = i;
+            }
+        }
+    }
     //---------------------------------------------------------------------------
     /// Assign initial charges to all BEBs.
     ///
@@ -429,7 +459,20 @@ impl RouteCSVGenerator {
     /// # Output
     /// * None
     ///
-    fn determine_initial_charges(self: &RouteCSVGenerator) {}
+    fn determine_initial_charges(self: &mut RouteCSVGenerator) {
+        // Local variables
+        let init_charge = self.config["initial_charge"]["max"]
+            .clone()
+            .into_f64()
+            .unwrap() as f32;
+        let Gam = &self.data.param.Gam;
+        let alpha = &mut self.data.param.alpha;
+
+        // Loop through each BEB
+        for a in 0..self.data.param.A {
+            alpha[first(Gam, a as u16).unwrap()] = init_charge;
+        }
+    }
 
     //---------------------------------------------------------------------------
     /// Assign final charges to all BEBs.
@@ -440,7 +483,19 @@ impl RouteCSVGenerator {
     /// # Output
     /// * None
     ///
-    fn determine_final_charges(self: &RouteCSVGenerator) {}
+    fn determine_final_charges(self: &mut RouteCSVGenerator) {
+        // Local variables
+        let final_charge = self.config["final_charge"].clone().into_f64().unwrap() as f32;
+        let gam = &self.data.param.gam;
+        let beta = &mut self.data.param.beta;
+
+        // Loop through each BEB
+        for i in 0..gam.len() {
+            if gam[i] == -1 {
+                beta[i] = final_charge;
+            }
+        }
+    }
 
     //---------------------------------------------------------------------------
     /// Create a list of arrival times for all visits in order.
@@ -451,7 +506,11 @@ impl RouteCSVGenerator {
     /// # Output
     /// * None
     ///
-    fn assign_arrival_times(self: &RouteCSVGenerator) {}
+    fn assign_arrival_times(self: &mut RouteCSVGenerator) {
+        self.data.param.a = (0..self.route.len())
+            .map(|x| self.route[x].arrival_time)
+            .collect();
+    }
 
     //---------------------------------------------------------------------------
     /// Create a list of departure times for all visits in order.
@@ -462,7 +521,11 @@ impl RouteCSVGenerator {
     /// # Output
     /// * None
     ///
-    fn assign_departure_times(self: &RouteCSVGenerator) {}
+    fn assign_departure_times(self: &mut RouteCSVGenerator) {
+        self.data.param.e = (0..self.route.len())
+            .map(|x| self.route[x].departure_time)
+            .collect();
+    }
 
     //---------------------------------------------------------------------------
     /// Create a list of discharge quantities for all visits in order.
@@ -473,7 +536,11 @@ impl RouteCSVGenerator {
     /// # Output
     /// * None
     ///
-    fn assign_discharge(self: &RouteCSVGenerator) {}
+    fn assign_discharge(self: &mut RouteCSVGenerator) {
+        self.data.param.l = (0..self.route.len())
+            .map(|x| self.route[x].discharge)
+            .collect();
+    }
 }
 
 //===============================================================================
