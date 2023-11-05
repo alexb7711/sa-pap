@@ -67,6 +67,19 @@ impl RouteCSVGenerator {
         return rg;
     }
 
+    //---------------------------------------------------------------------------
+    /// Synchronize the `data` data with `route`.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    pub fn update(self: &mut RouteCSVGenerator) {
+        self.generate_schedule_params();
+    }
+
     //===========================================================================
     // PRIVATE
 
