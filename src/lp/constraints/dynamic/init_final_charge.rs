@@ -21,7 +21,7 @@ pub struct InitFinalCharge {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for InitFinalCharge {
-    fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
+    fn run(d: &mut Data, i: usize, _: usize) -> bool {
         // Extract parameters
         let Gam = &d.param.Gam;
         let alpha = &d.param.alpha;

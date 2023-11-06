@@ -21,7 +21,7 @@ pub struct ChargePropogation {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ChargePropogation {
-    fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
+    fn run(d: &mut Data, i: usize, _: usize) -> bool {
         // Extract decision variables
         let v = &d.dec.v;
         let w = &mut d.dec.w;

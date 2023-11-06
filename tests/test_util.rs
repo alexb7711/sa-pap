@@ -21,6 +21,7 @@ mod test_yaml_loader {
     #[test]
     fn test_valid_load_yaml() {
         yaml_loader::load_yaml("./src/config/schedule-test.yaml");
+        yaml_loader::load_yaml("./src/config/general.yaml");
     }
 
     //---------------------------------------------------------------------------

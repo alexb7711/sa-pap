@@ -1,5 +1,6 @@
 //==============================================================================
 // Import developed modules
+use crate::lp::constraints::packing::space_time_big_o::SpaceTimeBigO;
 use crate::lp::constraints::Constraint;
 use crate::sa::data::Data;
 
@@ -21,9 +22,9 @@ pub struct PsiSigma {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for PsiSigma {
-    fn run(&mut self, d: &mut Data, i: usize, j: usize) -> bool {
+    fn run(d: &mut Data, i: usize, j: usize) -> bool {
         // Update decision variables
-        self.update_dec_var(d);
+        PsiSigma::update_dec_var(d, i, j);
 
         // Extract decision variables
         let psi = &d.dec.psi;
@@ -65,19 +66,8 @@ impl PsiSigma {
     /// # Output
     /// * NONE
     ///
-    fn update_dec_var(self: &mut PsiSigma, data: &mut Data) {
-        // Variables
-        let psi = &data.dec.psi;
-        let sig = &data.dec.sigma;
-
-        // For every visit `i`
-        for i in 0..data.param.N {
-            // For every visit `j`
-            for j in i..data.param.N {
-                // Indicate that visit `i` arrives before `j`
-
-                // Indicate that visit `i` is below ``
-            }
-        }
+    fn update_dec_var(data: &mut Data, i: usize, j: usize) {
+        // Update sigma/psi decision variables
+        SpaceTimeBigO::run(data, i, j);
     }
 }

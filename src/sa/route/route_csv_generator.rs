@@ -84,8 +84,7 @@ impl RouteCSVGenerator {
     // PRIVATE
 
     //---------------------------------------------------------------------------
-    //
-    /// Allocates space for the start,stop set of routes to be generated.
+    /// Allocates buffers for input parameters.
     ///
     /// # Input
     /// * NONE
@@ -93,7 +92,7 @@ impl RouteCSVGenerator {
     /// # Output
     /// * NONE
     ///
-    fn buffer_attributes(self: &mut RouteCSVGenerator) {
+    fn buffer_input_parameters(self: &mut RouteCSVGenerator) {
         let csv: &(Vec<u16>, Vec<Vec<f32>>) = &self.csv_schedule;
         let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
@@ -107,11 +106,11 @@ impl RouteCSVGenerator {
         let A = self.data.param.A;
         let N = self.data.param.N;
 
-        self.data.param.a.reserve(N);
-        self.data.param.e.reserve(N);
-        self.data.param.D.reserve(N);
-        self.data.param.gam.reserve(N);
-        self.data.param.Gam.reserve(N);
+        self.data.param.a = vec![0.0; N];
+        self.data.param.e = vec![0.0; N];
+        self.data.param.D = vec![0.0; N];
+        self.data.param.gam = vec![-1; N];
+        self.data.param.Gam = vec![0; N];
 
         let slow_c = [self.config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
             .repeat(self.config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
@@ -146,7 +145,32 @@ impl RouteCSVGenerator {
     }
 
     //---------------------------------------------------------------------------
-    //
+    /// Allocates buffers for decision variables.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn buffer_decision_variables(self: &mut RouteCSVGenerator) {
+        // Variables
+        let Q = self.data.param.Q;
+        let N = self.data.param.N;
+
+        // Generate decision variable buffers
+        self.data.dec.u = vec![0.0; N];
+        self.data.dec.v = vec![0; N];
+        self.data.dec.c = vec![0.0; N];
+        self.data.dec.s = vec![0.0; N];
+        self.data.dec.g = vec![vec![0.0; N]; Q];
+        self.data.dec.eta = vec![0.0; N];
+        self.data.dec.w = vec![vec![false; N]; Q];
+        self.data.dec.sigma = vec![vec![true; N]; N];
+        self.data.dec.psi = vec![vec![true; N]; N];
+    }
+
+    //---------------------------------------------------------------------------
     /// Counts the number of bus visits from the routes matrix.
     ///
     /// # Input
@@ -439,7 +463,7 @@ impl RouteCSVGenerator {
         let Gam = &mut self.data.param.Gam;
 
         // Populate gamma buffer with "no next visit" value
-        self.data.param.gam = vec![-1; Gam.len()];
+        // self.data.param.gam = vec![-1; Gam.len()];
         let gam = &mut self.data.param.gam;
 
         // Keep track of the previous index each BEB has arrived at
@@ -574,8 +598,11 @@ impl Route for RouteCSVGenerator {
         // Parse CSV
         self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h, &self.config);
 
-        // Buffer Attributes
-        self.buffer_attributes();
+        // Buffer input parameters
+        self.buffer_input_parameters();
+
+        // Buffer decision variables
+        self.buffer_decision_variables();
 
         // Convert routes to visits
         let visits = self.convert_route_to_visit();
