@@ -8,6 +8,8 @@ mod test_packing_constraints {
     // Import modules
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
     use super::sa_pap::sa::route::Route;
+    use sa_pap::lp::constraints::packing::psi_sigma::PsiSigma;
+    use sa_pap::lp::constraints::packing::service_time::ServiceTime;
     use sa_pap::lp::constraints::packing::space_time_big_o::SpaceTimeBigO;
     use sa_pap::lp::constraints::Constraint;
 
@@ -26,7 +28,7 @@ mod test_packing_constraints {
     //---------------------------------------------------------------------------
     // Test psi constraint
     #[test]
-    fn test_psi() {
+    fn test_space_time_big_o_psi() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         // Load the CSV schedule
@@ -52,24 +54,24 @@ mod test_packing_constraints {
             let psi = &rg.data.dec.psi;
 
             // Check output
-            assert_eq!(psi[1][0], true);
-            assert_eq!(psi[2][0], true);
-            assert_eq!(psi[2][1], true);
-            assert_eq!(psi[3][0], true);
-            assert_eq!(psi[3][1], true);
-            assert_eq!(psi[3][2], true);
-            assert_eq!(psi[3][4], true);
-            assert_eq!(psi[2][3], false);
+            assert_eq!(psi[1][0], false);
+            assert_eq!(psi[2][0], false);
+            assert_eq!(psi[2][1], false);
+            assert_eq!(psi[3][0], false);
+            assert_eq!(psi[3][1], false);
+            assert_eq!(psi[3][2], false);
+            assert_eq!(psi[3][4], false);
+            assert_eq!(psi[2][3], true);
             assert_eq!(psi[0][0], false);
-            assert_eq!(psi[0][1], false);
-            assert_eq!(psi[2][3], false);
+            assert_eq!(psi[0][1], true);
+            assert_eq!(psi[2][3], true);
         }
     }
 
     //---------------------------------------------------------------------------
     // Test sigma constraint
     #[test]
-    fn test_sigma() {
+    fn test_space_time_big_o_sigma() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         // Load the CSV schedule
@@ -95,17 +97,17 @@ mod test_packing_constraints {
             let sigma = &rg.data.dec.sigma;
 
             // Check output
-            assert_eq!(sigma[1][0], true);
-            assert_eq!(sigma[2][0], true);
-            assert_eq!(sigma[2][1], true);
-            assert_eq!(sigma[3][0], true);
-            assert_eq!(sigma[3][1], true);
-            assert_eq!(sigma[3][2], true);
-            assert_eq!(sigma[3][4], true);
-            assert_eq!(sigma[2][3], false);
+            assert_eq!(sigma[1][0], false);
+            assert_eq!(sigma[2][0], false);
+            assert_eq!(sigma[2][1], false);
+            assert_eq!(sigma[3][0], false);
+            assert_eq!(sigma[3][1], false);
+            assert_eq!(sigma[3][2], false);
+            assert_eq!(sigma[3][4], false);
+            assert_eq!(sigma[2][3], true);
             assert_eq!(sigma[0][0], false);
-            assert_eq!(sigma[0][1], false);
-            assert_eq!(sigma[2][3], false);
+            assert_eq!(sigma[0][1], true);
+            assert_eq!(sigma[2][3], true);
         }
     }
 
@@ -117,12 +119,166 @@ mod test_packing_constraints {
 
         // Load the CSV schedule
         rg.run();
+
+        // Extract variables
+        let n = rg.data.param.N.clone();
+
+        // Update initial and final charge times
+        {
+            let c = &mut rg.data.dec.c;
+            let u = &mut rg.data.dec.u;
+
+            for i in 0..n {
+                u[i] = i as f32 * i as f32 * 1.1;
+                c[i] = c[i] + i as f32;
+            }
+        }
+
+        // Run constraint
+        for i in 0..n {
+            for j in 0..n {
+                ServiceTime::run(&mut rg.data, i, j);
+            }
+        }
+
+        // Check constraints
+        let c = &mut rg.data.dec.c;
+        let u = &mut rg.data.dec.u;
+        let s = &mut rg.data.dec.s;
+
+        for i in 0..n {
+            assert_eq!(s[i], c[i] - u[i]);
+        }
     }
 
     //---------------------------------------------------------------------------
     // Invalid paths should cause a panic
     #[test]
-    fn test_space_time_big_o() {
+    fn test_psi_sigma() {
+        // Test 0 - Obvious case
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Set some visit queues
+        {
+            let c = &mut rg.data.dec.c;
+            let u = &mut rg.data.dec.u;
+            let v = &mut rg.data.dec.v;
+
+            for i in 0..rg.data.param.N {
+                u[i] = i as f32 * i as f32 * 1.1;
+                c[i] = c[i] + i as f32;
+                v[i] = i;
+            }
+        }
+
+        // Run the `psi_sigma` constraint and assert every result is true
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                assert!(
+                    PsiSigma::run(&mut rg.data, i, j),
+                    "Failing the obvious case `test_psi_sigma`"
+                );
+            }
+        }
+
+        // Test 1 - All time
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Set some visit queues
+        {
+            let c = &mut rg.data.dec.c;
+            let u = &mut rg.data.dec.u;
+
+            for i in 0..rg.data.param.N {
+                u[i] = i as f32 * i as f32 * 1.1;
+                c[i] = c[i] + i as f32;
+            }
+        }
+
+        // Run the `psi_sigma` constraint and assert every result is true
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                assert!(
+                    PsiSigma::run(&mut rg.data, i, j),
+                    "Failing the 'all time' case `test_psi_sigma`"
+                );
+            }
+        }
+
+        // Test 2 - All queue
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Set some visit queues
+        {
+            let v = &mut rg.data.dec.v;
+            let c = &mut rg.data.dec.c;
+            let u = &mut rg.data.dec.u;
+
+            for i in 0..rg.data.param.N {
+                let idx = i % rg.data.param.Q;
+                u[i] = i as f32 * i as f32 * 1.1;
+                c[i] = c[i] + i as f32;
+                v[i] = idx;
+            }
+        }
+
+        // Run the `psi_sigma` constraint and assert every result is true
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                assert!(
+                    PsiSigma::run(&mut rg.data, i, j),
+                    "Failing the 'all queue' case `test_psi_sigma`"
+                );
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    // Invalid paths should cause a panic
+    #[test]
+    fn test_valit_init_dep_end_time() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+    }
+}
+
+//===============================================================================
+//
+#[cfg(test)]
+mod test_dynamic_constraints {
+    //---------------------------------------------------------------------------
+    // Import modules
+    use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
+    use super::sa_pap::sa::route::Route;
+    use sa_pap::lp::constraints::Constraint;
+
+    //---------------------------------------------------------------------------
+    //
+    fn yaml_path() -> &'static str {
+        return "./src/config/schedule-test.yaml";
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    fn csv_path() -> &'static str {
+        return "./src/config/routes.csv";
+    }
+
+    //---------------------------------------------------------------------------
+    // Test bilinear constraint
+    #[test]
+    fn test_bilinear() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         // Load the CSV schedule
@@ -130,9 +286,29 @@ mod test_packing_constraints {
     }
 
     //---------------------------------------------------------------------------
-    // Invalid paths should cause a panic
+    // Test charge propagation constraint
     #[test]
-    fn test_valit_init_dep_end_time() {
+    fn test_charge_propagation() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+    }
+
+    //---------------------------------------------------------------------------
+    // Test initial/final charge constraint
+    #[test]
+    fn test_init_final_charge_propagation() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+    }
+
+    //---------------------------------------------------------------------------
+    // Test scalar to vector queue constraint
+    #[test]
+    fn test_scalar_to_vector_queue_propagation() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         // Load the CSV schedule
