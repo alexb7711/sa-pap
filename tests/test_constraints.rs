@@ -11,6 +11,7 @@ mod test_packing_constraints {
     use sa_pap::lp::constraints::packing::psi_sigma::PsiSigma;
     use sa_pap::lp::constraints::packing::service_time::ServiceTime;
     use sa_pap::lp::constraints::packing::space_time_big_o::SpaceTimeBigO;
+    use sa_pap::lp::constraints::packing::valid_init_dep_end_time::ValidInitDepEndTimes;
     use sa_pap::lp::constraints::Constraint;
 
     //---------------------------------------------------------------------------
@@ -245,11 +246,32 @@ mod test_packing_constraints {
     //---------------------------------------------------------------------------
     // Invalid paths should cause a panic
     #[test]
-    fn test_valit_init_dep_end_time() {
+    fn test_valid_init_dep_end_time() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
+
+        // Extract variables
+        let n = rg.data.param.N.clone();
+
+        // Update initial and final charge times
+        {
+            let c = &mut rg.data.dec.c;
+            let u = &mut rg.data.dec.u;
+
+            for i in 0..n {
+                u[i] = i as f32 * i as f32 * 1.1;
+                c[i] = c[i] + i as f32;
+            }
+        }
+
+        // Run constraint
+        for i in 0..n {
+            for j in 0..n {
+                assert!(ValidInitDepEndTimes::run(&mut rg.data, i, j));
+            }
+        }
     }
 }
 
