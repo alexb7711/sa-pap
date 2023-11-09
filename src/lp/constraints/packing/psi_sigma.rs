@@ -1,5 +1,6 @@
 //==============================================================================
 // Import developed modules
+use crate::lp::constraints::packing::service_time::ServiceTime;
 use crate::lp::constraints::packing::space_time_big_o::SpaceTimeBigO;
 use crate::lp::constraints::Constraint;
 use crate::sa::data::Data;
@@ -25,7 +26,6 @@ impl Constraint for PsiSigma {
     fn run(d: &mut Data, i: usize, j: usize) -> bool {
         // Update decision variables
         PsiSigma::update_dec_var(d, i, j);
-        PsiSigma::update_dec_var(d, j, i);
 
         // Extract decision variables
         let psi = &d.dec.psi;
@@ -91,7 +91,11 @@ impl PsiSigma {
     /// * NONE
     ///
     fn update_dec_var(data: &mut Data, i: usize, j: usize) {
+        // Update the service time
+        ServiceTime::run(data, i, j);
+
         // Update sigma/psi decision variables
         SpaceTimeBigO::run(data, i, j);
+        SpaceTimeBigO::run(data, j, i);
     }
 }

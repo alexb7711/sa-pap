@@ -40,16 +40,19 @@ impl Constraint for ValidInitDepEndTimes {
 
         // Ensure the arrival time is before the attach time
         if !(a[i] <= u[i]) {
+            println!("Invalid arrival time.");
             return false;
         }
 
         // Ensure the detach time is before the departure time
         if !(c[i] <= e[i]) {
+            println!("Invalid detach time.");
             return false;
         }
 
         // Ensure the initial time is early enough such that the service time does not exceed the time horizon
         if !(u[i] <= T - s[i]) {
+            println!("Invalid attach time.");
             return false;
         }
 

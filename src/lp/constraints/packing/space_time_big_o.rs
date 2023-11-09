@@ -24,6 +24,7 @@ impl Constraint for SpaceTimeBigO {
     fn run(d: &mut Data, i: usize, j: usize) -> bool {
         // Extract parameters
         let Q = d.param.Q;
+        let T = d.param.T;
         let S = d.param.S;
 
         // Extract decision variables
@@ -40,15 +41,14 @@ impl Constraint for SpaceTimeBigO {
             psi[i][j] = false;
             sig[i][j] = false;
             return true;
-        }
+        } else {
+            // Calculate constraints
+            let psi_big_o =
+                (v[j] as i32 - v[i] as i32 - S as i32 - (psi[i][j] as i32 - S as i32) * Q as i32)
+                    as i32
+                    >= 0;
+            let sig_big_o = u[j] - u[i] - s[i] - (f32::from(sig[i][j]) - 1.0) * T >= 0.0;
 
-        let psi_big_o =
-            (v[j] as i32 - v[i] as i32 - S as i32 - (psi[i][j] as i32 - S as i32) * Q as i32)
-                as i32
-                >= 0;
-        let sig_big_o = u[j] - u[i] - s[i] - (f32::from(sig[i][j]) - 1.0) * Q as f32 >= 0.0;
-
-        if i != j {
             // Check if constraint is valid with psi_ij = false
             if !(psi_big_o) {
                 // If the constraint failed with psi_ij = false, update psi_ij = true

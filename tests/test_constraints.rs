@@ -169,9 +169,10 @@ mod test_packing_constraints {
             let v = &mut rg.data.dec.v;
 
             for i in 0..rg.data.param.N {
+                let idx = i % rg.data.param.Q;
                 u[i] = i as f32 * i as f32 * 1.1;
                 c[i] = c[i] + i as f32;
-                v[i] = i;
+                v[i] = idx;
             }
         }
 
@@ -225,10 +226,12 @@ mod test_packing_constraints {
             let u = &mut rg.data.dec.u;
 
             for i in 0..rg.data.param.N {
-                let idx = i % rg.data.param.Q;
-                u[i] = i as f32 * i as f32 * 1.1;
-                c[i] = c[i] + i as f32;
-                v[i] = idx;
+                // Set some queue time
+                u[i] = 0.0;
+                c[i] = 0.1;
+
+                // All BEBs get a unique charger
+                v[i] = i;
             }
         }
 
@@ -255,21 +258,30 @@ mod test_packing_constraints {
         // Extract variables
         let n = rg.data.param.N.clone();
 
+        // Update the time horizon
+        rg.data.param.T = (n * 10) as f32;
+
         // Update initial and final charge times
         {
+            let a = &mut rg.data.param.a;
+            let e = &mut rg.data.param.e;
+
             let c = &mut rg.data.dec.c;
             let u = &mut rg.data.dec.u;
 
             for i in 0..n {
-                u[i] = i as f32 * i as f32 * 1.1;
-                c[i] = c[i] + i as f32;
+                u[i] = a[i];
+                c[i] = e[i];
             }
         }
 
         // Run constraint
         for i in 0..n {
             for j in 0..n {
-                assert!(ValidInitDepEndTimes::run(&mut rg.data, i, j));
+                assert!(
+                    ValidInitDepEndTimes::run(&mut rg.data, i, j),
+                    "BEB time constraints did not pass."
+                );
             }
         }
     }
