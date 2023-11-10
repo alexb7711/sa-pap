@@ -118,8 +118,8 @@ impl RouteCSVGenerator {
             .repeat(self.config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
         self.data.param.Q = slow_c.len() + fast_c.len();
 
-        self.data.param.alpha = vec![0.0; A];
-        self.data.param.beta = vec![0.0; A];
+        self.data.param.alpha = vec![0.0; N];
+        self.data.param.beta = vec![0.0; N];
 
         let T = self.data.param.T;
         let K = self.data.param.K;
@@ -129,7 +129,7 @@ impl RouteCSVGenerator {
         self.data.param.ep = self.data.param.r.clone();
 
         self.data.param.k =
-            [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(A);
+            [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(N);
 
         let Q = self.data.param.Q;
         self.data.param.m = (0..Q).map(|x| 1000 * (x + 1)).collect();
@@ -505,7 +505,6 @@ impl RouteCSVGenerator {
         let Gam = &mut self.data.param.Gam;
 
         // Populate gamma buffer with "no next visit" value
-        // self.data.param.gam = vec![-1; Gam.len()];
         let gam = &mut self.data.param.gam;
 
         // Keep track of the previous index each BEB has arrived at
@@ -567,13 +566,12 @@ impl RouteCSVGenerator {
         // Local variables
         let final_charge = self.config["final_charge"].clone().into_f64().unwrap() as f32;
         let gam = &self.data.param.gam;
-        let Gam = &self.data.param.Gam;
         let beta = &mut self.data.param.beta;
 
         // Loop through each BEB
         for i in 0..gam.len() {
             if gam[i] == -1 {
-                beta[Gam[i] as usize] = final_charge;
+                beta[i as usize] = final_charge;
             }
         }
     }
@@ -850,7 +848,16 @@ mod priv_test_route_gen {
             ..Default::default()
         };
 
-        assert_eq!(re[0], r);
+        // Search for the matching ID
+        let mut idx = 0;
+        for i in 0..rg.data.param.N {
+            if re[i].id == 0 {
+                idx = i;
+                break;
+            }
+        }
+
+        assert_eq!(re[idx], r);
     }
 
     //--------------------------------------------------------------------------

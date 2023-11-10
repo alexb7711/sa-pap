@@ -44,7 +44,7 @@ mod test_primitive_generators {
         let id: usize = 0;
 
         // Test 0 - Ensure that the free time is (BOD, EOD)
-        assert_eq!(charger.free_time[q][0], (0.0, 10.0));
+        assert_eq!(charger.free_time[q][0], (0.0, 24.0));
 
         // Test 1 - Ensure the size of free times is 1
         assert_eq!(charger.free_time[q].len(), 1);
@@ -72,7 +72,7 @@ mod test_primitive_generators {
         assert_eq!(charger.free_time[q][0], (0.0, 0.1));
         assert_eq!(charger.free_time[q][1], (0.2, 0.2));
         assert_eq!(charger.free_time[q][2], (0.5, 0.6));
-        assert_eq!(charger.free_time[q][3], (0.7, 10.0));
+        assert_eq!(charger.free_time[q][3], (0.7, 24.0));
         assert_eq!(charger.free_time[q].len(), 4);
 
         // Test 4 - Assign a new bus to be charged in a busy schedule

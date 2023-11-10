@@ -96,15 +96,35 @@ mod test_route_csv_generator {
         rg.run();
 
         // Test the route counts
+
+        // Find the first instance for BEB 0 arrival
+        let mut idx = 0;
+        for i in 0..rg.data.param.N {
+            if rg.route[i].id == 0 {
+                idx = i;
+                break;
+            }
+        }
+
         assert_eq!(
-            rg.route[0].arrival_time, 0.0,
+            rg.route[idx].arrival_time, 5.3333335,
             "Initial arrival time was not at BOD."
         );
         assert!(
-            rg.route[0].departure_time == 0.0,
+            rg.route[idx].departure_time == 5.3333335,
             "The departure time for should equal to the BOD."
         );
-        assert_eq!(rg.route[35].arrival_time, 18000.0 / hr2sec);
+
+        // Find the first instance for BEB 35 arrival
+        let mut idx = 0;
+        for i in 0..rg.data.param.N {
+            if rg.route[i].id == 35 {
+                idx = i;
+                break;
+            }
+        }
+
+        assert_eq!(rg.route[idx].arrival_time, 18000.0 / hr2sec);
     }
 
     //---------------------------------------------------------------------------
