@@ -206,8 +206,6 @@ impl RouteCSVGenerator {
             }
         }
 
-        println!("{}", N);
-
         return N;
     }
 
@@ -280,8 +278,6 @@ impl RouteCSVGenerator {
             cnt += tmp_route.len();
             route_visit.insert(b, tmp_route);
         }
-
-        println!("Route length: {}", cnt);
 
         return route_visit;
     }
@@ -758,18 +754,32 @@ mod priv_test_route_gen {
             None => vec![],
         };
 
-        assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![5.3333335, 5.3333335]);
-        assert_eq!(r[2], vec![6.016667, 8.075]);
+        assert_eq!(
+            r[0],
+            vec![5.3333335, 5.3333335],
+            "The route route does not match the vector."
+        );
+        assert_eq!(
+            r[1],
+            vec![6.016667, 8.075],
+            "The route route does not match the vector."
+        );
 
         let r = match route.get(&10) {
             Some(r) => r.clone(),
             None => vec![],
         };
 
-        assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![6.0, 11.208333]);
-        assert_eq!(r[2], vec![11.683333, 13.783334]);
+        assert_eq!(
+            r[0],
+            vec![6.0, 11.208333],
+            "The route route does not match the vector."
+        );
+        assert_eq!(
+            r[1],
+            vec![11.683333, 13.783334],
+            "The route route does not match the vector."
+        );
     }
 
     //--------------------------------------------------------------------------
