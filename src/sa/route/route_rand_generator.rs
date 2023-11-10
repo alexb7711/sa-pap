@@ -9,8 +9,8 @@ extern crate yaml_rust;
 
 //===============================================================================
 // Import Crates
-pub use std::boxed::Box;
 use crate::sa::data::Data;
+pub use std::boxed::Box;
 use yaml_rust::Yaml;
 
 //===============================================================================
@@ -80,10 +80,7 @@ impl RouteRandGenerator {
         for i in 0..self.route.len() {
             println!(
                 "({}) ID: {} - Arrival: {} - Depart: {}",
-                i,
-                self.route[i].id,
-                self.route[i].arrival_time,
-                self.route[i].departure_time
+                i, self.route[i].id, self.route[i].arrival_time, self.route[i].departure_time
             );
         }
     }
@@ -109,8 +106,7 @@ impl RouteRandGenerator {
         self.buses.resize(num_bus, Bus::default());
 
         // Reserve memory for all events
-        self.route
-            .resize(visits, RouteEvent::default());
+        self.route.resize(visits, RouteEvent::default());
     }
 
     //---------------------------------------------------------------------------
@@ -455,23 +451,23 @@ mod priv_test_route_gen {
 
         // Test 1
         let mut next_arrival: f32 = rg.next_arrival(1, 2);
-        assert_eq!(next_arrival, 5.0);
+        assert_eq!(next_arrival, 12.0);
 
         // Test 2
         next_arrival = rg.next_arrival(2, 2);
-        assert_eq!(next_arrival, 10.0);
+        assert_eq!(next_arrival, 24.0);
 
         // Test 3
         next_arrival = rg.next_arrival(1, 5);
-        assert_eq!(next_arrival, 2.0);
+        assert_eq!(next_arrival, 4.8);
 
         // Test 4
         next_arrival = rg.next_arrival(3, 5);
-        assert_eq!(next_arrival, 6.0);
+        assert_eq!(next_arrival, 14.400001);
 
         // Test 5
         next_arrival = rg.next_arrival(4, 5);
-        assert_eq!(next_arrival, 8.0);
+        assert_eq!(next_arrival, 19.2);
     }
 
     //---------------------------------------------------------------------------

@@ -227,8 +227,6 @@ impl RouteCSVGenerator {
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let mut route_visit: HashMap<u16, Vec<Vec<f32>>> = HashMap::new();
 
-        let mut cnt = 0;
-
         // Generate set of visit/departures
 
         // For each bus/route
@@ -242,23 +240,23 @@ impl RouteCSVGenerator {
 
             // Determine start/stop index
             let (i0, J) = self.det_start_end_idx(&r);
-            let mut arrival_c: f32 = r[i0 + 2];
+            let mut arrival_c: f32 = r[i0];
 
             // For each start/stop route pair
             for j in (i0..J).step_by(2) {
                 // Update the times
-                departure = r[j];
-                arrival_n = r[j + 1];
+                departure = r[j + 1];
+                arrival_n = r[j + 2];
 
                 // If the first visit is at the BOD
-                if j == i0 && r[j] > bod {
+                if j == i0 && r[0] > bod {
                     // The first arrival time is at BOD
                     tmp_route.push(vec![bod, departure]);
                 }
                 // Otherwise the first visit is after the BOD
-                else if j == i0 && r[j] == bod {
-                    // Put in dummy visit to propagate discharge
-                    tmp_route.push(vec![departure, arrival_n]);
+                else if j == i0 && r[0] == bod {
+                    // Insert initial visit
+                    tmp_route.push(vec![arrival_c, departure]);
                 }
                 // Else append the arrival/departure time normally
                 else {
@@ -275,7 +273,6 @@ impl RouteCSVGenerator {
             }
 
             // Update the route
-            cnt += tmp_route.len();
             route_visit.insert(b, tmp_route);
         }
 
@@ -518,7 +515,7 @@ impl RouteCSVGenerator {
         let last_idx = next_idx.clone();
 
         // Loop through each BEB visit
-        for i in (0..self.route.len()).rev() {
+        for i in (0..self.data.param.N).rev() {
             // Make sure that the index being checked is greater than the first
             // visit. If it is, set the previous index value equal to the current.
             // In other words, index i's value indicates the next index the bus
