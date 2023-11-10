@@ -165,7 +165,7 @@ impl RouteCSVGenerator {
         self.data.dec.s = vec![0.0; N];
         self.data.dec.g = vec![vec![0.0; N]; Q];
         self.data.dec.eta = vec![0.0; N];
-        self.data.dec.w = vec![vec![false; N]; Q];
+        self.data.dec.w = vec![vec![false; Q]; N];
         self.data.dec.sigma = vec![vec![true; N]; N];
         self.data.dec.psi = vec![vec![true; N]; N];
     }

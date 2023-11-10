@@ -338,10 +338,10 @@ mod test_dynamic_constraints {
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
                 ValidInitDepEndTimes::run(&mut rg.data, i, j);
-                // assert!(
-                //     ChargePropogation::run(&mut rg.data, i, j),
-                //     "Charge did not propagate appropriately."
-                // );
+                assert!(
+                    ChargePropogation::run(&mut rg.data, i, j),
+                    "Charge did not propagate appropriately."
+                );
             }
         }
     }

@@ -22,7 +22,10 @@ pub struct ChargePropogation {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ChargePropogation {
-    fn run(d: &mut Data, i: usize, _: usize) -> bool {
+    fn run(d: &mut Data, i: usize, j: usize) -> bool {
+        // Update parameters
+        ChargePropogation::update_dec_var(d, i, j);
+
         // Extract parameters
         let Q = d.param.Q;
         let Gam = &d.param.Gam;
@@ -71,6 +74,8 @@ impl ChargePropogation {
     ///
     /// # Input
     /// * data: Simulated annealing data object.
+    /// * i: index of the visit
+    /// * j: index for the queue
     ///
     /// # Output
     /// * NONE
