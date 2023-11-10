@@ -1,5 +1,6 @@
 //===============================================================================
 // Import developed modules
+use crate::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
 use crate::lp::constraints::Constraint;
 use crate::sa::data::Data;
 
@@ -57,5 +58,25 @@ impl Constraint for ChargePropogation {
         }
 
         return true;
+    }
+}
+
+//==============================================================================
+/// Implementation of helper functions for `ChargePropogation`
+//
+impl ChargePropogation {
+    //--------------------------------------------------------------------------
+    /// The `update_dec_var` function updates the decision variables associated
+    /// with the `ChargePropogation` constraints.
+    ///
+    /// # Input
+    /// * data: Simulated annealing data object.
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_dec_var(data: &mut Data, i: usize, j: usize) {
+        // Update the initial charge time
+        InitFinalCharge::run(data, i, j);
     }
 }

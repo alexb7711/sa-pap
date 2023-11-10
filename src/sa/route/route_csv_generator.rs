@@ -174,12 +174,10 @@ impl RouteCSVGenerator {
     /// Counts the number of bus visits from the routes matrix.
     ///
     /// # Input
-    ///
     /// * config: Initialization parameters from YAML
     /// * csv: Tuple containing the start/stop route information
     ///
     /// # Output
-    ///
     /// * N : Number of visits
     ///
     fn count_visits(
@@ -199,13 +197,16 @@ impl RouteCSVGenerator {
             // If the bus does not go on route immediately after the working day has
             // begun
             if *r.first().unwrap() > bod {
-                N += 1 // Increment the visit counter
+                N += 1; // Increment the visit counter
             }
+
             // If the bus arrives before the end of the working day
-            if *r.last().unwrap() < eod {
-                N += 1 // Increment the visit counter
+            if *r.last().unwrap() == eod {
+                N -= 1; // Increment the visit counter
             }
         }
+
+        println!("{}", N);
 
         return N;
     }
@@ -223,9 +224,12 @@ impl RouteCSVGenerator {
     /// * routes: CSV route data in arrival/departure form
     ///
     fn convert_route_to_visit(self: &RouteCSVGenerator) -> HashMap<u16, Vec<Vec<f32>>> {
+        // Variables
         let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let mut route_visit: HashMap<u16, Vec<Vec<f32>>> = HashMap::new();
+
+        let mut cnt = 0;
 
         // Generate set of visit/departures
 
@@ -234,29 +238,29 @@ impl RouteCSVGenerator {
             // Variables
             let b: u16 = self.csv_schedule.0[i];
             let r: Vec<f32> = self.csv_schedule.1[i].clone();
-            let J: usize = r.len();
-            let mut arrival_c: f32 = r[1];
             let mut arrival_n: f32;
             let mut departure: f32;
             let mut tmp_route: Vec<Vec<f32>> = Vec::new();
 
+            // Determine start/stop index
+            let (i0, J) = self.det_start_end_idx(&r);
+            let mut arrival_c: f32 = r[i0 + 2];
+
             // For each start/stop route pair
-            for j in (0..J).step_by(2) {
+            for j in (i0..J).step_by(2) {
                 // Update the times
                 departure = r[j];
                 arrival_n = r[j + 1];
 
                 // If the first visit is at the BOD
-                if j == 0 && r[j] > bod {
+                if j == i0 && r[j] > bod {
                     // The first arrival time is at BOD
                     tmp_route.push(vec![bod, departure]);
-                    continue;
                 }
                 // Otherwise the first visit is after the BOD
-                else if j == 0 && r[j] == bod {
+                else if j == i0 && r[j] == bod {
                     // Put in dummy visit to propagate discharge
-                    tmp_route.push(vec![bod, bod]);
-                    continue;
+                    tmp_route.push(vec![departure, arrival_n]);
                 }
                 // Else append the arrival/departure time normally
                 else {
@@ -273,10 +277,55 @@ impl RouteCSVGenerator {
             }
 
             // Update the route
+            cnt += tmp_route.len();
             route_visit.insert(b, tmp_route);
         }
 
+        println!("Route length: {}", cnt);
+
         return route_visit;
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    /// Determine the starting index for converting routes to visits.
+    ///
+    /// Example:
+    /// 1)
+    /// B  E  B  E  B  E  B  E
+    /// 0  1  2  3  4  5  6  7
+    ///
+    /// The first "visit" it at E = 1 since the BEB is on route from hour 0 to 1.
+    /// Therefore, the first visit is at index 1.
+    ///
+    /// 2)
+    /// B  E  B  E  B  E  B  E
+    /// 1  2  3  4  5  6  7  8
+    ///
+    /// The first visit is at E = 0.0 since we are assuming that B = 1 is the start
+    /// of the first route of the day. Therefore, the starting index needs to be 1.
+    ///
+    /// Input:
+    ///   - self  : Scheduler object
+    ///   - r: Vector of bus routes for bus `b`
+    ///
+    /// Output:
+    ///   - (i0, ix): The start/end index to convert routes to visits
+    ///
+    fn det_start_end_idx(self: &RouteCSVGenerator, r: &Vec<f32>) -> (usize, usize) {
+        // Variables
+        let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
+        let mut i0 = 0;
+        let mut ix = r.len();
+
+        // If the first route time starts at BOD
+        if *r.first().unwrap() == bod {
+            // The starting index is set to 1
+            i0 = 1;
+            ix -= 1;
+        }
+
+        return (i0, ix);
     }
 
     //---------------------------------------------------------------------------

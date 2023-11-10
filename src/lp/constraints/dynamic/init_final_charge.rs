@@ -35,13 +35,13 @@ impl Constraint for InitFinalCharge {
 
         // If the current visit is the initial visit for BEB `i`
         if alpha[i] > 0.0 {
-            if !(alpha[i] * kappa[Gam[i] as usize] == eta[i]) {
-                return false;
-            }
+            // Assign the initial charge
+            eta[i] = alpha[i] * kappa[Gam[i] as usize];
         }
 
         // If the current visit is the final visit for BEB `i`
         if beta[i] > 0.0 {
+            // Ensure that the final charge is above the specified threshold
             if !(eta[i] >= beta[i] * kappa[Gam[i] as usize]) {
                 return false;
             }

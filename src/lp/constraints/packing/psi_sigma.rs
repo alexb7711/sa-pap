@@ -40,35 +40,17 @@ impl Constraint for PsiSigma {
 
         // Check the spatial ordering
         if !(psi[i][j] as usize + psi[j][i] as usize <= 1) {
-            println!(
-                "1: {}, {}: {}",
-                i,
-                j,
-                psi[i][j] as usize + psi[j][i] as usize
-            );
             return false;
         }
 
         // Check the temporal ordering
         if !(sig[i][j] as usize + sig[j][i] as usize <= 1) {
-            println!(
-                "2: {}, {}: {}",
-                i,
-                j,
-                sig[i][j] as usize + sig[j][i] as usize
-            );
             return false;
         }
 
         // Check the spatiotemporal ordering
         if !(psi[i][j] as usize + psi[j][i] as usize + sig[i][j] as usize + sig[j][i] as usize >= 1)
         {
-            println!(
-                "3: {}, {}: {}",
-                i,
-                j,
-                psi[i][j] as usize + psi[j][i] as usize + sig[i][j] as usize + sig[j][i] as usize
-            );
             return false;
         }
 

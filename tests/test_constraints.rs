@@ -113,7 +113,7 @@ mod test_packing_constraints {
     }
 
     //---------------------------------------------------------------------------
-    // Invalid paths should cause a panic
+    //
     #[test]
     fn test_service_time() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
@@ -153,7 +153,7 @@ mod test_packing_constraints {
     }
 
     //---------------------------------------------------------------------------
-    // Invalid paths should cause a panic
+    //
     #[test]
     fn test_psi_sigma() {
         // Test 0 - Obvious case
@@ -247,7 +247,7 @@ mod test_packing_constraints {
     }
 
     //---------------------------------------------------------------------------
-    // Invalid paths should cause a panic
+    //
     #[test]
     fn test_valid_init_dep_end_time() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
@@ -295,6 +295,8 @@ mod test_dynamic_constraints {
     // Import modules
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
     use super::sa_pap::sa::route::Route;
+    use sa_pap::lp::constraints::dynamic::charge_propogation::ChargePropogation;
+    use sa_pap::lp::constraints::packing::valid_init_dep_end_time::ValidInitDepEndTimes;
     use sa_pap::lp::constraints::Constraint;
 
     //---------------------------------------------------------------------------
@@ -310,16 +312,6 @@ mod test_dynamic_constraints {
     }
 
     //---------------------------------------------------------------------------
-    // Test bilinear constraint
-    #[test]
-    fn test_bilinear() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
-
-        // Load the CSV schedule
-        rg.run();
-    }
-
-    //---------------------------------------------------------------------------
     // Test charge propagation constraint
     #[test]
     fn test_charge_propagation() {
@@ -327,6 +319,31 @@ mod test_dynamic_constraints {
 
         // Load the CSV schedule
         rg.run();
+
+        // Update initial and final charge times
+        {
+            let c = &mut rg.data.dec.c;
+            let u = &mut rg.data.dec.u;
+            let v = &mut rg.data.dec.v;
+
+            for i in 0..rg.data.param.N {
+                let idx = i % rg.data.param.Q;
+                u[i] = 0.0;
+                c[i] = 2.0;
+                v[i] = idx;
+            }
+        }
+
+        // Run constraint
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                ValidInitDepEndTimes::run(&mut rg.data, i, j);
+                // assert!(
+                //     ChargePropogation::run(&mut rg.data, i, j),
+                //     "Charge did not propagate appropriately."
+                // );
+            }
+        }
     }
 
     //---------------------------------------------------------------------------
