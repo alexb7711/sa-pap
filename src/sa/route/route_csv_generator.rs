@@ -93,46 +93,56 @@ impl RouteCSVGenerator {
     /// * NONE
     ///
     fn buffer_input_parameters(self: &mut RouteCSVGenerator) {
+        // Misc Variables
         let csv: &(Vec<u16>, Vec<Vec<f32>>) = &self.csv_schedule;
         let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
 
+        // Constants
         self.data.param.A = csv.0.len();
         self.data.param.N = self.count_visits(&self.config, &csv);
         self.data.param.T = eod - bod;
         self.data.param.K = self.config["time"]["K"].as_i64().unwrap() as u16;
         self.data.param.S = 1;
 
+        // Quality of life variables
         let A = self.data.param.A;
         let N = self.data.param.N;
 
+        // Allocate space for input parameters
         self.data.param.a = vec![0.0; N];
         self.data.param.e = vec![0.0; N];
         self.data.param.D = vec![0.0; N];
         self.data.param.gam = vec![-1; N];
         self.data.param.Gam = vec![0; N];
+        self.data.param.alpha = vec![0.0; N];
+        self.data.param.beta = vec![0.0; N];
 
+        // Create parts of charge rate vector
+        let wait_c: Vec<f32> = vec![0.0; A];
         let slow_c = [self.config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
             .repeat(self.config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
         let fast_c = [self.config["chargers"]["fast"]["rate"].as_f64().unwrap() as f32]
             .repeat(self.config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
-        self.data.param.Q = slow_c.len() + fast_c.len();
+        self.data.param.Q = wait_c.len() + slow_c.len() + fast_c.len();
 
-        self.data.param.alpha = vec![0.0; N];
-        self.data.param.beta = vec![0.0; N];
+        // Create charge rate vector
+        self.data.param.r = vec![wait_c.clone(), slow_c.clone(), fast_c.clone()].concat();
+
+        // Create usage cost vector
+        self.data.param.ep = self.data.param.r.clone();
 
         let T = self.data.param.T;
         let K = self.data.param.K;
         self.data.param.dt = T / K as f32;
 
-        self.data.param.r = [slow_c.clone(), fast_c.clone()].concat();
-        self.data.param.ep = self.data.param.r.clone();
-
         self.data.param.k =
             [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(N);
 
         let Q = self.data.param.Q;
-        self.data.param.m = (0..Q).map(|x| 1000 * (x + 1)).collect();
+        self.data.param.m = vec![0; A];
+        let mut charge_queue: Vec<usize> = (0..(Q - A)).map(|x| 1000 * (x + 1)).collect();
+        self.data.param.m.append(&mut charge_queue);
 
         self.data.param.nu = self.config["buses"]["min_charge"].as_f64().unwrap() as f32;
         self.data.param.D = [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
@@ -986,7 +996,6 @@ mod priv_test_route_gen {
         }
 
         // Ensure the number of initial charges equals the number of BEBs
-        println!("{:?}", beta);
         assert_eq!(
             cnt, rg.data.param.A,
             "The number of initial charges and BEBs do not match."

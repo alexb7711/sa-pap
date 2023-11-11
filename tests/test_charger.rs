@@ -31,7 +31,7 @@ mod test_charger {
     #[test]
     fn test_charger_initilazation() {
         // Load charger parameters from YAML file
-        let charger: Charger = Charger::new(yaml_path(), true, None);
+        let charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Test 0 - Ensure the correct amount of chargers have been created
         let cc = charger.charger_count.1 + charger.charger_count.2;
@@ -39,7 +39,7 @@ mod test_charger {
 
         // Test 1 - include the non-charger spots
         let cc = charger.charger_count.0 + charger.charger_count.1 + charger.charger_count.2;
-        assert_eq!(cc, 36);
+        assert_eq!(cc, 22);
 
         // Test 2 - charger speeds
         let cc = charger.charger_speed;
@@ -51,7 +51,7 @@ mod test_charger {
     #[test]
     fn test_charger_addition() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Make sure we have an empty charger queue
         assert_eq!(charger.schedule.is_empty(), false);
@@ -77,7 +77,7 @@ mod test_charger {
     #[test]
     fn test_charger_assignment() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Add queues (four three chargers)
         charger.add_chargers(2);
@@ -230,7 +230,7 @@ mod test_charger {
     #[test]
     fn test_charger_deletion() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -283,7 +283,7 @@ mod test_charger {
     #[test]
     fn test_charger_ordering() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -320,7 +320,7 @@ mod test_charger {
     #[test]
     fn test_charger_avail() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Add queues (four total chargers)
         charger.add_chargers(3);
@@ -385,7 +385,7 @@ mod test_charger {
     fn test_free_time() {
         // Create charger
         let q: usize = 0;
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Test 0
         assert_eq!(charger.free_time[q].is_empty(), false);
@@ -434,7 +434,7 @@ mod test_charger {
     fn test_find_free_time() {
         // Create charger
         let q: usize = 0;
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Create a simple schedule
         let c: (f32, f32) = (0.1, 0.2);

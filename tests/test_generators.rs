@@ -29,13 +29,18 @@ mod test_generators {
     //
     #[test]
     fn test_schedule_generator() {
-        // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), true, None);
-
         // Create CSV generator
         let rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
         let mut rg: Box<dyn Route> = Box::new(rg);
         rg.run();
+
+        // Create charger
+        let mut charger: Charger = Charger::new(
+            yaml_path(),
+            true,
+            Some(rg.get_data().param.A as usize),
+            None,
+        );
 
         // Create the generator
         let mut sg = GenWaitQueue::new();

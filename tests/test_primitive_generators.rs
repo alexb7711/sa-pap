@@ -35,7 +35,7 @@ mod test_primitive_generators {
     #[test]
     fn test_new_visit() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Queue index
         let q: usize = 0;
@@ -56,7 +56,7 @@ mod test_primitive_generators {
         assert_eq!(charger.free_time[q].len(), 2);
 
         // Create a new charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Assign some visits
         let c: (f32, f32) = (0.1, 0.2);
@@ -98,7 +98,7 @@ mod test_primitive_generators {
     #[test]
     fn test_wait_purge() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -156,7 +156,7 @@ mod test_primitive_generators {
     #[test]
     fn test_new_window() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -196,7 +196,7 @@ mod test_primitive_generators {
     #[test]
     fn test_slide() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None);
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -236,7 +236,7 @@ mod test_primitive_generators {
     #[test]
     fn test_new_charger() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, Some(2));
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, Some(2));
 
         // Create a simple schedule
         let q: usize = 1;

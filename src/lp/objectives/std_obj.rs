@@ -26,12 +26,13 @@ impl Objective for StdObj {
 
         // Extract decision variables
         let w = &d.dec.w;
+        let s = &d.dec.s;
 
         // Calculate the objective function
         for i in 0..N {
             for q in 0..Q {
                 let wiq = f64::from(w[i][q]);
-                J += wiq * m[q] as f64 + wiq * ep[q] as f64;
+                J += wiq * m[q] as f64 + s[i] as f64 * wiq as f64 * ep[q] as f64;
             }
         }
         return J;

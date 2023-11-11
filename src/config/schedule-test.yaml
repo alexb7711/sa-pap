@@ -4,7 +4,7 @@ time:
   EOD: 24.0                                                                     # [hr]
   K: 100
 buses:
-  num_bus: 25
+  num_bus: 11
   num_visit: 200
   bus_length: 1
   bat_capacity: 387.78 # [KWh]

@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 extern crate sa_pap;
 
 //===============================================================================
@@ -297,6 +299,7 @@ mod test_dynamic_constraints {
     use super::sa_pap::sa::route::Route;
     use sa_pap::lp::constraints::dynamic::charge_propagation::ChargePropagate;
     use sa_pap::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
+    use sa_pap::lp::constraints::dynamic::scalar_to_vector_queue::ScalarToVectorQueue;
     use sa_pap::lp::constraints::packing::valid_init_dep_end_time::ValidInitDepEndTimes;
     use sa_pap::lp::constraints::Constraint;
 
@@ -447,5 +450,27 @@ mod test_dynamic_constraints {
 
         // Load the CSV schedule
         rg.run();
+
+        // Run constraint
+
+        // Update charge queues
+        {
+            let v = &mut rg.data.dec.v;
+            let Gam = &rg.data.param.Gam;
+
+            for i in 0..rg.data.param.N {
+                v[i] = Gam[i] as usize;
+            }
+        }
+
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                // Ensure initial/final times are updated correctly
+                assert!(
+                    ScalarToVectorQueue::run(&mut rg.data, i, j),
+                    "w[i][j].sum() > 1."
+                );
+            }
+        }
     }
 }
