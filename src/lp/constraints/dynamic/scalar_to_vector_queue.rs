@@ -6,10 +6,10 @@ use crate::sa::data::Data;
 //===============================================================================
 /// Structure defining the information to calculate service time
 //
-pub struct ChargePropogation {}
+pub struct ScalarToVectorQueue {}
 
 //===============================================================================
-/// Implementation of `Constraint` for `ChargePropogation` structure.
+/// Implementation of `Constraint` for `ScalarToVectorQueue` structure.
 ///
 /// # Input
 /// * d: Data for the current model
@@ -20,8 +20,8 @@ pub struct ChargePropogation {}
 /// * bool: Constraint successfully applied and is true
 ///
 #[allow(non_snake_case)]
-impl Constraint for ChargePropogation {
-    fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
+impl Constraint for ScalarToVectorQueue {
+    fn run(d: &mut Data, i: usize, _: usize) -> bool {
         // Extract decision variables
         let v = &d.dec.v;
         let w = &mut d.dec.w;

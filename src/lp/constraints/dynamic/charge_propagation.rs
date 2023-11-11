@@ -1,12 +1,13 @@
 //===============================================================================
 // Import developed modules
+use crate::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
 use crate::lp::constraints::Constraint;
 use crate::sa::data::Data;
 
 //===============================================================================
 /// Structure defining the information to calculate service time
 //
-pub struct ChargePropogation {}
+pub struct ChargePropagate {}
 
 //===============================================================================
 /// Implementation of `Constraint` for `ChargePropogation` structure.
@@ -20,8 +21,11 @@ pub struct ChargePropogation {}
 /// * bool: Constraint successfully applied and is true
 ///
 #[allow(non_snake_case)]
-impl Constraint for ChargePropogation {
-    fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
+impl Constraint for ChargePropagate {
+    fn run(d: &mut Data, i: usize, j: usize) -> bool {
+        // Update parameters
+        ChargePropagate::update_dec_var(d, i, j);
+
         // Extract parameters
         let Q = d.param.Q;
         let Gam = &d.param.Gam;
@@ -57,5 +61,27 @@ impl Constraint for ChargePropogation {
         }
 
         return true;
+    }
+}
+
+//==============================================================================
+/// Implementation of helper functions for `ChargePropogation`
+//
+impl ChargePropagate {
+    //--------------------------------------------------------------------------
+    /// The `update_dec_var` function updates the decision variables associated
+    /// with the `ChargePropogation` constraints.
+    ///
+    /// # Input
+    /// * data: Simulated annealing data object.
+    /// * i: index of the visit
+    /// * j: index for the queue
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_dec_var(data: &mut Data, i: usize, j: usize) {
+        // Update the initial charge time
+        InitFinalCharge::run(data, i, j);
     }
 }

@@ -23,8 +23,8 @@ pub struct Charger {
     // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
     pub free_time: Vec<Vec<(f32, f32)>>, // Lists of free times
-    pub charger_count: (usize, usize,usize),    // Charger counts (wait, slow, fast)
-    pub charger_speed: (f32, f32,f32),    // Charger speeds (wait, slow, fast)
+    pub charger_count: (usize, usize, usize), // Charger counts (wait, slow, fast)
+    pub charger_speed: (f32, f32, f32), // Charger speeds (wait, slow, fast)
 
     // Private
     config: Yaml,
@@ -38,12 +38,21 @@ impl Charger {
     /// Constructor that returns a Charger object
     ///
     /// # Input
-    /// * q: Optional number of chargers to create. Defaults to one.
+    /// * config_path: String path to the configuration file
+    /// * load_c_from_yaml: flag to indicate whether to load charger counts from
+    /// * the configuration file
+    /// * a_force: Then number of wait chargers to force
+    /// * q_force: The total number of chargers to force
     ///
     /// # Output
     /// * Return a charger object
     ///
-    pub fn new(config_path: &str, load_c_from_yaml: bool, q_force: Option<usize>) -> Charger {
+    pub fn new(
+        config_path: &str,
+        load_c_from_yaml: bool,
+        a_force: Option<usize>,
+        q_force: Option<usize>,
+    ) -> Charger {
         // Create a charger
         let mut c: Charger = Charger {
             schedule: Vec::new(),
@@ -60,14 +69,19 @@ impl Charger {
         c.charger_count = (0, 0, q);
 
         // Load chargers file if specified
+        let q_wait: usize;
         if load_c_from_yaml {
             // Extract the number of queues from YAML
-            let q_wait: usize = c.config.clone()["buses"]["num_bus"]
-                .as_i64()
-                .unwrap() as usize;
+            if let Some(a) = a_force {
+                q_wait = a;
+            } else {
+                q_wait = c.config.clone()["buses"]["num_bus"].as_i64().unwrap() as usize;
+            }
+
             let q_slow: usize = c.config.clone()["chargers"]["slow"]["num"]
                 .as_i64()
                 .unwrap() as usize;
+
             let q_fast: usize = c.config.clone()["chargers"]["fast"]["num"]
                 .as_i64()
                 .unwrap() as usize;

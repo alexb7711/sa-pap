@@ -84,8 +84,7 @@ impl RouteCSVGenerator {
     // PRIVATE
 
     //---------------------------------------------------------------------------
-    //
-    /// Allocates space for the start,stop set of routes to be generated.
+    /// Allocates buffers for input parameters.
     ///
     /// # Input
     /// * NONE
@@ -93,47 +92,57 @@ impl RouteCSVGenerator {
     /// # Output
     /// * NONE
     ///
-    fn buffer_attributes(self: &mut RouteCSVGenerator) {
+    fn buffer_input_parameters(self: &mut RouteCSVGenerator) {
+        // Misc Variables
         let csv: &(Vec<u16>, Vec<Vec<f32>>) = &self.csv_schedule;
         let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
 
+        // Constants
         self.data.param.A = csv.0.len();
         self.data.param.N = self.count_visits(&self.config, &csv);
         self.data.param.T = eod - bod;
         self.data.param.K = self.config["time"]["K"].as_i64().unwrap() as u16;
         self.data.param.S = 1;
 
+        // Quality of life variables
         let A = self.data.param.A;
         let N = self.data.param.N;
 
-        self.data.param.a.reserve(N);
-        self.data.param.e.reserve(N);
-        self.data.param.D.reserve(N);
-        self.data.param.gam.reserve(N);
-        self.data.param.Gam.reserve(N);
+        // Allocate space for input parameters
+        self.data.param.a = vec![0.0; N];
+        self.data.param.e = vec![0.0; N];
+        self.data.param.D = vec![0.0; N];
+        self.data.param.gam = vec![-1; N];
+        self.data.param.Gam = vec![0; N];
+        self.data.param.alpha = vec![0.0; N];
+        self.data.param.beta = vec![0.0; N];
 
+        // Create parts of charge rate vector
+        let wait_c: Vec<f32> = vec![0.0; A];
         let slow_c = [self.config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
             .repeat(self.config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
         let fast_c = [self.config["chargers"]["fast"]["rate"].as_f64().unwrap() as f32]
             .repeat(self.config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
-        self.data.param.Q = slow_c.len() + fast_c.len();
+        self.data.param.Q = wait_c.len() + slow_c.len() + fast_c.len();
 
-        self.data.param.alpha = vec![0.0; A];
-        self.data.param.beta = vec![0.0; A];
+        // Create charge rate vector
+        self.data.param.r = vec![wait_c.clone(), slow_c.clone(), fast_c.clone()].concat();
+
+        // Create usage cost vector
+        self.data.param.ep = self.data.param.r.clone();
 
         let T = self.data.param.T;
         let K = self.data.param.K;
         self.data.param.dt = T / K as f32;
 
-        self.data.param.r = [slow_c.clone(), fast_c.clone()].concat();
-        self.data.param.ep = self.data.param.r.clone();
-
         self.data.param.k =
-            [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(A);
+            [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(N);
 
         let Q = self.data.param.Q;
-        self.data.param.m = (0..Q).map(|x| 1000 * (x + 1)).collect();
+        self.data.param.m = vec![0; A];
+        let mut charge_queue: Vec<usize> = (0..(Q - A)).map(|x| 1000 * (x + 1)).collect();
+        self.data.param.m.append(&mut charge_queue);
 
         self.data.param.nu = self.config["buses"]["min_charge"].as_f64().unwrap() as f32;
         self.data.param.D = [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
@@ -146,16 +155,39 @@ impl RouteCSVGenerator {
     }
 
     //---------------------------------------------------------------------------
-    //
+    /// Allocates buffers for decision variables.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn buffer_decision_variables(self: &mut RouteCSVGenerator) {
+        // Variables
+        let Q = self.data.param.Q;
+        let N = self.data.param.N;
+
+        // Generate decision variable buffers
+        self.data.dec.u = vec![0.0; N];
+        self.data.dec.v = vec![0; N];
+        self.data.dec.c = vec![0.0; N];
+        self.data.dec.s = vec![0.0; N];
+        self.data.dec.g = vec![vec![0.0; N]; Q];
+        self.data.dec.eta = vec![0.0; N];
+        self.data.dec.w = vec![vec![false; Q]; N];
+        self.data.dec.sigma = vec![vec![true; N]; N];
+        self.data.dec.psi = vec![vec![true; N]; N];
+    }
+
+    //---------------------------------------------------------------------------
     /// Counts the number of bus visits from the routes matrix.
     ///
     /// # Input
-    ///
     /// * config: Initialization parameters from YAML
     /// * csv: Tuple containing the start/stop route information
     ///
     /// # Output
-    ///
     /// * N : Number of visits
     ///
     fn count_visits(
@@ -175,11 +207,12 @@ impl RouteCSVGenerator {
             // If the bus does not go on route immediately after the working day has
             // begun
             if *r.first().unwrap() > bod {
-                N += 1 // Increment the visit counter
+                N += 1; // Increment the visit counter
             }
+
             // If the bus arrives before the end of the working day
-            if *r.last().unwrap() < eod {
-                N += 1 // Increment the visit counter
+            if *r.last().unwrap() == eod {
+                N -= 1; // Increment the visit counter
             }
         }
 
@@ -199,6 +232,7 @@ impl RouteCSVGenerator {
     /// * routes: CSV route data in arrival/departure form
     ///
     fn convert_route_to_visit(self: &RouteCSVGenerator) -> HashMap<u16, Vec<Vec<f32>>> {
+        // Variables
         let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
         let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
         let mut route_visit: HashMap<u16, Vec<Vec<f32>>> = HashMap::new();
@@ -210,29 +244,29 @@ impl RouteCSVGenerator {
             // Variables
             let b: u16 = self.csv_schedule.0[i];
             let r: Vec<f32> = self.csv_schedule.1[i].clone();
-            let J: usize = r.len();
-            let mut arrival_c: f32 = r[1];
             let mut arrival_n: f32;
             let mut departure: f32;
             let mut tmp_route: Vec<Vec<f32>> = Vec::new();
 
+            // Determine start/stop index
+            let (i0, J) = self.det_start_end_idx(&r);
+            let mut arrival_c: f32 = r[i0];
+
             // For each start/stop route pair
-            for j in (0..J).step_by(2) {
+            for j in (i0..J).step_by(2) {
                 // Update the times
-                departure = r[j];
-                arrival_n = r[j + 1];
+                departure = r[j + 1];
+                arrival_n = r[j + 2];
 
                 // If the first visit is at the BOD
-                if j == 0 && r[j] > bod {
+                if j == i0 && r[0] > bod {
                     // The first arrival time is at BOD
                     tmp_route.push(vec![bod, departure]);
-                    continue;
                 }
                 // Otherwise the first visit is after the BOD
-                else if j == 0 && r[j] == bod {
-                    // Put in dummy visit to propagate discharge
-                    tmp_route.push(vec![bod, bod]);
-                    continue;
+                else if j == i0 && r[0] == bod {
+                    // Insert initial visit
+                    tmp_route.push(vec![arrival_c, departure]);
                 }
                 // Else append the arrival/departure time normally
                 else {
@@ -253,6 +287,48 @@ impl RouteCSVGenerator {
         }
 
         return route_visit;
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    /// Determine the starting index for converting routes to visits.
+    ///
+    /// Example:
+    /// 1)
+    /// B  E  B  E  B  E  B  E
+    /// 0  1  2  3  4  5  6  7
+    ///
+    /// The first "visit" it at E = 1 since the BEB is on route from hour 0 to 1.
+    /// Therefore, the first visit is at index 1.
+    ///
+    /// 2)
+    /// B  E  B  E  B  E  B  E
+    /// 1  2  3  4  5  6  7  8
+    ///
+    /// The first visit is at E = 0.0 since we are assuming that B = 1 is the start
+    /// of the first route of the day. Therefore, the starting index needs to be 1.
+    ///
+    /// Input:
+    ///   - self  : Scheduler object
+    ///   - r: Vector of bus routes for bus `b`
+    ///
+    /// Output:
+    ///   - (i0, ix): The start/end index to convert routes to visits
+    ///
+    fn det_start_end_idx(self: &RouteCSVGenerator, r: &Vec<f32>) -> (usize, usize) {
+        // Variables
+        let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
+        let mut i0 = 0;
+        let mut ix = r.len();
+
+        // If the first route time starts at BOD
+        if *r.first().unwrap() == bod {
+            // The starting index is set to 1
+            i0 = 1;
+            ix -= 1;
+        }
+
+        return (i0, ix);
     }
 
     //---------------------------------------------------------------------------
@@ -439,7 +515,6 @@ impl RouteCSVGenerator {
         let Gam = &mut self.data.param.Gam;
 
         // Populate gamma buffer with "no next visit" value
-        self.data.param.gam = vec![-1; Gam.len()];
         let gam = &mut self.data.param.gam;
 
         // Keep track of the previous index each BEB has arrived at
@@ -449,7 +524,7 @@ impl RouteCSVGenerator {
         let last_idx = next_idx.clone();
 
         // Loop through each BEB visit
-        for i in (0..self.route.len()).rev() {
+        for i in (0..self.data.param.N).rev() {
             // Make sure that the index being checked is greater than the first
             // visit. If it is, set the previous index value equal to the current.
             // In other words, index i's value indicates the next index the bus
@@ -501,13 +576,12 @@ impl RouteCSVGenerator {
         // Local variables
         let final_charge = self.config["final_charge"].clone().into_f64().unwrap() as f32;
         let gam = &self.data.param.gam;
-        let Gam = &self.data.param.Gam;
         let beta = &mut self.data.param.beta;
 
         // Loop through each BEB
         for i in 0..gam.len() {
             if gam[i] == -1 {
-                beta[Gam[i] as usize] = final_charge;
+                beta[i as usize] = final_charge;
             }
         }
     }
@@ -574,8 +648,11 @@ impl Route for RouteCSVGenerator {
         // Parse CSV
         self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h, &self.config);
 
-        // Buffer Attributes
-        self.buffer_attributes();
+        // Buffer input parameters
+        self.buffer_input_parameters();
+
+        // Buffer decision variables
+        self.buffer_decision_variables();
 
         // Convert routes to visits
         let visits = self.convert_route_to_visit();
@@ -682,18 +759,32 @@ mod priv_test_route_gen {
             None => vec![],
         };
 
-        assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![5.3333335, 5.3333335]);
-        assert_eq!(r[2], vec![6.016667, 8.075]);
+        assert_eq!(
+            r[0],
+            vec![5.3333335, 5.3333335],
+            "The route route does not match the vector."
+        );
+        assert_eq!(
+            r[1],
+            vec![6.016667, 8.075],
+            "The route route does not match the vector."
+        );
 
         let r = match route.get(&10) {
             Some(r) => r.clone(),
             None => vec![],
         };
 
-        assert_eq!(r[0], vec![0.0, 0.0]);
-        assert_eq!(r[1], vec![6.0, 11.208333]);
-        assert_eq!(r[2], vec![11.683333, 13.783334]);
+        assert_eq!(
+            r[0],
+            vec![6.0, 11.208333],
+            "The route route does not match the vector."
+        );
+        assert_eq!(
+            r[1],
+            vec![11.683333, 13.783334],
+            "The route route does not match the vector."
+        );
     }
 
     //--------------------------------------------------------------------------
@@ -767,7 +858,16 @@ mod priv_test_route_gen {
             ..Default::default()
         };
 
-        assert_eq!(re[0], r);
+        // Search for the matching ID
+        let mut idx = 0;
+        for i in 0..rg.data.param.N {
+            if re[i].id == 0 {
+                idx = i;
+                break;
+            }
+        }
+
+        assert_eq!(re[idx], r);
     }
 
     //--------------------------------------------------------------------------
@@ -896,7 +996,6 @@ mod priv_test_route_gen {
         }
 
         // Ensure the number of initial charges equals the number of BEBs
-        println!("{:?}", beta);
         assert_eq!(
             cnt, rg.data.param.A,
             "The number of initial charges and BEBs do not match."

@@ -14,7 +14,7 @@ pub struct StdObj {}
 //
 #[allow(non_snake_case)]
 impl Objective for StdObj {
-    fn run(&mut self, d: &mut Data) -> f64 {
+    fn run(d: &mut Data) -> f64 {
         // Variables
         let mut J: f64 = 0.0;
 
@@ -26,12 +26,13 @@ impl Objective for StdObj {
 
         // Extract decision variables
         let w = &d.dec.w;
-        let g = &d.dec.g;
+        let s = &d.dec.s;
 
         // Calculate the objective function
         for i in 0..N {
             for q in 0..Q {
-                J += f64::from(w[i][q]) * m[q] as f64 + g[i][q] as f64 * ep[q] as f64;
+                let wiq = f64::from(w[i][q]);
+                J += wiq * m[q] as f64 + s[i] as f64 * wiq as f64 * ep[q] as f64;
             }
         }
         return J;

@@ -53,7 +53,10 @@ pub mod yaml_loader {
         // Parse YAML
         let yaml = match text {
             Ok(text) => YamlLoader::load_from_str(&text).unwrap(),
-            Err(error) => panic!("Problem opening the file: {:?}", error),
+            Err(error) => panic!(
+                "Problem opening the file: {:?}\nError: {:?}:",
+                config_path, error
+            ),
         };
 
         return yaml[0].clone();

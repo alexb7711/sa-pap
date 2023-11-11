@@ -1,5 +1,6 @@
 //===============================================================================
 // Import developed modules
+use crate::lp::constraints::packing::service_time::ServiceTime;
 use crate::lp::constraints::Constraint;
 use crate::sa::data::Data;
 
@@ -21,7 +22,10 @@ pub struct ValidInitDepEndTimes {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ValidInitDepEndTimes {
-    fn run(&mut self, d: &mut Data, i: usize, _: usize) -> bool {
+    fn run(d: &mut Data, i: usize, j: usize) -> bool {
+        // Update decision variables
+        ValidInitDepEndTimes::update_dec_var(d, i, j);
+
         // Extract parameters
         let T = d.param.T;
         let a = &d.param.a;
@@ -42,7 +46,7 @@ impl Constraint for ValidInitDepEndTimes {
         // Ensure the detach time is before the departure time
         if !(c[i] <= e[i]) {
             return false;
-        };
+        }
 
         // Ensure the initial time is early enough such that the service time does not exceed the time horizon
         if !(u[i] <= T - s[i]) {
@@ -50,5 +54,25 @@ impl Constraint for ValidInitDepEndTimes {
         }
 
         return true;
+    }
+}
+
+//==============================================================================
+/// Implementation of helper functions for `ValidInitDepEndTimes`
+//
+impl ValidInitDepEndTimes {
+    //--------------------------------------------------------------------------
+    /// The `update_dec_var` function updates the decision variables associated
+    /// with the `ValidInitDepEndTimes` constraints.
+    ///
+    /// # Input
+    /// * data: Simulated annealing data object.
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_dec_var(data: &mut Data, i: usize, j: usize) {
+        // Update sigma/psi decision variables
+        ServiceTime::run(data, i, j);
     }
 }

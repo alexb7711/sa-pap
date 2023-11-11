@@ -19,5 +19,5 @@ pub mod packing;
 /// * bool: Constraint successfully applied and is true
 ///
 pub trait Constraint {
-    fn run(&mut self, d: &mut Data, i: usize, j: usize) -> bool;
+    fn run(d: &mut Data, i: usize, j: usize) -> bool;
 }

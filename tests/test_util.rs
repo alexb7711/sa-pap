@@ -21,6 +21,7 @@ mod test_yaml_loader {
     #[test]
     fn test_valid_load_yaml() {
         yaml_loader::load_yaml("./src/config/schedule-test.yaml");
+        yaml_loader::load_yaml("./src/config/general.yaml");
     }
 
     //---------------------------------------------------------------------------
@@ -29,7 +30,7 @@ mod test_yaml_loader {
     fn test_contents() {
         let yaml = yaml_loader::load_yaml("./src/config/schedule-test.yaml");
 
-        assert_eq!(yaml["time"]["EOD"].as_f64().unwrap(), 10.0);
+        assert_eq!(yaml["time"]["EOD"].as_f64().unwrap(), 24.0);
         assert_eq!(yaml["final_charge"].as_f64().unwrap(), 0.95);
         assert_eq!(yaml["initial_charge"]["min"].as_f64().unwrap(), 0.90);
         assert_eq!(yaml["initial_charge"]["max"].as_f64().unwrap(), 0.95);
