@@ -41,7 +41,6 @@ mod test_constraints {
     #[test]
     fn test_std_obj() {
         // Create objective and data object
-        let mut o: StdObj = StdObj {};
         let mut d: Data = get_data();
 
         // Set some dummy values
@@ -49,50 +48,59 @@ mod test_constraints {
         // w
         d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
 
-        // g
-        d.dec.g = vec![vec![0.0; d.param.Q]; d.param.N];
+        // s
+        d.dec.s = vec![0.0; d.param.N];
 
-        // Test 0 - test w terms
+        // Test w terms
+
+        // Test 0
         d.dec.w[0][0] = true;
         d.dec.w[1][0] = true;
-        let j = o.run(&mut d);
-        assert_eq!(j, 2000.0);
-
-        // Test 1 - test w terms
-        d.dec.w[5][4] = true;
-        let j = o.run(&mut d);
-        assert_eq!(j, 7000.0);
-
-        // Test 2 - reset w terms
-        d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
-        let j = o.run(&mut d);
+        let j = StdObj::run(&mut d);
         assert_eq!(j, 0.0);
 
-        // Test 3 - test w terms
-        d.dec.w[0][1] = true;
-        d.dec.w[1][1] = true;
-        d.dec.w[5][6] = true;
-        let j = o.run(&mut d);
-        assert_eq!(j, 11000.0);
+        // Test 1
+        d.dec.w[0][35] = true;
+        let j = StdObj::run(&mut d);
+        assert_eq!(j, 1000.0);
+
+        // Test 2
+        d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
+        d.dec.w[0][35] = true;
+        d.dec.w[3][38] = true;
+        let j = StdObj::run(&mut d);
+        assert_eq!(j, 5000.0);
+
+        // Test 3
+        d.dec.w[2][35] = true;
+        d.dec.w[1][42] = true;
+        d.dec.w[5][37] = true;
+        let j = StdObj::run(&mut d);
+        assert_eq!(j, 17000.0);
 
         // Reset w terms
         d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
 
-        // Test 4 - set g terms
-        d.dec.g[0][0] = 1.0;
-        let j = o.run(&mut d);
-        assert_eq!(j, 100.0);
+        // Test both terms
 
-        // Test 4 - set g terms
-        d.dec.g[10][8] = 1.0;
-        let j = o.run(&mut d);
-        assert_eq!(j, 500.0);
+        // Test 4
+        d.dec.s[0] = 1.0;
+        d.dec.w[0][35] = true;
+        let j = StdObj::run(&mut d);
+        assert_eq!(j, 1100.0);
 
-        // Test 4 - set g and w terms
-        // Test 0 - test w terms
-        d.dec.w[0][0] = true;
-        d.dec.w[1][0] = true;
-        let j = o.run(&mut d);
-        assert_eq!(j, 2500.0);
+        // Test 5
+        d.dec.w[3][36] = true;
+        d.dec.s[3] = 3.0;
+        let j = StdObj::run(&mut d);
+        assert_eq!(j, 3400.0);
+
+        // Test 6
+        d.dec.w[5][40] = true;
+        d.dec.s[5] = 9.0;
+        d.dec.w[1][35] = true;
+        d.dec.s[1] = 1.0;
+        let j = StdObj::run(&mut d);
+        assert_eq!(j, 11400.0);
     }
 }
