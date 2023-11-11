@@ -295,7 +295,8 @@ mod test_dynamic_constraints {
     // Import modules
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
     use super::sa_pap::sa::route::Route;
-    use sa_pap::lp::constraints::dynamic::charge_propogation::ChargePropogation;
+    use sa_pap::lp::constraints::dynamic::charge_propagation::ChargePropagate;
+    use sa_pap::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
     use sa_pap::lp::constraints::packing::valid_init_dep_end_time::ValidInitDepEndTimes;
     use sa_pap::lp::constraints::Constraint;
 
@@ -339,7 +340,7 @@ mod test_dynamic_constraints {
             for j in 0..rg.data.param.N {
                 ValidInitDepEndTimes::run(&mut rg.data, i, j);
                 assert!(
-                    ChargePropogation::run(&mut rg.data, i, j),
+                    ChargePropagate::run(&mut rg.data, i, j),
                     "Charge did not propagate appropriately."
                 );
             }
@@ -354,6 +355,88 @@ mod test_dynamic_constraints {
 
         // Load the CSV schedule
         rg.run();
+
+        // Run constraint
+
+        // Test 0 - check initial charges
+
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                // Ensure initial times are updated correctly
+                InitFinalCharge::run(&mut rg.data, i, j);
+            }
+        }
+
+        {
+            let alpha = &rg.data.param.alpha;
+            let eta = &rg.data.dec.eta;
+
+            for i in 0..rg.data.param.N {
+                if alpha[i] > 0.0 {
+                    assert_eq!(eta[i], alpha[i] * 387.78);
+                }
+            }
+        }
+
+        // Test 1 - Check final charges
+
+        {
+            let eta = &mut rg.data.dec.eta;
+            let gam = &rg.data.param.gam;
+
+            for i in 0..rg.data.param.N {
+                if gam[i] == -1 {
+                    eta[i] = 387.78;
+                }
+            }
+        }
+
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                // Ensure final times are updated correctly
+                assert!(
+                    InitFinalCharge::run(&mut rg.data, i, j),
+                    "Charges did not initialize/finalize correctly."
+                );
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    // Test final charge constraint failure
+    #[test]
+    #[should_panic]
+    fn test_final_charge_insufficient_charge() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Run constraint
+
+        // Check final charges
+
+        // Update initial and final charge times
+        {
+            let eta = &mut rg.data.dec.eta;
+            let gam = &rg.data.param.gam;
+
+            for i in 0..rg.data.param.N {
+                if gam[i] == -1 {
+                    eta[i] = 387.78 * 0.8;
+                }
+            }
+        }
+
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                // Ensure initial/final times are updated correctly
+                assert!(
+                    InitFinalCharge::run(&mut rg.data, i, j),
+                    "Final charge should have panicked."
+                );
+            }
+        }
     }
 
     //---------------------------------------------------------------------------
