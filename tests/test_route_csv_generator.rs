@@ -204,4 +204,19 @@ mod test_route_csv_generator {
             assert_eq!(rg.data.param.m[i], m);
         }
     }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_route_visit_index() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Check the index of the routes increases
+        for i in 0..rg.route.len() {
+            assert_eq!(rg.route[i].visit, i);
+        }
+    }
 }
