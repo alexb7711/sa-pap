@@ -406,6 +406,7 @@ impl RouteCSVGenerator {
 
                 // Create RouteEvent structure
                 let r: RouteEvent = RouteEvent {
+                    visit: 0,
                     arrival_time: v[0],
                     bus: self.gen_bus(),
                     departure_time: v[1],
@@ -422,6 +423,11 @@ impl RouteCSVGenerator {
 
         // Sort visits by arrival time
         route.sort();
+
+        // Assign visit indices
+        for i in 0..route.len() {
+            route[i].visit = i;
+        }
 
         return route;
     }

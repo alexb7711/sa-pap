@@ -18,17 +18,18 @@ pub use crate::sa::route::bus::Bus;
 #[derive(Debug, Default, Clone)]
 pub struct RouteEvent {
     // Parameters
-    pub arrival_time: f32,                                                      // Arrival to the station             [hr]
-    pub bus: Bus,                                                               // Bus information
-    pub departure_time: f32,                                                    // Departure time from the station    [hr]
-    pub discharge: f32,                                                         // Discharge over the next route
-    pub id: u16,                                                                // Bus ID
-    pub route_time: f32,                                                        // Total time on route                [hr]
+    pub visit: usize,        // Visit index
+    pub arrival_time: f32,   // Arrival to the station             [hr]
+    pub bus: Bus,            // Bus information
+    pub departure_time: f32, // Departure time from the station    [hr]
+    pub discharge: f32,      // Discharge over the next route
+    pub id: u16,             // Bus ID
+    pub route_time: f32,     // Total time on route                [hr]
 
     // Decision variables
-    pub attach_time: f32,                                                       // Time bus attaches to the charger   [hr]
-    pub detatch_time: f32,                                                      // Time bus detaches from the charger [hr]
-    pub queue: u16,                                                             // Selected queue
+    pub attach_time: f32,  // Time bus attaches to the charger   [hr]
+    pub detatch_time: f32, // Time bus detaches from the charger [hr]
+    pub queue: u16,        // Selected queue
 }
 
 //===============================================================================
