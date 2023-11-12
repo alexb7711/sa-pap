@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 //===============================================================================
 // Declare submodules
 use self::temp_func::TempFunc;
@@ -54,11 +56,12 @@ impl<'a> SA<'a> {
         gtweak: Box<dyn Generator>,
         tf: &'a mut Box<TempFunc>,
     ) -> SA<'a> {
+        let A = Some(gsys.get_data().param.A);
         let sa: SA = SA {
             gsol,
             gsys,
             gtweak,
-            charger: Box::new(Charger::new(config_path, true, None, None)),
+            charger: Box::new(Charger::new(config_path, true, A, None)),
             r: Default::default(),
             tf,
         };
