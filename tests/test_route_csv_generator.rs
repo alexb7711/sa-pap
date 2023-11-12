@@ -144,4 +144,64 @@ mod test_route_csv_generator {
             );
         }
     }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_charge_rate_vector() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Ensure the arrival times are increasing
+        for i in 0..rg.data.param.r.len() {
+            let r: f32;
+            if i < 35 {
+                r = 0.0;
+            } else if i < 42 {
+                r = 100.0
+            } else {
+                r = 400.0
+            }
+            assert_eq!(rg.data.param.r[i], r);
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_charge_assignment_vector() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Ensure the arrival times are increasing
+        for i in 0..rg.data.param.r.len() {
+            assert_eq!(rg.data.param.r[i], rg.data.param.ep[i]);
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_assignment_cost() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Ensure the arrival times are increasing
+        for i in 0..rg.data.param.m.len() {
+            let m: usize;
+            if i < 35 {
+                m = 0;
+            } else {
+                m = 1000 * (i - 34);
+            }
+
+            assert_eq!(rg.data.param.m[i], m);
+        }
+    }
 }
