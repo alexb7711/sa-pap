@@ -3,6 +3,8 @@
 //===============================================================================
 // Declare submodules
 use self::temp_func::TempFunc;
+use crate::lp::objectives::std_obj::StdObj;
+use crate::lp::objectives::Objective;
 use crate::sa::charger::Charger;
 use crate::sa::generators::Generator;
 use crate::sa::route::Route;
@@ -88,6 +90,10 @@ impl<'a> SA<'a> {
         // Set local search iteration count
         let k = 1000;
 
+        // Initialize objective function variables
+        let mut J0: f64;
+        let mut J1: f64 = 0.0;
+
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
 
@@ -97,9 +103,10 @@ impl<'a> SA<'a> {
             self.gsys.run();
 
             // Calculate objective function
+            J0 = StdObj::run(&mut self.gsys.get_data());
 
             // Compare the objective functions
-            self.cmp_obj_fnc();
+            self.cmp_obj_fnc(J0, J1);
 
             // Iterate though local search
             for _ in 0..k {
@@ -107,9 +114,10 @@ impl<'a> SA<'a> {
                 self.gtweak.run(&mut self.gsys, &mut self.charger);
 
                 // Calculate objective function
+                J1 = StdObj::run(&mut self.gsys.get_data());
 
                 // Compare the objective functions
-                self.cmp_obj_fnc();
+                self.cmp_obj_fnc(J0, J1);
             }
         }
 
@@ -127,7 +135,7 @@ impl<'a> SA<'a> {
     /// # Output
     /// * `Results`: Output of SA algorithm
     ///
-    fn cmp_obj_fnc(self: &mut SA<'a>) -> bool {
+    fn cmp_obj_fnc(self: &mut SA<'a>, _J0: f64, _J1: f64) -> bool {
         return false;
     }
 }
