@@ -406,6 +406,38 @@ mod test_dynamic_constraints {
     }
 
     //---------------------------------------------------------------------------
+    // Test initial charge constraint
+    #[test]
+    fn test_init_charge_propagation() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Run constraint
+
+        // Test 0 - check initial charges
+
+        for i in 0..rg.data.param.N {
+            for j in 0..rg.data.param.N {
+                // Ensure initial times are updated correctly
+                InitFinalCharge::run(&mut rg.data, i, j);
+            }
+        }
+
+        {
+            let alpha = &rg.data.param.alpha;
+            let eta = &rg.data.dec.eta;
+
+            for i in 0..rg.data.param.N {
+                if alpha[i] > 0.0 {
+                    assert_eq!(eta[i], alpha[i] * 387.78);
+                }
+            }
+        }
+    }
+
+    //---------------------------------------------------------------------------
     // Test final charge constraint failure
     #[test]
     #[should_panic]
