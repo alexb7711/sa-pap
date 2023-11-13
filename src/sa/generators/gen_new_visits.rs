@@ -49,9 +49,6 @@ impl Generator for GenNewVisits {
         // Get information about the route
         let mut route = r.get_route_events().clone();
 
-        // Get information about the route
-        let data = *r.get_data();
-
         // For each visit
         for i in route.iter_mut() {
             // Set the start/stop charge times
@@ -67,8 +64,8 @@ impl Generator for GenNewVisits {
         }
 
         // Update route and charger
-        r.set_data(Box::new(data));
         r.set_route_events(Box::new(&mut route));
+        r.update_milp_data();
 
         return true;
     }

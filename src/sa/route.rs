@@ -28,4 +28,8 @@ pub trait Route {
     // Setters
     fn set_route_events(&mut self, b: Box<&mut Vec<RouteEvent>>);
     fn set_data(&mut self, d: Box<Data>);
+
+    // Update
+    fn update_route_events(&mut self);
+    fn update_milp_data(&mut self);
 }

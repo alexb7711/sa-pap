@@ -772,6 +772,32 @@ impl Route for RouteCSVGenerator {
     fn set_data(self: &mut RouteCSVGenerator, d: Box<Data>) {
         self.data = *d;
     }
+
+    //---------------------------------------------------------------------------
+    /// Update the route events based on the data object
+    ///
+    /// # Input
+    /// * `data`: Data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_route_events(self: &mut RouteCSVGenerator) {
+        self.update_route();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Update the MILP data based on the route events object
+    ///
+    /// # Input
+    /// * `data`: Data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_milp_data(self: &mut RouteCSVGenerator) {
+        self.update_data();
+    }
 }
 
 //==============================================================================

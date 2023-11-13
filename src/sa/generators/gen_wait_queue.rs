@@ -75,8 +75,8 @@ impl Generator for GenWaitQueue {
         }
 
         // Update route and charger
-        r.set_data(Box::new(data));
         r.set_route_events(Box::new(&mut route));
+        r.update_milp_data();
 
         return true;
     }

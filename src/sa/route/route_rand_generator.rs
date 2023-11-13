@@ -395,6 +395,28 @@ impl Route for RouteRandGenerator {
     fn set_data(self: &mut RouteRandGenerator, d: Box<Data>) {
         self.data = d;
     }
+
+    //---------------------------------------------------------------------------
+    /// TODO: Update the route events based on the data object
+    ///
+    /// # Input
+    /// * `data`: Data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_route_events(self: &mut RouteRandGenerator) {}
+
+    //---------------------------------------------------------------------------
+    /// TODO: Update the MILP data based on the route events object
+    ///
+    /// # Input
+    /// * `data`: Data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_milp_data(self: &mut RouteRandGenerator) {}
 }
 
 //===============================================================================

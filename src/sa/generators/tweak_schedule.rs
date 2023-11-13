@@ -102,6 +102,11 @@ impl Generator for TweakSchedule {
             }
         }
 
+        // If a tweak was made on the schedule, update the MILP data
+        if success {
+            r.update_milp_data();
+        }
+
         return success;
     }
 }
