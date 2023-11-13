@@ -10,6 +10,10 @@ use crate::sa::generators::Generator;
 use crate::sa::route::Route;
 
 //===============================================================================
+// Import standard library
+use rand::{thread_rng, Rng};
+
+//===============================================================================
 // Import modules
 pub mod charger; // Parameters and decision variables
 pub mod data; // Parameters and decision variables
@@ -98,7 +102,7 @@ impl<'a> SA<'a> {
         // Execute SA
 
         // While the temperature function is cooling down
-        while let Some(_t) = self.tf.step() {
+        while let Some(t) = self.tf.step() {
             // Generate new solution
             self.gsys.run();
 
@@ -106,7 +110,7 @@ impl<'a> SA<'a> {
             J0 = StdObj::run(&mut self.gsys.get_data());
 
             // Compare the objective functions
-            self.cmp_obj_fnc(J0, J1);
+            self.cmp_obj_fnc(J0, J1, t);
 
             // Iterate though local search
             for _ in 0..k {
@@ -117,7 +121,7 @@ impl<'a> SA<'a> {
                 J1 = StdObj::run(&mut self.gsys.get_data());
 
                 // Compare the objective functions
-                self.cmp_obj_fnc(J0, J1);
+                self.cmp_obj_fnc(J0, J1, t);
             }
         }
 
@@ -128,14 +132,35 @@ impl<'a> SA<'a> {
     /// Compare objective functions and return the kept result.
     ///
     /// # Input
-    /// * j1: Previous objective function
-    /// * j2: New Objective function
+    /// * j0: Previous objective function
+    /// * j1: New Objective function
     /// * t : Temperature
     ///
     /// # Output
-    /// * `Results`: Output of SA algorithm
+    /// * true if the data has been changed to `j_1`, false otherwise
     ///
-    fn cmp_obj_fnc(self: &mut SA<'a>, _J0: f64, _J1: f64) -> bool {
-        return false;
+    fn cmp_obj_fnc(self: &mut SA<'a>, j0: f64, j1: f64, t: f32) -> bool {
+        let delta_e: f64 = j0 - j1;
+
+        // If the new data has a smaller objective function value than the old
+        if delta_e < 0.0 {
+            // Indicate that new data, `j_1`, is replacing old data, `j_0`
+            return true;
+        // Otherwise, the new data, `j_1`, has a larger objective function
+        } else {
+            // Calculate the coefficient
+            let coef: f64 = delta_e / (t as f64);
+
+            // Calculate `e^coef`
+            let e: f64 = coef.exp();
+
+            // Generate a number between 1-100
+            let prob = thread_rng().gen_range(0.0..=1.0);
+
+            // Return whether to keep the new data.
+            // - if e <= prob: keep new data
+            // - if e > prob: keep old data
+            return e <= prob;
+        }
     }
 }
