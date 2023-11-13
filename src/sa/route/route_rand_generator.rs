@@ -353,8 +353,8 @@ impl Route for RouteRandGenerator {
     /// # Output
     /// * `route: Vector of route data
     ///
-    fn get_route_events(self: &RouteRandGenerator) -> Box<Vec<RouteEvent>> {
-        return self.route.clone();
+    fn get_route_events(self: &mut RouteRandGenerator) -> Box<&mut Vec<RouteEvent>> {
+        return Box::new(&mut (*self.route));
     }
 
     //---------------------------------------------------------------------------
@@ -366,7 +366,7 @@ impl Route for RouteRandGenerator {
     /// # Output
     /// * `data`: Data object
     ///
-    fn get_data(self: &RouteRandGenerator) -> Box<Data> {
+    fn get_data(self: &mut RouteRandGenerator) -> Box<Data> {
         return self.data.clone();
     }
 
@@ -379,8 +379,8 @@ impl Route for RouteRandGenerator {
     /// # Output
     /// * NONE
     ///
-    fn set_route_events(self: &mut RouteRandGenerator, r: Box<Vec<RouteEvent>>) {
-        self.route = r;
+    fn set_route_events(self: &mut RouteRandGenerator, r: Box<&mut Vec<RouteEvent>>) {
+        self.route = Box::new(r.clone());
     }
 
     //---------------------------------------------------------------------------

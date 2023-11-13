@@ -47,10 +47,10 @@ impl Generator for GenNewVisits {
     ///
     fn run(self: &mut GenNewVisits, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get information about the route
-        let mut route = r.get_route_events();
+        let mut route = r.get_route_events().clone();
 
         // Get information about the route
-        let data = r.get_data();
+        let data = *r.get_data();
 
         // For each visit
         for i in route.iter_mut() {
@@ -67,8 +67,8 @@ impl Generator for GenNewVisits {
         }
 
         // Update route and charger
-        r.set_data(data);
-        r.set_route_events(route);
+        r.set_data(Box::new(data));
+        r.set_route_events(Box::new(&mut route));
 
         return true;
     }
