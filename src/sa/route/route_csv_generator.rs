@@ -76,8 +76,56 @@ impl RouteCSVGenerator {
     /// # Output
     /// * NONE
     ///
-    pub fn update(self: &mut RouteCSVGenerator) {
+    pub fn update_data(self: &mut RouteCSVGenerator) {
         self.generate_schedule_params();
+    }
+
+    //---------------------------------------------------------------------------
+    /// Synchronize the `route` data with `data`.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    pub fn update_route(self: &mut RouteCSVGenerator) {
+        // Empty out the routes
+        self.route = Vec::new();
+
+        // For every visit
+        for i in 0..self.data.param.N {
+            let a = &self.data.param.a;
+            let e = self.data.param.e[i];
+            let Gam = self.data.param.Gam[i];
+            let gam = self.data.param.gam[i];
+            let mut rt: f32 = 0.0;
+
+            // If the BEB has another visit
+            if gam > 0 {
+                rt = e - a[gam as usize];
+            }
+
+            // Create RouteEvent structure
+            let r: RouteEvent = RouteEvent {
+                visit: 0,
+                arrival_time: a[i],
+                bus: self.gen_bus(),
+                departure_time: e,
+                discharge: self.data.param.l[i],
+                id: Gam,
+                route_time: rt,
+                ..Default::default()
+            };
+
+            // Add route event to route
+            self.route.push(r)
+        }
+
+        // Assign visit indices
+        for i in 0..self.route.len() {
+            self.route[i].visit = i;
+        }
     }
 
     //===========================================================================
@@ -1065,6 +1113,35 @@ mod priv_test_route_gen {
                 rg.data.param.l[i], rg.route[i].discharge,
                 "The data discharge quantity does not match the route departure time"
             );
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_update_route() {
+        // Create the CSV Generator object
+        let mut rg: RouteCSVGenerator = create_object();
+
+        // Run the generator
+        rg.run();
+
+        // Loop through each visit
+        for i in 0..rg.data.param.N {
+            // Set a dummy arrival time
+            rg.route[i].arrival_time = i as f32;
+        }
+
+        // Update `RouteEvents` with data
+        rg.update_route();
+
+        // Make sure data and route events match
+        for i in 0..rg.data.param.N {
+            assert_eq!(rg.route[i].visit, i);
+            assert_eq!(rg.route[i].arrival_time, rg.data.param.a[i]);
+            assert_eq!(rg.route[i].departure_time, rg.data.param.e[i]);
+            assert_eq!(rg.route[i].attach_time, rg.data.dec.u[i]);
+            assert_eq!(rg.route[i].detatch_time, rg.data.dec.c[i]);
         }
     }
 }
