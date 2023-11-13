@@ -24,9 +24,13 @@ use crate::sa::route::Route;
 
 //==============================================================================
 /// Results from simulated annealing
+/// TODO: Remove `#[allow(dead_code)]
 //
 #[derive(Default)]
-pub struct Results {}
+#[allow(dead_code)]
+pub struct Results {
+    data: Box<Data>,
+}
 
 //==============================================================================
 /// Structure for simulated annealing
@@ -150,7 +154,10 @@ impl<'a> SA<'a> {
             }
         }
 
-        return None;
+        // Create result object
+        let result = Results { data: sol_best };
+
+        return Some(result);
     }
 
     //==========================================================================

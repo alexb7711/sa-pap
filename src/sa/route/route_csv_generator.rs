@@ -734,7 +734,7 @@ impl Route for RouteCSVGenerator {
         return Box::new(&mut self.route);
     }
 
-    //-----------------------------------
+    //---------------------------------------------------------------------------
     /// Return the data object
     ///
     /// # Input
