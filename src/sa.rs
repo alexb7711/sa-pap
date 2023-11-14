@@ -71,7 +71,13 @@ impl<'a> SA<'a> {
         gtweak: Box<dyn Generator>,
         tf: &'a mut Box<TempFunc>,
     ) -> SA<'a> {
+        // Generate new solution
+        gsys.run();
+
+        // Extract BEB count
         let A = Some(gsys.get_data().param.A);
+
+        // Create SA object
         let sa: SA = SA {
             gsol,
             gsys,
@@ -97,13 +103,10 @@ impl<'a> SA<'a> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
 
-        // Generate new solution
-        self.gsys.run();
-
         // Extract solution sets
-        let mut sol_best = self.gsys.get_data();
-        let mut sol_current = self.gsys.get_data();
-        let mut sol_new = self.gsys.get_data();
+        let mut sol_best = *self.gsys.get_data().clone();
+        let mut sol_current = *self.gsys.get_data().clone();
+        let mut sol_new = *self.gsys.get_data().clone();
 
         // Set local search iteration count
         let k = 1000;
@@ -116,6 +119,10 @@ impl<'a> SA<'a> {
         // Execute SA
 
         // Run first instance of SA
+
+        // Generate new solution
+        self.gsol.run(&mut self.gsys, &mut self.charger);
+
         // Calculate objective function
         J0 = StdObj::run(&mut sol_current);
 
@@ -127,10 +134,10 @@ impl<'a> SA<'a> {
         // While the temperature function is cooling down
         while let Some(t) = self.tf.step() {
             // Generate new solution
-            self.gsys.run();
+            self.gsol.run(&mut self.gsys, &mut self.charger);
 
             // Extract new data set
-            sol_new = self.gsys.get_data();
+            sol_new = *self.gsys.get_data().clone();
 
             // Calculate objective function
             J1 = StdObj::run(&mut self.gsys.get_data());
@@ -144,7 +151,7 @@ impl<'a> SA<'a> {
                 self.gtweak.run(&mut self.gsys, &mut self.charger);
 
                 // Extract new data set
-                sol_new = self.gsys.get_data();
+                sol_new = *self.gsys.get_data().clone();
 
                 // Calculate objective function
                 J1 = StdObj::run(&mut self.gsys.get_data());
@@ -155,7 +162,9 @@ impl<'a> SA<'a> {
         }
 
         // Create result object
-        let result = Results { data: sol_best };
+        let result = Results {
+            data: Box::new(sol_best),
+        };
 
         return Some(result);
     }

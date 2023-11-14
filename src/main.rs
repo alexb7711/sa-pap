@@ -76,7 +76,7 @@ fn main() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Create solution temperature function, generator and tweaker
 
-    let tf: &mut Box<TempFunc> = &mut Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
+    let tf: &mut Box<TempFunc> = &mut Box::new(TempFunc::new(Geometric, 500.0, 0.995, false));
     let gsol: Box<GenWaitQueue> = Box::new(GenWaitQueue::new());
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
@@ -84,7 +84,7 @@ fn main() {
     // Create SA object and run SA
 
     // Pass schedule generator, temperature function, solution generator, and solution tweaker into the SA module
-    let mut sa: SA = SA::new("./src/config/schedule.yaml", gsol, gsys, gtweak, tf);
+    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, tf);
 
     // Run simulated annealing simulation
     if let Some(_res) = sa.run(load_from_file) {
