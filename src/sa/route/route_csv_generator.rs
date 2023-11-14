@@ -1177,7 +1177,7 @@ mod priv_test_route_gen {
             assert_eq!(rg.route[i].arrival_time, rg.data.param.a[i]);
             assert_eq!(rg.route[i].departure_time, rg.data.param.e[i]);
             assert_eq!(rg.route[i].attach_time, rg.data.dec.u[i]);
-            assert_eq!(rg.route[i].detatch_time, rg.data.dec.c[i]);
+            assert_eq!(rg.route[i].detach_time, rg.data.dec.c[i]);
         }
     }
 }

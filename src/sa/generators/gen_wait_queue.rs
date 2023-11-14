@@ -67,7 +67,7 @@ impl Generator for GenWaitQueue {
                     if c.assign(b.clone(), ad.clone(), b.clone()) {
                         // Update route event
                         i.attach_time = ad.0.clone();
-                        i.detatch_time = ad.1.clone();
+                        i.detach_time = ad.1.clone();
                         i.queue = b.clone() as u16;
                     }
                 }

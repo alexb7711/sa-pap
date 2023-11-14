@@ -9,6 +9,7 @@ pub mod slide_visit {
     // Import modules
     use crate::sa::charger::Charger;
     use crate::sa::generators::primitives::purge::*;
+    use crate::sa::route::route_event::RouteEvent;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `slide_visit` module. This modules attempts
@@ -24,9 +25,17 @@ pub mod slide_visit {
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    pub fn run(ch: &mut Charger, b: usize, q: usize, ae: &(f32, f32), ud: &(f32, f32)) -> bool {
+    pub fn run(
+        r: &mut Vec<RouteEvent>,
+        i: usize,
+        ch: &mut Charger,
+        b: usize,
+        q: usize,
+        ae: &(f32, f32),
+        ud: &(f32, f32),
+    ) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !purge::run(ch, q, ud) {
+        if !purge::run(r, i, ch, q, ud) {
             return false;
         }
 
@@ -41,8 +50,14 @@ pub mod slide_visit {
 
             // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
             // times
-            if fits {
-                return ch.assign(q, ud, b);
+            if fits && ch.assign(q, ud, b) {
+                // Update route data
+                if r.len() > 0 {
+                    r[i].attach_time = ud.0; // Update attach time
+                    r[i].detach_time = ud.1; // Update detach time
+                }
+
+                return true;
             }
         }
 

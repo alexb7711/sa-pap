@@ -58,7 +58,7 @@ impl Generator for GenNewVisits {
             if new_visit::run(c, i.id as usize, ae) {
                 // Update route event
                 i.attach_time = ae.0;
-                i.detatch_time = ae.1;
+                i.detach_time = ae.1;
                 i.queue = i.id;
             }
         }
