@@ -452,6 +452,15 @@ impl RouteCSVGenerator {
                 // Extract iterator
                 let (v, d) = it;
 
+                // Shadow `v` so that it can be mutable
+                let mut v = v.clone();
+
+                // If the start/stop times are the same, apply an epsilon so `rand`
+                // does not yell at me :(
+                if v[0] == v[1] {
+                    v[1] += 0.001;
+                }
+
                 // Create RouteEvent structure
                 let r: RouteEvent = RouteEvent {
                     visit: 0,

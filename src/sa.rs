@@ -10,6 +10,7 @@ pub mod temp_func; // Temperature functions
 
 //==============================================================================
 // Import standard library
+use indicatif::ProgressIterator;
 use rand::{thread_rng, Rng};
 
 //==============================================================================
@@ -109,7 +110,7 @@ impl<'a> SA<'a> {
         let mut sol_new = *self.gsys.get_data().clone();
 
         // Set local search iteration count
-        let k = 1000;
+        let k = 10;
 
         // Initialize objective function variables
         let J0: f64;
@@ -132,7 +133,7 @@ impl<'a> SA<'a> {
         }
 
         // While the temperature function is cooling down
-        while let Some(t) = self.tf.step() {
+        for t in self.tf.get_temp_vec().unwrap().into_iter().progress() {
             // Generate new solution
             self.gsol.run(&mut self.gsys, &mut self.charger);
 

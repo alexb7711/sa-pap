@@ -66,7 +66,6 @@ impl Generator for GenWaitQueue {
                     // Check if the bus can be assigned, assign the bus wait queue
                     if c.assign(b.clone(), ad.clone(), b.clone()) {
                         // Update route event
-                        println!("({}, {})", ad.0, ad.1);
                         i.attach_time = ad.0.clone();
                         i.detatch_time = ad.1.clone();
                         i.queue = b.clone() as u16;
