@@ -106,12 +106,15 @@ mod test_route_csv_generator {
             }
         }
 
+        // Epsilon time shift
+        let ep = rg.data.param.ts;
+
         assert_eq!(
             rg.route[idx].arrival_time, 5.3333335,
             "Initial arrival time was not at BOD."
         );
         assert!(
-            rg.route[idx].departure_time == 5.3333335,
+            rg.route[idx].departure_time == 5.3333335 + ep,
             "The departure time for should equal to the BOD."
         );
 

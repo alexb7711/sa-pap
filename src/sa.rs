@@ -105,9 +105,10 @@ impl<'a> SA<'a> {
         // Initialize
 
         // Extract solution sets
+        let sol_orig = *self.gsys.get_data().clone();
         let mut sol_best = *self.gsys.get_data().clone();
         let mut sol_current = *self.gsys.get_data().clone();
-        let mut sol_new = *self.gsys.get_data().clone();
+        let mut sol_new;
 
         // Set local search iteration count
         let k = 10;
@@ -124,6 +125,9 @@ impl<'a> SA<'a> {
         // Generate new solution
         self.gsol.run(&mut self.gsys, &mut self.charger);
 
+        // Extract new data set
+        sol_new = *self.gsys.get_data().clone();
+
         // Calculate objective function
         J0 = StdObj::run(&mut sol_current);
 
@@ -131,6 +135,8 @@ impl<'a> SA<'a> {
         if self.cmp_obj_fnc(J0, J1, self.tf.get_temp(None).unwrap()) {
             self.update_current_values(&mut sol_current, &mut sol_new);
         }
+
+        println!("Executing SA:");
 
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap().into_iter().progress() {
@@ -162,12 +168,23 @@ impl<'a> SA<'a> {
             }
         }
 
-        // Create result object
-        let result = Results {
-            data: Box::new(sol_best),
-        };
+        // Check if the data has been changed
+        let result: Option<Results>;
+        if sol_orig.dec != sol_best.dec {
+            // Create result object
+            result = Some(Results {
+                data: Box::new(sol_best.clone()),
+            });
+        } else {
+            result = None;
+        }
 
-        return Some(result);
+        println!(
+            "Compare: {:?}",
+            sol_orig.dec.clone() == sol_best.dec.clone()
+        );
+
+        return result;
     }
 
     //==========================================================================

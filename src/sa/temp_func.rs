@@ -36,7 +36,7 @@ impl TempFunc {
     /// * NONE
     ///
     pub fn new(schedule: CoolSchedule, init_temp: f32, delta: f32, autorun: bool) -> TempFunc {
-        // Check delta based on the `Coolschedule`
+        // Check delta based on the `CoolSchedule`
         let d: f32 = match schedule {
             CoolSchedule::Linear => delta.abs(), // Linear should be positive
             CoolSchedule::Geometric =>

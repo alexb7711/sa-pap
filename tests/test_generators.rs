@@ -45,17 +45,20 @@ mod test_generators {
         // Create the generator
         let mut sg = GenWaitQueue::new();
 
+        // Epsilon time shift
+        let ep = rg.get_data().param.ts;
+
         // Run the generator
         sg.run(&mut rg, &mut charger);
 
         // Test 0 - Check first index of a few chargers
-        assert_eq!(charger.schedule[0][0].t, (5.3333335, 5.3333335));
+        assert_eq!(charger.schedule[0][0].t, (5.3333335, 5.3333335 + ep));
         assert_eq!(charger.schedule[0][0].b, 0);
 
-        assert_eq!(charger.schedule[1][0].t, (5.6666665, 5.6666665));
+        assert_eq!(charger.schedule[1][0].t, (5.6666665, 5.6666665 + ep));
         assert_eq!(charger.schedule[1][0].b, 1);
 
-        assert_eq!(charger.schedule[2][0].t, (6.0, 6.0));
+        assert_eq!(charger.schedule[2][0].t, (6.0, 6.0 + ep));
         assert_eq!(charger.schedule[2][0].b, 2);
 
         assert_eq!(charger.schedule[9][0].t, (5.6666665, 10.875));

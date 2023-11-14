@@ -152,6 +152,7 @@ impl RouteCSVGenerator {
         self.data.param.T = eod - bod;
         self.data.param.K = self.config["time"]["K"].as_i64().unwrap() as u16;
         self.data.param.S = 1;
+        self.data.param.ts = 0.001;
 
         // Quality of life variables
         let A = self.data.param.A;
@@ -458,7 +459,7 @@ impl RouteCSVGenerator {
                 // If the start/stop times are the same, apply an epsilon so `rand`
                 // does not yell at me :(
                 if v[0] == v[1] {
-                    v[1] += 0.001;
+                    v[1] += self.data.param.ts;
                 }
 
                 // Create RouteEvent structure
