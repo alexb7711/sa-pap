@@ -68,19 +68,6 @@ impl RouteCSVGenerator {
     }
 
     //---------------------------------------------------------------------------
-    /// Synchronize the `data` data with `route`.
-    ///
-    /// # Input
-    /// * NONE
-    ///
-    /// # Output
-    /// * NONE
-    ///
-    pub fn update_data(self: &mut RouteCSVGenerator) {
-        self.generate_schedule_params();
-    }
-
-    //---------------------------------------------------------------------------
     /// Synchronize the `route` data with `data`.
     ///
     /// # Input
@@ -800,13 +787,13 @@ impl Route for RouteCSVGenerator {
     /// Update the MILP data based on the route events object
     ///
     /// # Input
-    /// * `data`: Data object
+    /// * NONE
     ///
     /// # Output
     /// * NONE
     ///
     fn update_milp_data(self: &mut RouteCSVGenerator) {
-        self.update_data();
+        self.generate_schedule_params();
     }
 }
 
