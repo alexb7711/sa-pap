@@ -96,15 +96,11 @@ impl Generator for TweakSchedule {
                 Primitives::SlideVisit => slide_visit::run(rv, ri, c, id, q, ae, ud),
             };
 
-            // If successful, break out of loop
+            // If successful, update the MILP data and break out of loop
             if success {
+                r.update_milp_data();
                 break;
             }
-        }
-
-        // If a tweak was made on the schedule, update the MILP data
-        if success {
-            r.update_milp_data();
         }
 
         return success;
