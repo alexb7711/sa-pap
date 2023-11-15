@@ -51,7 +51,10 @@ mod test_primitive_generators {
         assert_eq!(charger.free_time[q].len(), 1);
 
         // Test 2 - Create a new visit in an empty schedule
-        assert!(new_visit::run(&mut charger, id, &(0.01, 0.09)));
+        assert!(
+            new_visit::run(&mut charger, id, &(0.01, 0.09)),
+            "Could not create new visit."
+        );
 
         // Test 3 - Ensure the size of free times is now 2
         assert_eq!(charger.free_time[q].len(), 2);
@@ -228,16 +231,16 @@ mod test_primitive_generators {
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 2 - Un-assign and reassign bus
-        assert_eq!(
+        assert!(
             new_window::run(&mut rv, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
-            true
+            "Failed to find new window."
         );
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Un-assign and reassign bus
-        assert_eq!(
-            new_window::run(&mut rv, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5)),
-            true
+        assert!(
+            new_window::run(&mut rv, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5),),
+            "Failed to find new window."
         );
         assert_eq!(charger.schedule[q].len(), 3);
         assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);

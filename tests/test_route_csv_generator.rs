@@ -14,7 +14,7 @@ mod test_route_csv_generator {
 
     //---------------------------------------------------------------------------
     //
-    fn yaml_path() -> &'static str {
+    fn schedule_path() -> &'static str {
         return "./src/config/schedule-test.yaml";
     }
 
@@ -28,7 +28,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_csv_load() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -72,7 +72,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_visit_count() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -90,7 +90,7 @@ mod test_route_csv_generator {
     #[test]
     fn test_route_data() {
         let hr2sec: f32 = 3600.0;
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -134,7 +134,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_route_sort() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -152,7 +152,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_charge_rate_vector() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -175,7 +175,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_charge_assignment_vector() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -190,7 +190,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_assignment_cost() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -212,7 +212,7 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_route_visit_index() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -220,6 +220,93 @@ mod test_route_csv_generator {
         // Check the index of the routes increases
         for i in 0..rg.route.len() {
             assert_eq!(rg.route[i].visit, i);
+        }
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_milp_data_update() {
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+
+        // Get a copy of the MILP data
+        let data_cpy = rg.get_data().clone();
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Change some things in the route data
+        rg.get_route_events()[0].arrival_time = 10.0;
+        rg.get_route_events()[10].id = 32;
+        rg.get_route_events()[8].departure_time = 70.0;
+        rg.get_route_events()[5].detach_time = 4.0;
+
+        // Assert that charges have been made to the route data
+        {
+            let milp = rg.get_data().clone();
+            let re = rg.get_route_events();
+
+            // Assert that route data is different than MILP data
+            assert_ne!(re[0].arrival_time, milp.param.a[0]);
+            assert_ne!(re[10].id, milp.param.Gam[10]);
+            assert_ne!(re[8].departure_time, milp.param.e[8]);
+            assert_ne!(re[5].detach_time, milp.dec.c[5]);
+
+            // Assert that that the data was changed to what was expected
+            assert_eq!(re[0].arrival_time, 10.0);
+            assert_eq!(re[10].id, 32);
+            assert_eq!(re[8].departure_time, 70.0);
+            assert_ne!(re[8].departure_time, milp.dec.c[5]);
+        }
+
+        // Update milp data
+        rg.update_milp_data();
+
+        // Assert that the MILP data matches the route data
+        let milp = rg.get_data().clone();
+        let re = rg.get_route_events();
+
+        for i in 0..milp.param.A {
+            assert_eq!(re[i].visit, i);
+            assert_eq!(re[i].id, milp.param.Gam[i]);
+            assert_eq!(re[i].arrival_time, milp.param.a[i]);
+            assert_eq!(re[i].departure_time, milp.param.e[i]);
+            assert_eq!(re[i].attach_time, milp.dec.u[i]);
+            assert_eq!(re[i].detach_time, milp.dec.c[i]);
+        }
+
+        // Assert that the data has changed
+        assert_ne!(data_cpy, milp);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_route_data_update() {
+        let mut rg: Box<dyn Route> = Box::new(RouteCSVGenerator::new(schedule_path(), csv_path()));
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Change some things in MILP data. Note `get_data` returns a copy of the MILP data, not a reference.
+        rg.get_data().param.a[0] = 10.0;
+        rg.get_data().param.Gam[0] = 32;
+        rg.get_data().param.e[0] = 70.0;
+
+        // Assert that charges have not been made to the route data
+        {
+            let milp = rg.get_data().clone();
+            let re = rg.get_route_events();
+
+            // Assert that route data is the same as MILP data
+            assert_eq!(re[0].arrival_time, milp.param.a[0]);
+            assert_eq!(re[10].id, milp.param.Gam[10]);
+            assert_eq!(re[8].departure_time, milp.param.e[8]);
+
+            // Assert that that the data not was changed to what was expected
+            assert_ne!(milp.param.a[0], 10.0);
+            assert_ne!(milp.param.Gam[10], 32);
+            assert_ne!(milp.param.e[8], 70.0);
         }
     }
 }

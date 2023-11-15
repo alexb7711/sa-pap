@@ -87,6 +87,9 @@ impl RouteCSVGenerator {
             let Gam = self.data.param.Gam[i];
             let gam = self.data.param.gam[i];
             let mut rt: f32 = 0.0;
+            let u = self.data.dec.u[i];
+            let c = self.data.dec.c[i];
+            let v = self.data.dec.v[i];
 
             // If the BEB has another visit
             if gam > 0 {
@@ -102,7 +105,9 @@ impl RouteCSVGenerator {
                 discharge: self.data.param.l[i],
                 id: Gam,
                 route_time: rt,
-                ..Default::default()
+                attach_time: u,
+                detach_time: c,
+                queue: v as u16,
             };
 
             // Add route event to route

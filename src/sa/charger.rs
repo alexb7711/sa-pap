@@ -258,9 +258,6 @@ impl Charger {
         let a = ae.0;
         let e = ae.1;
 
-        // Create random object
-        let mut rng = rand::thread_rng();
-
         // Create start/stop charging tuple
         let mut fits = true;
 
@@ -276,20 +273,28 @@ impl Charger {
 
         // The arrival/departure times are fully within the free time
         if lower <= a && upper >= e {
-            u = rng.gen_range(a..e);
-            d = rng.gen_range(u..e);
-        // The departure time is fully within the free time and the arrival time is less than the lower bound
+            u = self.get_rand_range(None, Some(d), (a, e));
+            d = self.get_rand_range(Some(u), None, (u, e));
+            // u = rng.gen_range(a..e);
+            // d = rng.gen_range(u..e);
+            // The departure time is fully within the free time and the arrival time is less than the lower bound
         } else if lower >= a && upper >= e {
-            u = rng.gen_range(lower..e);
-            d = rng.gen_range(u..e);
-        // The arrival time is fully within the free time and the departure time is greater than the lower bound
+            u = self.get_rand_range(None, Some(d), (lower, e));
+            d = self.get_rand_range(Some(u), None, (u, e));
+            // u = rng.gen_range(lower..e);
+            // d = rng.gen_range(u..e);
+            // The arrival time is fully within the free time and the departure time is greater than the lower bound
         } else if lower <= a && upper <= e {
-            u = rng.gen_range(a..upper);
-            d = rng.gen_range(u..upper);
-        // The arrival/departure times are less than and greater than the lower and upper bound, respectively
-        } else if lower >= a && upper <= e {
-            u = rng.gen_range(lower..upper);
-            d = rng.gen_range(u..upper);
+            u = self.get_rand_range(None, Some(d), (a, upper));
+            d = self.get_rand_range(Some(u), None, (u, upper));
+            // u = rng.gen_range(a..upper);
+            // d = rng.gen_range(u..upper);
+            // The arrival/departure times are less than and greater than the lower and upper bound, respectively
+        } else if lower > a && upper <= e {
+            u = self.get_rand_range(None, Some(d), (lower, upper));
+            d = self.get_rand_range(Some(u), None, (u, upper));
+            // u = rng.gen_range(lower..upper);
+            // d = rng.gen_range(u..upper);
         } else {
             fits = false;
         }
@@ -393,5 +398,54 @@ impl Charger {
         }
 
         return false;
+    }
+
+    //--------------------------------------------------------------------------
+    /// Given a arrival/departure time black, (a,e), return a random
+    /// attach/detach time, (u,d), that has a non-zero time difference, i.e
+    /// d - e != 0.0.
+    ///
+    /// # Input
+    /// * u: Current attach time
+    /// * d: Current detach times
+    /// * lu: Lower/upper bound
+    ///
+    /// # Output
+    /// * v: Random value.
+    ///
+    fn get_rand_range(self: &mut Charger, u: Option<f32>, d: Option<f32>, lu: (f32, f32)) -> f32 {
+        // Create charge start/stop buffers
+        let mut v: f32;
+
+        // Create random object
+        let mut rng = rand::thread_rng();
+
+        println!("lu: {:?}", lu);
+
+        // While there is a zero-difference charge time
+        loop {
+            // Generate random attach/detach time
+            v = rng.gen_range(lu.0..lu.1);
+
+            // If the departure time is being updated
+            if let Some(u) = u {
+                // Make sure the new departure time does not create a zero-time visit
+                // println!("d: {}", v - u);
+                if v - u > 0.0 {
+                    break;
+                }
+            }
+
+            // If the arrival time is being updated
+            if let Some(d) = d {
+                // println!("u: {}", d - v);
+                // Make sure the new arrival time does not create a zero-time visit
+                if d - v > 0.0 {
+                    break;
+                }
+            }
+        }
+
+        return v;
     }
 }
