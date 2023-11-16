@@ -136,6 +136,7 @@ impl<'a> SA<'a> {
             self.update_current_values(&mut sol_current, &mut sol_new);
         }
 
+        // Make the world a little more pretty
         println!("Executing SA:");
 
         // While the temperature function is cooling down

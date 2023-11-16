@@ -86,7 +86,7 @@ impl Generator for TweakSchedule {
         let ud = &(rv[ri].attach_time, rv[ri].detach_time);
         let ae = &(rv[ri].arrival_time, rv[ri].departure_time);
 
-        println!("Route: {:?}", rv[ri]);
+        // println!("Route: {:?}", rv[ri]);
 
         // Loop through the primitives
         for p in primitives {

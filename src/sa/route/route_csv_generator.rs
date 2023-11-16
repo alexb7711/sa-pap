@@ -686,6 +686,23 @@ impl RouteCSVGenerator {
             .map(|x| self.route[x].discharge)
             .collect();
     }
+
+    //---------------------------------------------------------------------------
+    /// Update the MILP decision variables given the current `route` vector.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn update_milp_dec_var(self: &mut RouteCSVGenerator) {
+        for i in 0..self.data.param.N {
+            self.data.dec.u[i] = self.route[i].attach_time;
+            self.data.dec.c[i] = self.route[i].detach_time;
+            self.data.dec.v[i] = self.route[i].queue as usize;
+        }
+    }
 }
 
 //===============================================================================
@@ -799,6 +816,7 @@ impl Route for RouteCSVGenerator {
     ///
     fn update_milp_data(self: &mut RouteCSVGenerator) {
         self.generate_schedule_params();
+        self.update_milp_dec_var();
     }
 }
 

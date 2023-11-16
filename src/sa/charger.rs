@@ -8,6 +8,10 @@ use yaml_rust::Yaml;
 use crate::util::fileio::yaml_loader;
 
 //===============================================================================
+// Static variables
+static EPSILON: f32 = 0.001;
+
+//===============================================================================
 /// Structure to consolidate the bus assignment information
 ///
 #[derive(Debug, PartialEq, PartialOrd, Copy, Clone)]
@@ -259,7 +263,9 @@ impl Charger {
         let e = ae.1;
 
         // Create start/stop charging tuple
-        let mut fits = true;
+        let fits;
+        let mut fits_u = false;
+        let mut fits_d = false;
 
         // Create charge start/stop buffers
         let mut u: f32 = a;
@@ -273,30 +279,37 @@ impl Charger {
 
         // The arrival/departure times are fully within the free time
         if lower <= a && upper >= e {
-            u = self.get_rand_range(None, Some(d), (a, e));
-            d = self.get_rand_range(Some(u), None, (u, e));
+            (u, fits_u) = self.get_rand_range(None, Some(d), (a, e));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
             // u = rng.gen_range(a..e);
             // d = rng.gen_range(u..e);
             // The departure time is fully within the free time and the arrival time is less than the lower bound
         } else if lower >= a && upper >= e {
-            u = self.get_rand_range(None, Some(d), (lower, e));
-            d = self.get_rand_range(Some(u), None, (u, e));
+            (u, fits_u) = self.get_rand_range(None, Some(d), (lower, e));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
             // u = rng.gen_range(lower..e);
             // d = rng.gen_range(u..e);
             // The arrival time is fully within the free time and the departure time is greater than the lower bound
         } else if lower <= a && upper <= e {
-            u = self.get_rand_range(None, Some(d), (a, upper));
-            d = self.get_rand_range(Some(u), None, (u, upper));
+            (u, fits_u) = self.get_rand_range(None, Some(d), (a, upper));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
             // u = rng.gen_range(a..upper);
             // d = rng.gen_range(u..upper);
             // The arrival/departure times are less than and greater than the lower and upper bound, respectively
         } else if lower > a && upper <= e {
-            u = self.get_rand_range(None, Some(d), (lower, upper));
-            d = self.get_rand_range(Some(u), None, (u, upper));
+            (u, fits_u) = self.get_rand_range(None, Some(d), (lower, upper));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
             // u = rng.gen_range(lower..upper);
             // d = rng.gen_range(u..upper);
-        } else {
+        }
+
+        // Keep the window above a certain threshold. This value should be bigger than `primitives::EPSILON`
+        if d - u < 0.001 {
             fits = false;
+        // Else it fits the threshold
+        } else {
+            // It fits only if upper and lower bound fit
+            fits = fits_u && fits_d;
         }
 
         return (fits, (u, d));
@@ -413,14 +426,25 @@ impl Charger {
     /// # Output
     /// * v: Random value.
     ///
-    fn get_rand_range(self: &mut Charger, u: Option<f32>, d: Option<f32>, lu: (f32, f32)) -> f32 {
+    fn get_rand_range(
+        self: &mut Charger,
+        u: Option<f32>,
+        d: Option<f32>,
+        lu: (f32, f32),
+    ) -> (f32, bool) {
         // Create charge start/stop buffers
         let mut v: f32;
 
         // Create random object
         let mut rng = rand::thread_rng();
 
-        println!("lu: {:?}", lu);
+        // println!("lu: {:?}", lu);
+
+        // Check if the window is large enough
+        if lu.1 - lu.0 < EPSILON {
+            // If it is not, return false
+            return (0.0, false);
+        }
 
         // While there is a zero-difference charge time
         loop {
@@ -446,6 +470,6 @@ impl Charger {
             }
         }
 
-        return v;
+        return (v, true);
     }
 }

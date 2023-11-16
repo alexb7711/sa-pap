@@ -7,4 +7,4 @@ pub mod slide_visit;
 pub mod wait;
 
 // Constants
-static EPSILON: f32 = 0.001;
+static EPSILON: f32 = 0.0001;

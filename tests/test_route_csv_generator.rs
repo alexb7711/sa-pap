@@ -237,9 +237,10 @@ mod test_route_csv_generator {
 
         // Change some things in the route data
         rg.get_route_events()[0].arrival_time = 10.0;
-        rg.get_route_events()[10].id = 32;
+        rg.get_route_events()[30].id = 16;
         rg.get_route_events()[8].departure_time = 70.0;
         rg.get_route_events()[5].detach_time = 4.0;
+        rg.get_route_events()[16].attach_time = 12.0;
 
         // Assert that charges have been made to the route data
         {
@@ -248,15 +249,17 @@ mod test_route_csv_generator {
 
             // Assert that route data is different than MILP data
             assert_ne!(re[0].arrival_time, milp.param.a[0]);
-            assert_ne!(re[10].id, milp.param.Gam[10]);
+            assert_ne!(re[30].id, milp.param.Gam[30]);
             assert_ne!(re[8].departure_time, milp.param.e[8]);
             assert_ne!(re[5].detach_time, milp.dec.c[5]);
+            assert_ne!(re[16].attach_time, milp.dec.u[16]);
 
             // Assert that that the data was changed to what was expected
             assert_eq!(re[0].arrival_time, 10.0);
-            assert_eq!(re[10].id, 32);
+            assert_eq!(re[30].id, 16);
             assert_eq!(re[8].departure_time, 70.0);
-            assert_ne!(re[8].departure_time, milp.dec.c[5]);
+            assert_eq!(re[5].detach_time, 4.0);
+            assert_eq!(re[16].attach_time, 12.0);
         }
 
         // Update milp data
@@ -290,8 +293,8 @@ mod test_route_csv_generator {
 
         // Change some things in MILP data. Note `get_data` returns a copy of the MILP data, not a reference.
         rg.get_data().param.a[0] = 10.0;
-        rg.get_data().param.Gam[0] = 32;
-        rg.get_data().param.e[0] = 70.0;
+        rg.get_data().param.Gam[10] = 32;
+        rg.get_data().param.e[8] = 70.0;
 
         // Assert that charges have not been made to the route data
         {
