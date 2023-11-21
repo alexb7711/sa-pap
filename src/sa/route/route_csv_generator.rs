@@ -132,7 +132,7 @@ impl RouteCSVGenerator {
     /// # Output
     /// * NONE
     ///
-    fn buffer_input_parameters(self: &mut RouteCSVGenerator) {
+    fn buffer_input_parameters(self: &mut RouteCSVGenerator, visits: &HashMap<u16, Vec<Vec<f32>>>) {
         // Misc Variables
         let csv: &(Vec<u16>, Vec<Vec<f32>>) = &self.csv_schedule;
         let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
@@ -140,7 +140,7 @@ impl RouteCSVGenerator {
 
         // Constants
         self.data.param.A = csv.0.len();
-        self.data.param.N = self.count_visits(&self.config, &csv);
+        self.data.param.N = self.count_visits(visits);
         self.data.param.T = eod - bod;
         self.data.param.K = self.config["time"]["K"].as_i64().unwrap() as u16;
         self.data.param.S = 1;
@@ -233,28 +233,17 @@ impl RouteCSVGenerator {
     ///
     fn count_visits(
         self: &RouteCSVGenerator,
-        config: &Yaml,
-        csv: &(Vec<u16>, Vec<Vec<f32>>),
+        visits: &HashMap<u16, Vec<Vec<f32>>>
     ) -> usize {
         let mut N: usize = 0;
-        let bod: f32 = config["time"]["BOD"].as_f64().unwrap() as f32;
-        let eod: f32 = config["time"]["EOD"].as_f64().unwrap() as f32;
 
-        // for each bus
-        for r in &csv.1 {
-            // For start/stop pair, there is one visit
-            N += (r.len() / 2) as usize;
+        // For each BEB
+        for it in visits {
+            // Extract tuple
+            let (_, r) = it;
 
-            // If the bus does not go on route immediately after the working day has
-            // begun
-            if *r.first().unwrap() > bod {
-                N += 1; // Increment the visit counter
-            }
-
-            // If the bus arrives before the end of the working day
-            if *r.last().unwrap() == eod {
-                N -= 1; // Increment the visit counter
-            }
+            // Add routes
+            N += r.len();
         }
 
         return N;
@@ -285,29 +274,26 @@ impl RouteCSVGenerator {
             // Variables
             let b: u16 = self.csv_schedule.0[i];
             let r: Vec<f32> = self.csv_schedule.1[i].clone();
-            let mut arrival_n: f32;
-            let mut departure: f32;
             let mut tmp_route: Vec<Vec<f32>> = Vec::new();
-
-            // Determine start/stop index
-            let (i0, J) = self.det_start_end_idx(&r);
-            let mut arrival_c: f32 = r[i0];
+            let J = r.len();
+            let mut arrival_c: f32 = r[1];
+            let mut arrival_n: f32;
 
             // For each start/stop route pair
-            for j in (i0..J).step_by(2) {
+            for j in (0..J).step_by(2) {
                 // Update the times
-                departure = r[j + 1];
-                arrival_n = r[j + 2];
+                arrival_n = r[j + 1];
+                let departure: f32 = r[j];
 
                 // If the first visit is at the BOD
-                if j == i0 && r[0] > bod {
+                if j == 0 && r[j] > bod {
                     // The first arrival time is at BOD
                     tmp_route.push(vec![bod, departure]);
                 }
-                // Otherwise the first visit is after the BOD
-                else if j == i0 && r[0] == bod {
-                    // Insert initial visit
-                    tmp_route.push(vec![arrival_c, departure]);
+                // Else if the first visit is after the BOD
+                else if j == 0 && r[j] == bod {
+                    // The first arrival time is at BOD
+                    tmp_route.push(vec![bod, departure]);
                 }
                 // Else append the arrival/departure time normally
                 else {
@@ -328,48 +314,6 @@ impl RouteCSVGenerator {
         }
 
         return route_visit;
-    }
-
-    //---------------------------------------------------------------------------
-    //
-    /// Determine the starting index for converting routes to visits.
-    ///
-    /// Example:
-    /// 1)
-    /// B  E  B  E  B  E  B  E
-    /// 0  1  2  3  4  5  6  7
-    ///
-    /// The first "visit" it at E = 1 since the BEB is on route from hour 0 to 1.
-    /// Therefore, the first visit is at index 1.
-    ///
-    /// 2)
-    /// B  E  B  E  B  E  B  E
-    /// 1  2  3  4  5  6  7  8
-    ///
-    /// The first visit is at E = 0.0 since we are assuming that B = 1 is the start
-    /// of the first route of the day. Therefore, the starting index needs to be 1.
-    ///
-    /// Input:
-    ///   - self  : Scheduler object
-    ///   - r: Vector of bus routes for bus `b`
-    ///
-    /// Output:
-    ///   - (i0, ix): The start/end index to convert routes to visits
-    ///
-    fn det_start_end_idx(self: &RouteCSVGenerator, r: &Vec<f32>) -> (usize, usize) {
-        // Variables
-        let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
-        let mut i0 = 0;
-        let mut ix = r.len();
-
-        // If the first route time starts at BOD
-        if *r.first().unwrap() == bod {
-            // The starting index is set to 1
-            i0 = 1;
-            ix -= 1;
-        }
-
-        return (i0, ix);
     }
 
     //---------------------------------------------------------------------------
@@ -721,14 +665,14 @@ impl Route for RouteCSVGenerator {
         // Parse CSV
         self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h, &self.config);
 
+        // Convert routes to visits
+        let visits = self.convert_route_to_visit();
+
         // Buffer input parameters
-        self.buffer_input_parameters();
+        self.buffer_input_parameters(&visits);
 
         // Buffer decision variables
         self.buffer_decision_variables();
-
-        // Convert routes to visits
-        let visits = self.convert_route_to_visit();
 
         // Estimate discharge over routes
         let dis = self.calc_discharge();
