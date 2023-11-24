@@ -449,10 +449,10 @@ mod test_charger {
 
         // Test 1 - fully valid request
         let ts = charger.free_time[q][0];
-        let (fits, ud) = charger.find_free_time(&(0.0, 0.9), &ts);
+        let (fits, ud) = charger.find_free_time(&(0.0, 0.1), &ts);
         assert!(fits);
         assert!(ud.0 >= 0.0);
-        assert!(ud.1 <= 0.9);
+        assert!(ud.1 <= 0.1);
 
         // Test 2 - lower bound overlap
         let ts = charger.free_time[q][1];

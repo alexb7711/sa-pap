@@ -91,7 +91,7 @@ mod test_primitive_generators {
         assert!(new_visit::run(&mut charger, id, &(0.0, 0.1)));
         assert_eq!(charger.free_time[q].len(), 6);
 
-        // Test 7 - Assign two buses to be charged clone to each other
+        // Test 7 - Assign two buses to be charged close to each other
         assert!(new_visit::run(&mut charger, id, &(0.5, 0.55)));
         assert!(new_visit::run(&mut charger, id, &(0.55, 0.6)));
         assert_eq!(charger.free_time[q].len(), 8);

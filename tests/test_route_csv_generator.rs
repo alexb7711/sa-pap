@@ -89,7 +89,6 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_route_data() {
-        let hr2sec: f32 = 3600.0;
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
 
         // Load the CSV schedule

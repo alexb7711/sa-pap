@@ -86,8 +86,6 @@ impl Generator for TweakSchedule {
         let ud = &(rv[ri].attach_time, rv[ri].detach_time);
         let ae = &(rv[ri].arrival_time, rv[ri].departure_time);
 
-        // println!("Route: {:?}", rv[ri]);
-
         // Loop through the primitives
         for p in primitives {
             // Try running the primitive and store the result
@@ -100,6 +98,7 @@ impl Generator for TweakSchedule {
 
             // If successful, update the MILP data and break out of loop
             if success {
+                println!("Success!");
                 r.update_milp_data();
                 break;
             }
