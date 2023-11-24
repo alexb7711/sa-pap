@@ -231,10 +231,7 @@ impl RouteCSVGenerator {
     /// # Output
     /// * N : Number of visits
     ///
-    fn count_visits(
-        self: &RouteCSVGenerator,
-        visits: &HashMap<u16, Vec<Vec<f32>>>
-    ) -> usize {
+    fn count_visits(self: &RouteCSVGenerator, visits: &HashMap<u16, Vec<Vec<f32>>>) -> usize {
         let mut N: usize = 0;
 
         // For each BEB
@@ -805,11 +802,16 @@ mod priv_test_route_gen {
 
         assert_eq!(
             r[0],
-            vec![5.3333335, 5.3333335],
+            vec![0.0, 0.0],
             "The route route does not match the vector."
         );
         assert_eq!(
             r[1],
+            vec![5.3333335, 5.3333335],
+            "The route route does not match the vector."
+        );
+        assert_eq!(
+            r[2],
             vec![6.016667, 8.075],
             "The route route does not match the vector."
         );
@@ -821,11 +823,16 @@ mod priv_test_route_gen {
 
         assert_eq!(
             r[0],
-            vec![6.0, 11.208333],
+            vec![0.0, 0.0],
             "The route route does not match the vector."
         );
         assert_eq!(
             r[1],
+            vec![6.0, 11.208333],
+            "The route route does not match the vector."
+        );
+        assert_eq!(
+            r[2],
             vec![11.683333, 13.783334],
             "The route route does not match the vector."
         );

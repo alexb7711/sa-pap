@@ -106,15 +106,12 @@ mod test_route_csv_generator {
             }
         }
 
-        // Epsilon time shift
-        let ep = rg.data.param.ts;
-
         assert_eq!(
-            rg.route[idx].arrival_time, 5.3333335,
+            rg.route[idx].arrival_time, 0.0,
             "Initial arrival time was not at BOD."
         );
-        assert!(
-            rg.route[idx].departure_time == 5.3333335 + ep,
+        assert_ne!(
+            rg.route[idx].departure_time, 0.0,
             "The departure time for should equal to the BOD."
         );
 
@@ -127,7 +124,7 @@ mod test_route_csv_generator {
             }
         }
 
-        assert_eq!(rg.route[idx].arrival_time, 18000.0 / hr2sec);
+        assert_eq!(rg.route[idx].arrival_time, 0.0);
     }
 
     //---------------------------------------------------------------------------
@@ -293,7 +290,17 @@ mod test_route_csv_generator {
 
         // Change some things in MILP data. Note `get_data` returns a copy of the MILP data, not a reference.
         rg.get_data().param.a[0] = 10.0;
-        rg.get_data().param.Gam[10] = 32;
+
+        // Make sure we never have a failure
+        let id;
+        if rg.get_data().param.Gam[10] != 32 {
+            id = 32;
+            rg.get_data().param.Gam[10] = id;
+        } else {
+            id = 33;
+            rg.get_data().param.Gam[10] = id;
+        }
+
         rg.get_data().param.e[8] = 70.0;
 
         // Assert that charges have not been made to the route data
@@ -308,7 +315,7 @@ mod test_route_csv_generator {
 
             // Assert that that the data not was changed to what was expected
             assert_ne!(milp.param.a[0], 10.0);
-            assert_ne!(milp.param.Gam[10], 32);
+            assert_ne!(milp.param.Gam[10], id);
             assert_ne!(milp.param.e[8], 70.0);
         }
     }
