@@ -279,8 +279,8 @@ impl RouteCSVGenerator {
             // For each start/stop route pair
             for j in (0..J).step_by(2) {
                 // Update the times
-                arrival_n = r[j + 1];
                 let departure: f32 = r[j];
+                arrival_n = r[j + 1];
 
                 // If the first visit is at the BOD
                 if j == 0 && r[j] > bod {
@@ -289,8 +289,8 @@ impl RouteCSVGenerator {
                 }
                 // Else if the first visit is after the BOD
                 else if j == 0 && r[j] == bod {
-                    // The first arrival time is at BOD
-                    tmp_route.push(vec![bod, departure]);
+                    // Place a dummy visit to propagate discharge
+                    tmp_route.push(vec![bod, bod]);
                 }
                 // Else append the arrival/departure time normally
                 else {
