@@ -8,8 +8,8 @@ pub mod new_charger {
 
     // Import modules
     use crate::sa::charger::Charger;
+    use crate::sa::data::Data;
     use crate::sa::generators::primitives::{self, purge::*};
-    use crate::sa::route::route_event::RouteEvent;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_charger` module. This module
@@ -17,6 +17,8 @@ pub mod new_charger {
     /// on a random queue.
     ///
     /// # Input
+    /// * d: MILP data object
+    /// * i: Visit index
     /// * ch: Charger object
     /// * q: Charger queue index
     /// * b: Bus id
@@ -26,7 +28,7 @@ pub mod new_charger {
     /// * bool: Assignment failure/success
     ///
     pub fn run(
-        r: &mut Vec<RouteEvent>,
+        d: &mut Data,
         i: usize,
         ch: &mut Charger,
         q: usize,
@@ -34,9 +36,12 @@ pub mod new_charger {
         ud: &(f32, f32),
     ) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !purge::run(r, i, ch, q, ud) {
+        if !purge::run(d, i, ch, q, ud) {
             return false;
         }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Create random list of charger indices
 
         // Extract the number of chargers
         let q_cnt: usize = ch.schedule.len();
@@ -54,6 +59,7 @@ pub mod new_charger {
 
         // Iterate the shuffled queue indices
         for q in queues.into_iter() {
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Create a list of time slices and shuffle them
             let mut time_slice = ch.free_time[q].clone();
             time_slice = rand_utils::shuffle_vec(&time_slice);
@@ -75,8 +81,9 @@ pub mod new_charger {
                 // times
                 if fits && ch.assign(q, *ud, b) {
                     // Update route data
-                    if r.len() > 0 {
-                        r[i].queue = q as u16; // Update queue
+                    if d.dec.w.len() > q {
+                        d.dec.w[q][i] = true; // Update queue
+                        d.dec.v[i] = q; // Update queue
                     }
                     return true;
                 }
