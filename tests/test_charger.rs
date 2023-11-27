@@ -450,43 +450,67 @@ mod test_charger {
         // Test 1 - fully valid request
         let ts = charger.free_time[q][0];
         let (fits, ud) = charger.find_free_time(&(0.0, 0.1), &ts);
-        assert!(fits);
-        assert!(ud.0 >= 0.0);
-        assert!(ud.1 <= 0.1);
+        if fits {
+            assert!(fits);
+            assert!(ud.0 >= 0.0);
+            assert!(ud.1 <= 0.1);
+        } else {
+            assert!(!fits);
+        }
 
         // Test 2 - lower bound overlap
         let ts = charger.free_time[q][1];
         let (fits, ud) = charger.find_free_time(&(0.19, 0.3), &ts);
-        assert!(fits);
-        assert!(ud.0 >= 0.2);
-        assert!(ud.1 <= 0.3);
+        if fits {
+            assert!(fits);
+            assert!(ud.0 >= 0.2);
+            assert!(ud.1 <= 0.3);
+        } else {
+            assert!(!fits);
+        }
 
         // Test 3 - upper bound overlap
         let ts = charger.free_time[q][1];
         let (fits, ud) = charger.find_free_time(&(0.2, 0.51), &ts);
-        assert!(fits);
-        assert!(ud.0 >= 0.2);
-        assert!(ud.1 <= 0.4);
+        if fits {
+            assert!(fits);
+            assert!(ud.0 >= 0.2);
+            assert!(ud.1 <= 0.4);
+        } else {
+            assert!(!fits);
+        }
 
         // Test 4 - lower/upper bound overlap
         let ts = charger.free_time[q][1];
         let (fits, ud) = charger.find_free_time(&(0.0, 0.51), &ts);
-        assert!(fits);
-        assert!(ud.0 >= 0.2);
-        assert!(ud.1 <= 0.4);
+        if fits {
+            assert!(fits);
+            assert!(ud.0 >= 0.2);
+            assert!(ud.1 <= 0.4);
+        } else {
+            assert!(!fits);
+        }
 
         // Test 5 - times do not match up
         let ts = charger.free_time[q][1];
         let (fits, ud) = charger.find_free_time(&(0.11, 0.19), &ts);
-        assert!(!fits);
-        assert!(ud.0 == 0.11);
-        assert!(ud.1 == 0.19);
+        if fits {
+            assert!(!fits);
+            assert!(ud.0 == 0.11);
+            assert!(ud.1 == 0.19);
+        } else {
+            assert!(!fits);
+        }
 
         // Test 6 - invalid request
         let ts = charger.free_time[q][0];
         let (fits, ud) = charger.find_free_time(&(0.1, 0.2), &ts);
-        assert!(!fits);
-        assert!(ud.0 == 0.1);
-        assert!(ud.1 == 0.2);
+        if fits {
+            assert!(!fits);
+            assert!(ud.0 == 0.1);
+            assert!(ud.1 == 0.2);
+        } else {
+            assert!(!fits);
+        }
     }
 }

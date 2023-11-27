@@ -445,7 +445,6 @@ impl Charger {
             // If the departure time is being updated
             if let Some(u) = u {
                 // Make sure the new departure time does not create a zero-time visit
-                // println!("d: {}", v - u);
                 if v - u > 0.0 {
                     break;
                 }
@@ -453,7 +452,6 @@ impl Charger {
 
             // If the arrival time is being updated
             if let Some(d) = d {
-                // println!("u: {}", d - v);
                 // Make sure the new arrival time does not create a zero-time visit
                 if d - v > 0.0 {
                     break;

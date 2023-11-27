@@ -233,7 +233,16 @@ mod test_route_csv_generator {
 
         // Change some things in the route data
         rg.get_route_events()[0].arrival_time = 10.0;
-        rg.get_route_events()[30].id = 16;
+
+        let id: u16;
+        if rg.get_route_events()[30].id != 16 {
+            id = 16;
+            rg.get_route_events()[30].id = id;
+        } else {
+            id = 17;
+            rg.get_route_events()[30].id = id;
+        }
+
         rg.get_route_events()[8].departure_time = 70.0;
         rg.get_route_events()[5].detach_time = 4.0;
         rg.get_route_events()[16].attach_time = 12.0;
@@ -252,7 +261,7 @@ mod test_route_csv_generator {
 
             // Assert that that the data was changed to what was expected
             assert_eq!(re[0].arrival_time, 10.0);
-            assert_eq!(re[30].id, 16);
+            assert_eq!(re[30].id, id);
             assert_eq!(re[8].departure_time, 70.0);
             assert_eq!(re[5].detach_time, 4.0);
             assert_eq!(re[16].attach_time, 12.0);
