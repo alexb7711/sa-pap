@@ -180,6 +180,7 @@ impl<'a> SA<'a> {
             result = None;
         }
 
+        // TODO: Delete me
         println!(
             "Compare: {:?}",
             sol_orig.dec.clone() == sol_best.dec.clone()

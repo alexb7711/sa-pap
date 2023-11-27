@@ -281,26 +281,18 @@ impl Charger {
         if lower <= a && upper >= e {
             (u, fits_u) = self.get_rand_range(None, Some(d), (a, e));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
-            // u = rng.gen_range(a..e);
-            // d = rng.gen_range(u..e);
             // The departure time is fully within the free time and the arrival time is less than the lower bound
         } else if lower >= a && upper >= e {
             (u, fits_u) = self.get_rand_range(None, Some(d), (lower, e));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
-            // u = rng.gen_range(lower..e);
-            // d = rng.gen_range(u..e);
             // The arrival time is fully within the free time and the departure time is greater than the lower bound
         } else if lower <= a && upper <= e {
             (u, fits_u) = self.get_rand_range(None, Some(d), (a, upper));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
-            // u = rng.gen_range(a..upper);
-            // d = rng.gen_range(u..upper);
             // The arrival/departure times are less than and greater than the lower and upper bound, respectively
         } else if lower > a && upper <= e {
             (u, fits_u) = self.get_rand_range(None, Some(d), (lower, upper));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
-            // u = rng.gen_range(lower..upper);
-            // d = rng.gen_range(u..upper);
         }
 
         // Keep the window above a certain threshold. This value should be bigger than `primitives::EPSILON`
