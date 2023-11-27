@@ -5,3 +5,6 @@ pub mod new_window;
 pub mod purge;
 pub mod slide_visit;
 pub mod wait;
+
+// Constants
+static EPSILON: f32 = 0.0001;

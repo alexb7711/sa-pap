@@ -12,7 +12,7 @@
 /// Defines the structure that contains the metadata to generate the start/stop routes from the csv file.
 ///
 #[allow(dead_code)]
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Data {
     pub param: Parameter,
     pub dec: DecisionVar,
@@ -23,7 +23,7 @@ pub struct Data {
 ///
 /// Defines the structure that contains the buffers for the SA parameters
 ///
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Parameter {
     pub A: usize,        // Number of buses
     pub D: Vec<f32>,     // Discharge of route i
@@ -48,6 +48,7 @@ pub struct Parameter {
     pub r: Vec<f32>,     // Charge rate for charger q                      [KWh]
     pub slow: usize,     // Number of slow chargers
     pub tk: Vec<f32>,    // Array of discrete times                        [hr]
+    pub ts: f32,         // Amount of offset applied                       [hr]
     pub zeta: Vec<f32>,  // Discharge rate of bus b
 }
 
@@ -56,7 +57,7 @@ pub struct Parameter {
 ///
 /// Defines the structure that contains the buffers for the decision variables
 ///
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct DecisionVar {
     pub c: Vec<f32>,           //  Detach time for visit i                [hr]
     pub g: Vec<Vec<f32>>,      //  Detach time for visit i                [hr]

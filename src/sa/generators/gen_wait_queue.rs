@@ -46,10 +46,10 @@ impl Generator for GenWaitQueue {
     ///
     fn run(self: &mut GenWaitQueue, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get information about the route
-        let mut route = r.get_route_events();
+        let mut route = r.get_route_events().clone();
 
         // Get information about the route
-        let data = r.get_data();
+        let data = *r.get_data();
 
         // Determine the amount of BEBs
         let A: usize = data.param.A;
@@ -67,7 +67,7 @@ impl Generator for GenWaitQueue {
                     if c.assign(b.clone(), ad.clone(), b.clone()) {
                         // Update route event
                         i.attach_time = ad.0.clone();
-                        i.detatch_time = ad.1.clone();
+                        i.detach_time = ad.1.clone();
                         i.queue = b.clone() as u16;
                     }
                 }
@@ -75,8 +75,8 @@ impl Generator for GenWaitQueue {
         }
 
         // Update route and charger
-        r.set_data(data);
-        r.set_route_events(route);
+        r.set_route_events(Box::new(&mut route));
+        r.update_milp_data();
 
         return true;
     }

@@ -7,6 +7,7 @@ pub mod new_window {
     use crate::sa::charger::Charger;
     use crate::sa::generators::primitives::new_visit::*;
     use crate::sa::generators::primitives::purge::*;
+    use crate::sa::route::route_event::RouteEvent;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_window` module. This module encapsulates
@@ -20,9 +21,16 @@ pub mod new_window {
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    pub fn run(ch: &mut Charger, q: usize, ad: &(f32, f32), ud: &(f32, f32)) -> bool {
+    pub fn run(
+        r: &mut Vec<RouteEvent>,
+        i: usize,
+        ch: &mut Charger,
+        q: usize,
+        ad: &(f32, f32),
+        ud: &(f32, f32),
+    ) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !purge::run(ch, q, ud) {
+        if !purge::run(r, i, ch, q, ud) {
             return false;
         }
 

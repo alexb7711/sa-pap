@@ -8,6 +8,10 @@ use yaml_rust::Yaml;
 use crate::util::fileio::yaml_loader;
 
 //===============================================================================
+// Static variables
+static EPSILON: f32 = 0.001;
+
+//===============================================================================
 /// Structure to consolidate the bus assignment information
 ///
 #[derive(Debug, PartialEq, PartialOrd, Copy, Clone)]
@@ -258,11 +262,10 @@ impl Charger {
         let a = ae.0;
         let e = ae.1;
 
-        // Create random object
-        let mut rng = rand::thread_rng();
-
         // Create start/stop charging tuple
-        let mut fits = true;
+        let fits;
+        let mut fits_u = false;
+        let mut fits_d = false;
 
         // Create charge start/stop buffers
         let mut u: f32 = a;
@@ -276,22 +279,30 @@ impl Charger {
 
         // The arrival/departure times are fully within the free time
         if lower <= a && upper >= e {
-            u = rng.gen_range(a..e);
-            d = rng.gen_range(u..e);
-        // The departure time is fully within the free time and the arrival time is less than the lower bound
+            (u, fits_u) = self.get_rand_range(None, Some(d), (a, e));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
+            // The departure time is fully within the free time and the arrival time is less than the lower bound
         } else if lower >= a && upper >= e {
-            u = rng.gen_range(lower..e);
-            d = rng.gen_range(u..e);
-        // The arrival time is fully within the free time and the departure time is greater than the lower bound
+            (u, fits_u) = self.get_rand_range(None, Some(d), (lower, e));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
+            // The arrival time is fully within the free time and the departure time is greater than the lower bound
         } else if lower <= a && upper <= e {
-            u = rng.gen_range(a..upper);
-            d = rng.gen_range(u..upper);
-        // The arrival/departure times are less than and greater than the lower and upper bound, respectively
-        } else if lower >= a && upper <= e {
-            u = rng.gen_range(lower..upper);
-            d = rng.gen_range(u..upper);
-        } else {
+            (u, fits_u) = self.get_rand_range(None, Some(d), (a, upper));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
+            // The arrival/departure times are less than and greater than the lower and upper bound, respectively
+        } else if lower > a && upper <= e {
+            (u, fits_u) = self.get_rand_range(None, Some(d), (lower, upper));
+            (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
+        }
+
+        // Keep the window above a certain threshold. This value should be bigger than `primitives::EPSILON`
+        // TODO: Make the threshold a variable.
+        if d - u < 0.001 {
             fits = false;
+        // Else it fits the threshold
+        } else {
+            // It fits only if upper and lower bound fit
+            fits = fits_u && fits_d;
         }
 
         return (fits, (u, d));
@@ -393,5 +404,61 @@ impl Charger {
         }
 
         return false;
+    }
+
+    //--------------------------------------------------------------------------
+    /// Given a arrival/departure time black, (a,e), return a random
+    /// attach/detach time, (u,d), that has a non-zero time difference, i.e
+    /// d - e != 0.0.
+    ///
+    /// # Input
+    /// * u: Current attach time
+    /// * d: Current detach times
+    /// * lu: Lower/upper bound
+    ///
+    /// # Output
+    /// * v: Random value.
+    ///
+    fn get_rand_range(
+        self: &mut Charger,
+        u: Option<f32>,
+        d: Option<f32>,
+        lu: (f32, f32),
+    ) -> (f32, bool) {
+        // Create charge start/stop buffers
+        let mut v: f32;
+
+        // Create random object
+        let mut rng = rand::thread_rng();
+
+        // Check if the window is large enough
+        if lu.1 - lu.0 < EPSILON {
+            // If it is not, return false
+            return (0.0, false);
+        }
+
+        // While there is a zero-difference charge time
+        loop {
+            // Generate random attach/detach time
+            v = rng.gen_range(lu.0..lu.1);
+
+            // If the departure time is being updated
+            if let Some(u) = u {
+                // Make sure the new departure time does not create a zero-time visit
+                if v - u > 0.0 {
+                    break;
+                }
+            }
+
+            // If the arrival time is being updated
+            if let Some(d) = d {
+                // Make sure the new arrival time does not create a zero-time visit
+                if d - v > 0.0 {
+                    break;
+                }
+            }
+        }
+
+        return (v, true);
     }
 }

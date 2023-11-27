@@ -27,9 +27,9 @@ pub struct RouteEvent {
     pub route_time: f32,     // Total time on route                [hr]
 
     // Decision variables
-    pub attach_time: f32,  // Time bus attaches to the charger   [hr]
-    pub detatch_time: f32, // Time bus detaches from the charger [hr]
-    pub queue: u16,        // Selected queue
+    pub attach_time: f32, // Time bus attaches to the charger   [hr]
+    pub detach_time: f32, // Time bus detaches from the charger [hr]
+    pub queue: u16,       // Selected queue
 }
 
 //===============================================================================

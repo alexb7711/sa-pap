@@ -7,6 +7,7 @@ pub mod new_visit {
 
     // Import modules
     use crate::sa::charger::Charger;
+    use crate::sa::generators::primitives;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_visit` module. Given the set of
@@ -42,6 +43,12 @@ pub mod new_visit {
             // Create a list of time slices and shuffle them
             let mut time_slice = ch.free_time[q].clone();
             time_slice = rand_utils::shuffle_vec(&time_slice);
+
+            // Filter out very small windows
+            time_slice = time_slice
+                .into_iter()
+                .filter(|x| x.1 - x.0 >= primitives::EPSILON)
+                .collect();
 
             // Iterate through the shuffled time slices
             for ts in time_slice.iter() {

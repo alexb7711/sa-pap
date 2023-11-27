@@ -1,25 +1,39 @@
-//===============================================================================
-// Declare submodules
-use self::temp_func::TempFunc;
-use crate::sa::charger::Charger;
-use crate::sa::generators::Generator;
-use crate::sa::route::Route;
+#![allow(non_snake_case)]
 
-//===============================================================================
-// Import modules
+//==============================================================================
+// Declare submodules
 pub mod charger; // Parameters and decision variables
 pub mod data; // Parameters and decision variables
 pub mod generators; // Pool of all the SA generators
 pub mod route; // Pool of all the route generators
 pub mod temp_func; // Temperature functions
 
-//===============================================================================
+//==============================================================================
+// Import standard library
+use indicatif::ProgressIterator;
+use rand::{thread_rng, Rng};
+
+//==============================================================================
+// Import modules
+use self::temp_func::TempFunc;
+use crate::lp::objectives::std_obj::StdObj;
+use crate::lp::objectives::Objective;
+use crate::sa::charger::Charger;
+use crate::sa::data::Data;
+use crate::sa::generators::Generator;
+use crate::sa::route::Route;
+
+//==============================================================================
 /// Results from simulated annealing
+/// TODO: Remove `#[allow(dead_code)]
 //
 #[derive(Default)]
-pub struct Results {}
+#[allow(dead_code)]
+pub struct Results {
+    data: Box<Data>,
+}
 
-//===============================================================================
+//==============================================================================
 /// Structure for simulated annealing
 //
 #[allow(dead_code)]
@@ -32,11 +46,15 @@ pub struct SA<'a> {
     tf: &'a mut Box<TempFunc>,  // Cooling Schedule
 }
 
-//===============================================================================
+//==============================================================================
 /// Implementation of SA
 //
 impl<'a> SA<'a> {
-    //---------------------------------------------------------------------------
+    //==========================================================================
+    // PUBLIC
+    //==========================================================================
+
+    //--------------------------------------------------------------------------
     /// Initialize the SA object
     ///
     /// # Input
@@ -50,15 +68,22 @@ impl<'a> SA<'a> {
     pub fn new(
         config_path: &'a str,
         gsol: Box<dyn Generator>,
-        gsys: Box<dyn Route>,
+        mut gsys: Box<dyn Route>,
         gtweak: Box<dyn Generator>,
         tf: &'a mut Box<TempFunc>,
     ) -> SA<'a> {
+        // Generate new solution
+        gsys.run();
+
+        // Extract BEB count
+        let A = Some(gsys.get_data().param.A);
+
+        // Create SA object
         let sa: SA = SA {
             gsol,
             gsys,
             gtweak,
-            charger: Box::new(Charger::new(config_path, true, None, None)),
+            charger: Box::new(Charger::new(config_path, true, A, None)),
             r: Default::default(),
             tf,
         };
@@ -66,7 +91,7 @@ impl<'a> SA<'a> {
         return sa;
     }
 
-    //---------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     /// Initialize and run the SA algorithm
     ///
     /// # Input
@@ -79,52 +104,192 @@ impl<'a> SA<'a> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
 
-        // Generate new solution
-        self.gsys.run();
+        // Extract solution sets
+        let sol_orig = *self.gsys.get_data().clone();
+        let mut sol_best = *self.gsys.get_data().clone();
+        let mut sol_current = *self.gsys.get_data().clone();
+        let mut sol_new;
 
         // Set local search iteration count
-        let k = 1000;
+        let k = 10;
+
+        // Initialize objective function variables
+        let J0: f64;
+        let mut J1: f64 = 99999999.0; // Initialize to some obscene value
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
 
+        // Run first instance of SA
+
+        // Generate new solution
+        self.gsol.run(&mut self.gsys, &mut self.charger);
+
+        // Extract new data set
+        sol_new = *self.gsys.get_data().clone();
+
+        // Calculate objective function
+        J0 = StdObj::run(&mut sol_current);
+
+        // Compare the objective functions
+        if self.cmp_obj_fnc(J0, J1, self.tf.get_temp(None).unwrap()) {
+            self.update_current_values(&mut sol_current, &mut sol_new);
+        }
+
+        // Make the world a little more pretty
+        println!("Executing SA:");
+
         // While the temperature function is cooling down
-        while let Some(_t) = self.tf.step() {
+        for t in self.tf.get_temp_vec().unwrap().into_iter().progress() {
             // Generate new solution
-            self.gsys.run();
+            self.gsol.run(&mut self.gsys, &mut self.charger);
+
+            // Extract new data set
+            sol_new = *self.gsys.get_data().clone();
 
             // Calculate objective function
+            J1 = StdObj::run(&mut self.gsys.get_data());
 
-            // Compare the objective functions
-            self.cmp_obj_fnc();
+            // Update data sets
+            self.update_data_sets(&mut sol_best, &mut sol_current, &mut sol_new, J0, J1, t);
 
             // Iterate though local search
             for _ in 0..k {
                 // Tweak the schedule
                 self.gtweak.run(&mut self.gsys, &mut self.charger);
 
-                // Calculate objective function
+                // Extract new data set
+                sol_new = *self.gsys.get_data().clone();
 
-                // Compare the objective functions
-                self.cmp_obj_fnc();
+                // Calculate objective function
+                J1 = StdObj::run(&mut self.gsys.get_data());
+
+                // Update data sets
+                self.update_data_sets(&mut sol_best, &mut sol_current, &mut sol_new, J0, J1, t);
             }
         }
 
-        return None;
+        // Check if the data has been changed
+        let result: Option<Results>;
+        if sol_orig.dec != sol_best.dec {
+            // Create result object
+            result = Some(Results {
+                data: Box::new(sol_best.clone()),
+            });
+        } else {
+            result = None;
+        }
+
+        // TODO: Delete me
+        println!(
+            "Compare: {:?}",
+            sol_orig.dec.clone() == sol_best.dec.clone()
+        );
+
+        return result;
     }
 
-    //---------------------------------------------------------------------------
-    /// Compare objective functions and return the kept result.
+    //==========================================================================
+    // PRIVATE
+    //==========================================================================
+
+    //--------------------------------------------------------------------------
+    /// Update current data sets. Three data sets are provided: best, current,
+    /// and new. The logic goes as follows:
+    ///
+    /// - Check whether to update current data set with new data set with either:
+    ///     - Probability 1 if new data set has a lesser objective score
+    ///     - Probability $e^{-\frac{J_{old} - J_{new}}{T}}$ if new data has a
+    ///       greater objective score
+    /// - Check whether to update current data set with best data set
     ///
     /// # Input
-    /// * j1: Previous objective function
-    /// * j2: New Objective function
+    /// * sol_best: The best known solution data set
+    /// * sol_current: The current solution data set
+    /// * sol_new: The new solution data set
+    /// * j0: Previous objective function
+    /// * j1: New Objective function
     /// * t : Temperature
     ///
     /// # Output
-    /// * `Results`: Output of SA algorithm
+    /// * NONE
     ///
-    fn cmp_obj_fnc(self: &mut SA<'a>) -> bool {
-        return false;
+    fn update_data_sets(
+        self: &mut SA<'a>,
+        sol_best: &mut Data,
+        sol_current: &mut Data,
+        sol_new: &mut Data,
+        j0: f64,
+        j1: f64,
+        t: f32,
+    ) {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Compare current data with new data
+
+        // Compare the objective functions
+        if self.cmp_obj_fnc(j0, j1, t) {
+            // Update the current solution with the new data set
+            self.update_current_values(sol_current, sol_new);
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Compare current data with best data
+        let jbest = StdObj::run(sol_best);
+
+        // If the current solution is strictly better than the current best
+        if jbest - j0 > 0.0 {
+            // Update the best to match the current data set
+            self.update_current_values(sol_best, sol_current);
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    /// Compare objective functions and return the kept result.
+    ///
+    /// # Input
+    /// * j0: Previous objective function
+    /// * j1: New Objective function
+    /// * t : Temperature
+    ///
+    /// # Output
+    /// * true if the data has been changed to `j_1`, false otherwise
+    ///
+    fn cmp_obj_fnc(self: &mut SA<'a>, j0: f64, j1: f64, t: f32) -> bool {
+        let delta_e: f64 = j0 - j1;
+
+        // If the new data has a smaller objective function value than the old
+        if delta_e < 0.0 {
+            // Indicate that new data, `j_1`, is replacing old data, `j_0`
+            return true;
+        // Otherwise, the new data, `j_1`, has a larger objective function
+        } else {
+            // Calculate the coefficient
+            let coef: f64 = delta_e / (t as f64);
+
+            // Calculate `e^coef`
+            let e: f64 = coef.exp();
+
+            // Generate a number between 1-100
+            let prob = thread_rng().gen_range(0.0..=1.0);
+
+            // Return whether to keep the new data.
+            // - if e <= prob: keep new data
+            // - if e > prob: keep old data
+            return e <= prob;
+        }
+    }
+
+    //--------------------------------------------------------------------------
+    /// Update old data with new
+    ///
+    /// # Input
+    /// * sol_current: Current solution data set
+    /// * sol_new: New solution data set
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn update_current_values(self: &mut SA<'a>, sol_current: &mut Data, sol_new: &mut Data) {
+        *sol_current = sol_new.clone();
     }
 }
