@@ -296,6 +296,7 @@ impl Charger {
         }
 
         // Keep the window above a certain threshold. This value should be bigger than `primitives::EPSILON`
+        // TODO: Make the threshold a variable.
         if d - u < 0.001 {
             fits = false;
         // Else it fits the threshold
@@ -429,8 +430,6 @@ impl Charger {
 
         // Create random object
         let mut rng = rand::thread_rng();
-
-        // println!("lu: {:?}", lu);
 
         // Check if the window is large enough
         if lu.1 - lu.0 < EPSILON {
