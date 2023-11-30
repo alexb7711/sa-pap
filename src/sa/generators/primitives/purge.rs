@@ -24,10 +24,17 @@ pub mod purge {
     pub fn run(d: &mut Data, i: usize, ch: &mut Charger, q: usize, ud: &(f32, f32)) -> bool {
         if ch.remove(q, *ud) {
             // Update route data
-            if d.len() > 0 {
-                d[i].queue = d[i].id; // Put BEB in wait queue
-                d[i].attach_time = d[i].arrival_time; // Attach time is arrival time
-                d[i].detach_time = d[i].departure_time; // Detach time is departure time
+            if d.param.N > 0 {
+                // Put BEB in wait queue
+                d.dec.v[i] = d.param.Gam[i] as usize;
+                d.dec.w[i][q] = false;
+                d.dec.w[i][d.dec.v[i]] = true;
+
+                // Attach time is arrival time
+                d.dec.u[i] = d.param.a[i];
+
+                // Detach time is departure time
+                d.dec.c[i] = d.param.e[i];
             }
             return true;
         } else {

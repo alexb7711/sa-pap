@@ -8,16 +8,36 @@ mod test_primitive_generators {
     //---------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Charger;
+    use super::sa_pap::sa::data::Data;
     use super::sa_pap::sa::generators::primitives::new_visit::*;
     use super::sa_pap::sa::generators::primitives::new_window::*;
     use super::sa_pap::sa::generators::primitives::purge::*;
     use super::sa_pap::sa::generators::primitives::wait::*;
-    use super::sa_pap::sa::route::route_event::RouteEvent;
+    use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
+    use super::sa_pap::sa::route::Route;
 
     //---------------------------------------------------------------------------
     //
-    fn yaml_path() -> &'static str {
+    fn schedule_path() -> &'static str {
         return "./src/config/schedule-test.yaml";
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    fn csv_path() -> &'static str {
+        return "./src/config/routes.csv";
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    fn get_data() -> Box<Data> {
+        // Create empty `RouteEvent` vector
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        return rg.get_data();
     }
 
     //--------------------------------------------------------------------------
@@ -36,7 +56,7 @@ mod test_primitive_generators {
     #[test]
     fn test_new_visit() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Queue index
         let q: usize = 0;
@@ -60,7 +80,7 @@ mod test_primitive_generators {
         assert_eq!(charger.free_time[q].len(), 2);
 
         // Create a new charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Assign some visits
         let c: (f32, f32) = (0.1, 0.2);
@@ -102,10 +122,10 @@ mod test_primitive_generators {
     #[test]
     fn test_wait_purge() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
-        // Create empty `RouteEvent` vector
-        let mut rv: Vec<RouteEvent> = Vec::new();
+        // Get route data
+        let mut rd = get_data();
 
         // Create a simple schedule
         let q: usize = 0;
@@ -132,31 +152,31 @@ mod test_primitive_generators {
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 1
-        assert!(wait::run(&mut rv, 0, &mut charger, q, id, &(0.1, 0.2)));
+        assert!(wait::run(&mut rd, 0, &mut charger, q, id, &(0.1, 0.2)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), true);
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 2
-        assert!(purge::run(&mut rv, 0, &mut charger, q, &(0.1, 0.2)));
+        assert!(purge::run(&mut rd, 0, &mut charger, q, &(0.1, 0.2)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
         assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 2
         println!("{:?}", charger.schedule[0]);
         assert_eq!(
-            wait::run(&mut rv, 0, &mut charger, q, id, &(0.1, 0.2)),
+            wait::run(&mut rd, 0, &mut charger, q, id, &(0.1, 0.2)),
             false
         );
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
         assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 3
-        assert!(wait::run(&mut rv, 0, &mut charger, q, id, &(0.0, 0.02)));
+        assert!(wait::run(&mut rd, 0, &mut charger, q, id, &(0.0, 0.02)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.0, 0.02)), true);
         assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 4
-        assert!(purge::run(&mut rv, 0, &mut charger, q, &(0.3, 0.5)));
+        assert!(purge::run(&mut rd, 0, &mut charger, q, &(0.3, 0.5)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.3, 0.5)), false);
         assert_eq!(charger.schedule[q].len(), 1);
     }
@@ -166,10 +186,10 @@ mod test_primitive_generators {
     #[test]
     fn test_new_window() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
-        // Create empty `RouteEvent` vector
-        let mut rv: Vec<RouteEvent> = Vec::new();
+        // Get route data
+        let mut rd = get_data();
 
         // Create a simple schedule
         let q: usize = 0;
@@ -189,14 +209,14 @@ mod test_primitive_generators {
 
         // Un-assign and reassign bus
         assert_eq!(
-            new_window::run(&mut rv, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            new_window::run(&mut rd, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
             true
         );
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Un-assign and reassign bus
         assert_eq!(
-            new_window::run(&mut rv, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5)),
+            new_window::run(&mut rd, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5)),
             true
         );
         assert_eq!(charger.schedule[q].len(), 3);
@@ -209,10 +229,10 @@ mod test_primitive_generators {
     #[test]
     fn test_slide() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
-        // Create empty `RouteEvent` vector
-        let mut rv: Vec<RouteEvent> = Vec::new();
+        // Get route data
+        let mut rd = get_data();
 
         // Create a simple schedule
         let q: usize = 0;
@@ -232,14 +252,14 @@ mod test_primitive_generators {
 
         // Test 2 - Un-assign and reassign bus
         assert!(
-            new_window::run(&mut rv, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            new_window::run(&mut rd, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
             "Failed to find new window."
         );
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Un-assign and reassign bus
         assert!(
-            new_window::run(&mut rv, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5),),
+            new_window::run(&mut rd, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5),),
             "Failed to find new window."
         );
         assert_eq!(charger.schedule[q].len(), 3);
@@ -252,7 +272,7 @@ mod test_primitive_generators {
     #[test]
     fn test_new_charger() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, Some(2));
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, Some(2));
 
         // Create a simple schedule
         let q: usize = 1;
