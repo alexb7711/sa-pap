@@ -82,8 +82,12 @@ pub mod new_charger {
                 if fits && ch.assign(q, *ud, b) {
                     // Update route data
                     if d.dec.w.len() > q {
-                        d.dec.w[q][i] = true; // Update queue
-                        d.dec.v[i] = q; // Update queue
+                        // Update queue
+                        d.dec.v[i] = q;
+
+                        // Update vector representation
+                        d.dec.w[i].fill(false);
+                        d.dec.w[i][q] = true;
                     }
                     return true;
                 }

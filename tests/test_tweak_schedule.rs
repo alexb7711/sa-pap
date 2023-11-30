@@ -55,11 +55,13 @@ mod test_tweak_schedule {
         // Create tweaker
         let mut gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Tweak the original schedule and check for updates
-        while !gtweak.run(&mut gsys, &mut charger) {}
-        let sol_new = gsys.get_data().dec;
+        for _ in 0..200 {
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Tweak the original schedule and check for updates
+            while !gtweak.run(&mut gsys, &mut charger) {}
+            let sol_new = gsys.get_data().dec;
 
-        assert_ne!(sol_orig, sol_new, "The old and new solution match");
+            assert_ne!(sol_orig, sol_new, "The old and new solution match");
+        }
     }
 }

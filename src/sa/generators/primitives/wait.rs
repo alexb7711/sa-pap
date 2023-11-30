@@ -43,9 +43,16 @@ pub mod wait {
         if ch.assign(q, *ud, b) {
             // Update route data
             if d.param.N > 0 {
-                d.dec.v[i] = q; // Update queue to wait queue
-                d.dec.u[i] = ud.0; // Update attach
-                d.dec.c[i] = ud.1; // Update detach time
+                // Update queue to wait queue
+                d.dec.v[i] = d.param.Gam[i] as usize;
+                d.dec.w[i][q] = false;
+                d.dec.w[i][d.dec.v[i]] = true;
+
+                // Update attach
+                d.dec.u[i] = ud.0;
+
+                // Update detach time
+                d.dec.c[i] = ud.1;
             }
 
             return true;

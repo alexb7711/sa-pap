@@ -98,8 +98,7 @@ impl Generator for TweakSchedule {
 
             // If successful, update the MILP data and break out of loop
             if success {
-                println!("Success!");
-                r.set_data(rd);
+                r.set_data(rd.clone());
                 break;
             }
         }
