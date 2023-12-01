@@ -18,7 +18,7 @@ pub mod new_window {
     /// * i: Visit index
     /// * ch: Charger object
     /// * q: Charger queue index
-    /// * ad: Arrival/departure times
+    /// * ae: Arrival/exit times
     /// * ud: Start/stop charging times
     ///
     /// # Output
@@ -29,7 +29,7 @@ pub mod new_window {
         i: usize,
         ch: &mut Charger,
         q: usize,
-        ad: &(f32, f32),
+        ae: &(f32, f32),
         ud: &(f32, f32),
     ) -> bool {
         // Remove the visit, return false if unsuccessful
@@ -38,7 +38,7 @@ pub mod new_window {
         }
 
         // Add the same bus back in as a new visit, return false if unsuccessful
-        if !new_visit::run(ch, q, ad) {
+        if !new_visit::run(d, i, ch, q, ae) {
             return false;
         }
 
