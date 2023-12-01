@@ -80,26 +80,25 @@ impl Generator for TweakSchedule {
         let q: usize = rand::thread_rng().gen_range(0..c.schedule.len());
 
         // Get random visit
-        let rv = *r.get_route_events();
-        let ri = rand::thread_rng().gen_range(0..rv.len());
-        let id = rv[ri].id as usize;
-        let ud = &(rv[ri].attach_time, rv[ri].detach_time);
-        let ae = &(rv[ri].arrival_time, rv[ri].departure_time);
+        let mut rd = r.get_data();
+        let ri = rand::thread_rng().gen_range(0..rd.param.N);
+        let id = rd.param.Gam[ri] as usize;
+        let ud = &(rd.dec.u[ri], rd.dec.c[ri]);
+        let ae = &(rd.param.a[ri], rd.param.e[ri]);
 
         // Loop through the primitives
         for p in primitives {
             // Try running the primitive and store the result
             success = match p {
-                Primitives::NewCharger => new_charger::run(rv, ri, c, q, id, ud),
-                Primitives::NewWindow => new_window::run(rv, ri, c, q, ae, ud),
-                Primitives::Wait => wait::run(rv, ri, c, q, id, ud),
-                Primitives::SlideVisit => slide_visit::run(rv, ri, c, id, q, ae, ud),
+                Primitives::NewCharger => new_charger::run(&mut rd, ri, c, q, id, ud),
+                Primitives::NewWindow => new_window::run(&mut rd, ri, c, q, ae, ud),
+                Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ud),
+                Primitives::SlideVisit => slide_visit::run(&mut rd, ri, c, id, q, ae, ud),
             };
 
             // If successful, update the MILP data and break out of loop
             if success {
-                println!("Success!");
-                r.update_milp_data();
+                r.set_data(rd.clone());
                 break;
             }
         }

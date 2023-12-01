@@ -30,6 +30,8 @@ of the document that can be built with [[https://orgmode.org/][pdflatex]] and [[
 Most (if not all) of the tasks are automated via [[https://taskfile.dev/][Task]]. Type =task -l= to get a list of tasks that can be run.
 
 * Build/Test/Run Program
+Run =make help= or follow the instruction below: 
+
 - Build: =cargo build=
 - Test: =cargo test=
 - Run: =cargo run=

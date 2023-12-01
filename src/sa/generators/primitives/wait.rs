@@ -5,15 +5,15 @@ pub mod wait {
 
     // Import modules
     use crate::sa::charger::Charger;
+    use crate::sa::data::Data;
     use crate::sa::generators::primitives::purge::*;
-    use crate::sa::route::route_event::RouteEvent;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `wait` module. This module moves a queued
     /// bus to its waiting queue
     ///
     /// # Input
-    /// * r: Vector of `RouteEvents`
+    /// * d: MILP data object
     /// * i: Index of current visit
     /// * ch: Charger object
     /// * q: Charger queue index
@@ -24,7 +24,7 @@ pub mod wait {
     /// * bool: Assignment failure/success
     ///
     pub fn run(
-        r: &mut Vec<RouteEvent>,
+        d: &mut Data,
         i: usize,
         ch: &mut Charger,
         q: usize,
@@ -32,7 +32,7 @@ pub mod wait {
         ud: &(f32, f32),
     ) -> bool {
         // Remove the visit, return false if unsuccessful
-        if !purge::run(r, i, ch, q, ud) {
+        if !purge::run(d, i, ch, q, ud) {
             return false;
         }
 
@@ -42,10 +42,17 @@ pub mod wait {
         // Return true/false if assignment succeeded/failed
         if ch.assign(q, *ud, b) {
             // Update route data
-            if r.len() > 0 {
-                r[i].queue = q as u16; // Update queue to wait queue
-                r[i].attach_time = ud.0; // Update attach
-                r[i].detach_time = ud.1; // Update detach time
+            if d.param.N > 0 {
+                // Update queue to wait queue
+                d.dec.v[i] = d.param.Gam[i] as usize;
+                d.dec.w[i][q] = false;
+                d.dec.w[i][d.dec.v[i]] = true;
+
+                // Update attach
+                d.dec.u[i] = ud.0;
+
+                // Update detach time
+                d.dec.c[i] = ud.1;
             }
 
             return true;

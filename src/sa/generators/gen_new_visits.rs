@@ -48,6 +48,7 @@ impl Generator for GenNewVisits {
     fn run(self: &mut GenNewVisits, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get information about the route
         let mut route = r.get_route_events().clone();
+        let mut data = r.get_data();
 
         // For each visit
         for i in route.iter_mut() {
@@ -55,7 +56,7 @@ impl Generator for GenNewVisits {
             let ae = &(i.arrival_time, i.departure_time);
 
             // Check if the bus can be assigned, assign the bus wait queue
-            if new_visit::run(c, i.id as usize, ae) {
+            if new_visit::run(&mut data, i.visit, c, i.id as usize, ae) {
                 // Update route event
                 i.attach_time = ae.0;
                 i.detach_time = ae.1;
@@ -65,7 +66,7 @@ impl Generator for GenNewVisits {
 
         // Update route and charger
         r.set_route_events(Box::new(&mut route));
-        r.update_milp_data();
+        r.set_data(data);
 
         return true;
     }
