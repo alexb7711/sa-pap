@@ -16,6 +16,7 @@ use rand::{thread_rng, Rng};
 //==============================================================================
 // Import modules
 use self::temp_func::TempFunc;
+use crate::lp::constraints::constraints;
 use crate::lp::objectives::std_obj::StdObj;
 use crate::lp::objectives::Objective;
 use crate::sa::charger::Charger;
@@ -111,7 +112,7 @@ impl<'a> SA<'a> {
         let mut sol_new;
 
         // Set local search iteration count
-        let k = 10;
+        let k = 1000;
 
         // Initialize objective function variables
         let mut J0: f64;
@@ -230,6 +231,17 @@ impl<'a> SA<'a> {
         t: f32,
     ) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Check if the data is valid
+
+        // If the constraint check failed
+        if !constraints::run(sol_new) {
+            // Bail
+            return;
+        } else {
+            println!("YAY");
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compare current data with new data
 
         // Compare the objective functions
@@ -246,9 +258,7 @@ impl<'a> SA<'a> {
         let jbest = StdObj::run(sol_best);
 
         // If the current solution is strictly better than the current best
-        println!("{} - {} = {}", jbest, *j0, jbest - *j0);
         if jbest == 0.0 || jbest - *j0 > 0.0 {
-            println!("Update best..");
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }
