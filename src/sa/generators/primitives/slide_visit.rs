@@ -37,7 +37,6 @@ pub mod slide_visit {
     ) -> bool {
         // Remove the visit, return false if unsuccessful
         if !purge::run(d, i, ch, q, ud) {
-            println!("oh no");
             return false;
         }
 

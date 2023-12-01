@@ -341,12 +341,16 @@ mod test_primitive_generators {
 
         // Un-assign and reassign bus
         assert!(
-            new_window::run(&mut rd, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5),),
+            slide_visit::run(&mut rd, 0, &mut charger, id, q, &(0.3, 0.5), &(0.3, 0.5),),
             "Failed to find new window."
         );
         assert_eq!(charger.schedule[q].len(), 3);
         assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
         assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
+        assert!(rd.dec.u[0] >= 0.3);
+        assert!(rd.dec.u[0] <= 0.5);
+        assert!(rd.dec.c[0] >= rd.dec.u[0]);
+        assert!(rd.dec.c[0] <= 0.5);
     }
 
     //---------------------------------------------------------------------------
