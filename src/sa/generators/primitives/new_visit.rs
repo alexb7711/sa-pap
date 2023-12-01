@@ -7,6 +7,7 @@ pub mod new_visit {
 
     // Import modules
     use crate::sa::charger::Charger;
+    use crate::sa::data::Data;
     use crate::sa::generators::primitives;
 
     //--------------------------------------------------------------------------
@@ -23,7 +24,7 @@ pub mod new_visit {
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    pub fn run(ch: &mut Charger, b: usize, ae: &(f32, f32)) -> bool {
+    pub fn run(d: &mut Data, i: usize, ch: &mut Charger, b: usize, ae: &(f32, f32)) -> bool {
         // Extract the number of chargers
         let q_cnt: usize = ch.schedule.len();
 
@@ -57,8 +58,20 @@ pub mod new_visit {
 
                 // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
                 // times
-                if fits {
-                    return ch.assign(q, ud, b);
+                if fits && ch.assign(q, ud, b) {
+                    // Update queue
+                    d.dec.v[i] = q;
+
+                    // Update vector representation
+                    d.dec.w[i].fill(false);
+                    d.dec.w[i][q] = true;
+
+                    // Update initial/final charge times
+                    d.dec.u[i] = ud.0;
+                    d.dec.c[i] = ud.1;
+
+                    // Indicate success
+                    return true;
                 }
             }
         }
