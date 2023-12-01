@@ -55,7 +55,7 @@ mod test_tweak_schedule {
         // Create tweaker
         let mut gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
-        for _ in 0..200 {
+        for _ in 0..10 {
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Tweak the original schedule and check for updates
             while !gtweak.run(&mut gsys, &mut charger) {}

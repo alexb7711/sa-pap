@@ -7,6 +7,9 @@ plot: 1
 # "rand"; "csv"
 schedule: "csv"
 
+# "wait"; "rand"
+solution_gen: "wait"
+
 # Time limit to solve [s]
 time_limit: 100
 

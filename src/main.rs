@@ -1,9 +1,11 @@
+use sa_pap::sa::generators::Generator;
 //------------------------------------------------------------------------------
 // Import standard library
 use yaml_rust::Yaml;
 
 //------------------------------------------------------------------------------
 // Import developed modules
+use sa_pap::sa::generators::gen_new_visits::GenNewVisits;
 use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
@@ -47,8 +49,8 @@ fn main() {
     // Determine schedule type
     let schedule_type = gen_config["schedule"].clone().into_string().unwrap();
 
-    // Decide to load previous run solution
-    bool_util::i64_to_bool(gen_config["load_from_file"].clone().into_i64().unwrap());
+    // Determine solution generator
+    let sol_gen = gen_config["solution_gen"].clone().into_string().unwrap();
 
     // Decide to load previous run solution
     let load_from_file: bool =
@@ -77,7 +79,14 @@ fn main() {
     // Create solution temperature function, generator and tweaker
 
     let tf: &mut Box<TempFunc> = &mut Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
-    let gsol: Box<GenWaitQueue> = Box::new(GenWaitQueue::new());
+
+    let gsol: Box<dyn Generator>;
+    if sol_gen == "wait" {
+        gsol = Box::new(GenWaitQueue::new());
+    } else {
+        gsol = Box::new(GenNewVisits::new());
+    }
+
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
