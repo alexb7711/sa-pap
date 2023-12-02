@@ -1,4 +1,4 @@
-.PHONY = clean test long-test
+.PHONY = clean test long-test remote
 
 ##==============================================================================
 #
@@ -15,6 +15,11 @@ clean: ## Clean the project
 #
 test: ## Run tests
 	@cargo test
+
+##==============================================================================
+#
+remote: ## Run on remote server (chuggy)
+	@ssh chuggy "cd ~/sa-pap; git pull; pwd; screen -S sa-pap -m -d "/usr/bin/cargo run""
 
 ##==============================================================================
 #
