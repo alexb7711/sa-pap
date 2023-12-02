@@ -61,12 +61,6 @@ impl Generator for GenNewVisits {
                 i.attach_time = ae.0;
                 i.detach_time = ae.1;
                 i.queue = i.id;
-
-                // Update MILP data
-                data.dec.u[i.visit] = ae.0.clone();
-                data.dec.c[i.visit] = ae.1.clone();
-                data.dec.v[i.visit] = i.id as usize;
-                data.dec.w[i.visit][i.id as usize] = true;
             }
         }
 

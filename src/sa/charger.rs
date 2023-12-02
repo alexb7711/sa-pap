@@ -5,11 +5,8 @@ use yaml_rust::Yaml;
 
 //===============================================================================
 // Import modules
+use crate::sa::generators::primitives;
 use crate::util::fileio::yaml_loader;
-
-//===============================================================================
-// Static variables
-static EPSILON: f32 = 0.001;
 
 //===============================================================================
 /// Structure to consolidate the bus assignment information
@@ -296,8 +293,7 @@ impl Charger {
         }
 
         // Keep the window above a certain threshold. This value should be bigger than `primitives::EPSILON`
-        // TODO: Make the threshold a variable.
-        if d - u < 0.001 {
+        if d - u < primitives::EPSILON * 10.0 {
             fits = false;
         // Else it fits the threshold
         } else {
@@ -432,7 +428,7 @@ impl Charger {
         let mut rng = rand::thread_rng();
 
         // Check if the window is large enough
-        if lu.1 - lu.0 < EPSILON {
+        if lu.1 - lu.0 < primitives::EPSILON {
             // If it is not, return false
             return (0.0, false);
         }
