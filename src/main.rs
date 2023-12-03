@@ -1,15 +1,19 @@
+use sa_pap::sa::generators::Generator;
 //------------------------------------------------------------------------------
 // Import standard library
 use yaml_rust::Yaml;
 
 //------------------------------------------------------------------------------
 // Import developed modules
+use sa_pap::sa::generators::gen_new_visits::GenNewVisits;
 use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
 use sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
 use sa_pap::sa::route::Route;
-use sa_pap::sa::temp_func::{CoolSchedule::Geometric, TempFunc};
+use sa_pap::sa::temp_func::{
+    CoolSchedule::Exponential, CoolSchedule::Geometric, CoolSchedule::Linear, TempFunc,
+};
 use sa_pap::sa::SA;
 use sa_pap::util::bool_util;
 use sa_pap::util::fileio::yaml_loader;
@@ -44,11 +48,14 @@ fn main() {
     // Load in general YAML
     let gen_config: Yaml = yaml_loader::load_yaml(general_path());
 
+    // Load in schedule YAML
+    let schedule_config: Yaml = yaml_loader::load_yaml(schedule_path());
+
     // Determine schedule type
     let schedule_type = gen_config["schedule"].clone().into_string().unwrap();
 
-    // Decide to load previous run solution
-    bool_util::i64_to_bool(gen_config["load_from_file"].clone().into_i64().unwrap());
+    // Determine solution generator
+    let sol_gen = gen_config["solution_gen"].clone().into_string().unwrap();
 
     // Decide to load previous run solution
     let load_from_file: bool =
@@ -76,15 +83,42 @@ fn main() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Create solution temperature function, generator and tweaker
 
-    let tf: &mut Box<TempFunc> = &mut Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
-    let gsol: Box<GenWaitQueue> = Box::new(GenWaitQueue::new());
+    // Get parameters
+    let temperature_func = schedule_config["temp"]["type"]
+        .clone()
+        .into_string()
+        .unwrap();
+    let init_temp = schedule_config["temp"]["init"].clone().into_f64().unwrap() as f32;
+    let delta = schedule_config["temp"]["delta"].clone().into_f64().unwrap() as f32;
+
+    // Create temperature function
+    let mut tf: Box<TempFunc>;
+    if temperature_func == "Geometric" {
+        tf = Box::new(TempFunc::new(Geometric, init_temp, delta, true));
+    } else if temperature_func == "Exponential" {
+        tf = Box::new(TempFunc::new(Exponential, init_temp, delta, true));
+    } else if temperature_func == "Linear" {
+        tf = Box::new(TempFunc::new(Linear, init_temp, delta, true));
+    } else {
+        panic!("Invalid temperature schedule provided!!!");
+    }
+
+    // Create solver
+    let gsol: Box<dyn Generator>;
+    if sol_gen == "wait" {
+        gsol = Box::new(GenWaitQueue::new());
+    } else {
+        gsol = Box::new(GenNewVisits::new());
+    }
+
+    // Create tweaker
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Create SA object and run SA
 
     // Pass schedule generator, temperature function, solution generator, and solution tweaker into the SA module
-    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, tf);
+    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf);
 
     // Run simulated annealing simulation
     if let Some(_res) = sa.run(load_from_file) {

@@ -12,16 +12,19 @@ pub mod temp_func; // Temperature functions
 // Import standard library
 use indicatif::ProgressIterator;
 use rand::{thread_rng, Rng};
+use yaml_rust::Yaml;
 
 //==============================================================================
 // Import modules
 use self::temp_func::TempFunc;
+use crate::lp::constraints::constraints;
 use crate::lp::objectives::std_obj::StdObj;
 use crate::lp::objectives::Objective;
 use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 use crate::sa::generators::Generator;
 use crate::sa::route::Route;
+use crate::util::fileio::yaml_loader;
 
 //==============================================================================
 /// Results from simulated annealing
@@ -44,6 +47,7 @@ pub struct SA<'a> {
     charger: Box<Charger>,      // Charge schedule keeper
     r: Results,                 // Results
     tf: &'a mut Box<TempFunc>,  // Cooling Schedule
+    config_path: &'a str,       // Path to simulation configuration file
 }
 
 //==============================================================================
@@ -58,12 +62,14 @@ impl<'a> SA<'a> {
     /// Initialize the SA object
     ///
     /// # Input
-    /// * `g` : Solution generator
-    /// * `tf` : The temperature function to use
-    /// * `ts` : Tweak schedule
+    /// * `config_path` : String of relative path to configuration file
+    /// * `gsol`        : Solution generator
+    /// * `gsys`        : Route generator
+    /// * `gtweak`      : Tweak schedule
+    /// * `tf`          : The temperature function to use
     ///
     /// # Output
-    /// * `sa`: Simulated annealing structure
+    /// * `Some(Results)`: Results of simulation (if there is any)
     ///
     pub fn new(
         config_path: &'a str,
@@ -86,6 +92,7 @@ impl<'a> SA<'a> {
             charger: Box::new(Charger::new(config_path, true, A, None)),
             r: Default::default(),
             tf,
+            config_path,
         };
 
         return sa;
@@ -111,7 +118,8 @@ impl<'a> SA<'a> {
         let mut sol_new;
 
         // Set local search iteration count
-        let k = 10;
+        let config: Yaml = yaml_loader::load_yaml(self.config_path);
+        let k = config["time"]["K"].clone().into_i64().unwrap();
 
         // Initialize objective function variables
         let mut J0: f64;
@@ -230,6 +238,17 @@ impl<'a> SA<'a> {
         t: f32,
     ) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Check if the data is valid
+
+        // If the constraint check failed
+        if !constraints::run(sol_new) {
+            // Bail
+            return;
+        } else {
+            println!("YAY");
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compare current data with new data
 
         // Compare the objective functions
@@ -246,9 +265,7 @@ impl<'a> SA<'a> {
         let jbest = StdObj::run(sol_best);
 
         // If the current solution is strictly better than the current best
-        println!("{} - {} = {}", jbest, *j0, jbest - *j0);
         if jbest == 0.0 || jbest - *j0 > 0.0 {
-            println!("Update best..");
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }

@@ -115,11 +115,13 @@ mod priv_test_route_gen {
 
     #[test]
     fn test_primitive_sample() {
-        // Create a Primitive enumeration
-        let p: Primitives = rand::random();
-        let p: usize = p as usize;
+        for _ in 0..100 {
+            // Create a Primitive enumeration
+            let p: Primitives = rand::random();
+            let p: usize = p as usize;
 
-        // Test 0 - Make sure the sample is within range
-        assert!(p < 4);
+            // Test 0 - Make sure the sample is within range
+            assert!(p < 4, "{} is not less than 4.", p);
+        }
     }
 }

@@ -7,8 +7,8 @@ plot: 1
 # "rand"; "csv"
 schedule: "csv"
 
-# Time limit to solve [s]
-time_limit: 100
+# "wait"; "rand"
+solution_gen: "rand"
 
 # Output previous decision variable/param results
 load_from_file: 0

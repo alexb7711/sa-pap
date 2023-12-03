@@ -27,7 +27,7 @@ This repository also includes the [[https://github.com/alexb7711/sa-pap-paper][p
 of the document that can be built with [[https://orgmode.org/][pdflatex]] and [[https://mg.readthedocs.io/latexmk.html][latexmk]]. These are typically bundled with a full installation of the
 [[https://www.latex-project.org/][LaTeX]] environment. [[https://plantuml.com/][PlantUML]] is also utilized for some of the image generation.
 
-Most (if not all) of the tasks are automated via [[https://taskfile.dev/][Task]]. Type =task -l= to get a list of tasks that can be run.
+Most (if not all) of the tasks are automated via [[https://www.gnu.org/software/make/][Make]]. Type =make help= to get a list of tasks that can be run.
 
 * Build/Test/Run Program
 Run =make help= or follow the instruction below: 
@@ -36,7 +36,5 @@ Run =make help= or follow the instruction below:
 - Test: =cargo test=
 - Run: =cargo run=
 
-* Building Documentation
+* Building Source Documentation
 - Rust crate documentation: =cargo doc --open=
-- Everything in =docs= folder: =task docs=
-- Everything in `docs/uml` folder: =task images=
