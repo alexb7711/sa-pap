@@ -1,3 +1,4 @@
+#[allow(non_snake_case)]
 //===============================================================================
 /// Module to output data to a CSV file in a format so LaTeX can plot it.
 //
@@ -10,6 +11,10 @@ pub mod DataOutput {
     // Import modules
     use crate::sa::data::Data;
     use crate::sa::Results;
+
+    //==========================================================================
+    // Static data
+    static E_CELL: &str = "null";
 
     //===========================================================================
     // PUBLIC
@@ -59,7 +64,56 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn charge_out(file_name: &String, d: &Data, path: &String) {}
+    fn charge_out(file_name: &String, d: &Data, path: &String) {
+        // Variables
+        let name = file_name.to_owned() + &"-charge";
+        let N = d.param.N;
+        let A = d.param.A;
+        let G = &d.param.Gam;
+        let eta = &d.dec.eta;
+        let u = &d.dec.u;
+        let c = &d.dec.c;
+        let v = &d.dec.v;
+        let r = &d.param.r;
+        let s = &d.dec.s;
+        let mut data: Vec<Vec<f32>> = vec![vec![-1.0; 2 * A]; 2 * N];
+
+        // Create top row of CSV file
+        let fields: Vec<Vec<String>> = (0..A)
+            .map(|b| {
+                vec![
+                    String::from("time").to_owned() + &b.to_string(),
+                    String::from("eta").to_owned() + &b.to_string(),
+                ]
+            })
+            .collect();
+
+        // For every bus
+        for b in 0..A {
+            let mut t_i: usize = 0;
+
+            // Fro every visit
+            for i in 0..N {
+                // If the current visit is for the BEB of interest
+                if G[i] as usize == b {
+                    // Append the charge on arrival
+                    data[t_i][b * 2 + 0] = u[i];
+                    data[t_i][b * 2 + 1] = eta[i];
+
+                    // Append the charge on departure
+                    println!("{:?}", data[t_i]);
+                    data[t_i + 1][b * 2 + 0] = c[i];
+                    data[t_i + 1][b * 2 + 1] = eta[i] + s[i] * r[v[i]];
+
+                    // Update the index
+                    t_i += 2;
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Output charger usage data
@@ -112,4 +166,42 @@ pub mod DataOutput {
     /// * Data files
     ///
     fn schedule_out(file_name: &String, d: &Data, path: &String) {}
+
+    //---------------------------------------------------------------------------
+    /// Write data to CSV file
+    ///
+    /// # Input:
+    /// * path   : Path to output directory
+    /// * name   : Name of the file
+    /// * fields : Title each column
+    /// * data   : Matrix of data
+    ///
+    /// # Output:
+    /// * CSV file located at 'PATH/NAME' with DATA as content
+    fn save_to_file(path: &String, name: &String, fields: &Vec<Vec<String>>, data: Vec<Vec<f32>>) {
+        // Variables
+        let file_name = path.to_owned() + name + &".csv";
+
+        // Convert data to strings
+        let mut data_s: Vec<Vec<String>> = Vec::new();
+        for d in data {
+            let d_tmp: Vec<String> = d.into_iter().map(|i| i.to_string()).collect();
+            data_s.push(d_tmp);
+        }
+
+        // For each row
+        for mut row in data_s {
+            // For each item in the row
+            for i in 0..row.len() {
+                // If the row item is a '-1.0', replace it
+                if row[i] == "-1.0" {
+                    row[i] = String::from(E_CELL);
+                }
+            }
+
+            // If the row is only commas, clear it
+        }
+
+        //  Save data to disk
+    }
 }
