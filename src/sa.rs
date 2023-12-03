@@ -33,7 +33,7 @@ use crate::util::fileio::yaml_loader;
 #[derive(Default)]
 #[allow(dead_code)]
 pub struct Results {
-    data: Box<Data>,
+    pub data: Box<Data>,
 }
 
 //==============================================================================
