@@ -29,10 +29,12 @@ pub mod dynamic {
     ///
     pub fn run(d: &mut Data, i: usize, j: usize) -> bool {
         if !ChargePropagate::run(d, i, j) {
+            // println!("Charge propagate");
             return false;
         }
 
         if !ScalarToVectorQueue::run(d, i, j) {
+            // println!("Scalar to vector queue");
             return false;
         }
 

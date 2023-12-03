@@ -314,7 +314,6 @@ impl RouteCSVGenerator {
     }
 
     //---------------------------------------------------------------------------
-    //
     /// Calculate the discharge for each route
     ///
     /// Input:
