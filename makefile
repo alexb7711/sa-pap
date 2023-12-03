@@ -19,7 +19,7 @@ test: ## Run tests
 ##==============================================================================
 #
 remote: ## Run on remote server (chuggy)
-	@ssh chuggy "cd ~/sa-pap; git pull; pwd; screen -S sa-pap -m -d "/usr/bin/cargo run --release""
+	@ssh chuggy "cd ~/sa-pap; git pull; pwd; screen -L -S sa-pap -md "/usr/bin/cargo run --release""
 
 ##==============================================================================
 #

@@ -46,6 +46,9 @@ fn main() {
     // Load in general YAML
     let gen_config: Yaml = yaml_loader::load_yaml(general_path());
 
+    // Load in schedule YAML
+    let schedule_config: Yaml = yaml_loader::load_yaml(schedule_path());
+
     // Determine schedule type
     let schedule_type = gen_config["schedule"].clone().into_string().unwrap();
 
@@ -78,8 +81,14 @@ fn main() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Create solution temperature function, generator and tweaker
 
-    let tf: &mut Box<TempFunc> = &mut Box::new(TempFunc::new(Geometric, 500.0, 0.995, true));
+    // Get parameters
+    let init_temp = schedule_config["temp"]["init"].clone().into_f64().unwrap() as f32;
+    let delta = schedule_config["temp"]["delta"].clone().into_f64().unwrap() as f32;
 
+    // Create temperature function
+    let tf: &mut Box<TempFunc> = &mut Box::new(TempFunc::new(Geometric, init_temp, delta, true));
+
+    // Create solver
     let gsol: Box<dyn Generator>;
     if sol_gen == "wait" {
         gsol = Box::new(GenWaitQueue::new());
@@ -87,6 +96,7 @@ fn main() {
         gsol = Box::new(GenNewVisits::new());
     }
 
+    // Create tweaker
     let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

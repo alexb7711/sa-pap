@@ -5,6 +5,9 @@ time:
   BOD: 0.0                                                                      # Beginning of day [hr]
   EOD: 24.0                                                                     # End of day [hr]
   K: 1000                                                                       # [steps]
+temp:
+  init: 500.0                                                                   # Initial temperature
+  delta: 0.995                                                                  # Temperature step size
 buses:
   num_bus: 15
   num_visit: 200
