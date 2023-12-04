@@ -5,7 +5,8 @@
 pub mod DataOutput {
     //==========================================================================
     // Standard library
-    use csv;
+    use csv::Writer;
+    use std::error::Error;
 
     //==========================================================================
     // Import modules
@@ -36,7 +37,7 @@ pub mod DataOutput {
         if let Some(p) = path {
             fp = p;
         } else {
-            fp = String::from("../data/");
+            fp = String::from("data/");
         }
 
         // Extract data
@@ -87,6 +88,7 @@ pub mod DataOutput {
                 ]
             })
             .collect();
+        let fields: Vec<String> = fields.into_iter().flatten().collect();
 
         // For every bus
         for b in 0..A {
@@ -101,7 +103,6 @@ pub mod DataOutput {
                     data[t_i][b * 2 + 1] = eta[i];
 
                     // Append the charge on departure
-                    println!("{:?}", data[t_i]);
                     data[t_i + 1][b * 2 + 0] = c[i];
                     data[t_i + 1][b * 2 + 1] = eta[i] + s[i] * r[v[i]];
 
@@ -178,7 +179,7 @@ pub mod DataOutput {
     ///
     /// # Output:
     /// * CSV file located at 'PATH/NAME' with DATA as content
-    fn save_to_file(path: &String, name: &String, fields: &Vec<Vec<String>>, data: Vec<Vec<f32>>) {
+    fn save_to_file(path: &String, name: &String, fields: &Vec<String>, data: Vec<Vec<f32>>) {
         // Variables
         let file_name = path.to_owned() + name + &".csv";
 
@@ -190,7 +191,9 @@ pub mod DataOutput {
         }
 
         // For each row
-        for mut row in data_s {
+        let mut empty_rows: Vec<usize> = Vec::new();
+        let mut idx: usize = 0;
+        for row in data_s.iter_mut() {
             // For each item in the row
             for i in 0..row.len() {
                 // If the row item is a '-1.0', replace it
@@ -200,8 +203,28 @@ pub mod DataOutput {
             }
 
             // If the row is only commas, clear it
+            if row.iter().all(|i| i == E_CELL) {
+                empty_rows.push(idx);
+            }
+
+            // Update index
+            idx += 1;
+        }
+
+        // Clear out empty rows
+        for i in empty_rows {
+            data_s.remove(i);
         }
 
         //  Save data to disk
+        if let Ok(mut wtr) = Writer::from_path(file_name.clone()) {
+            // Write each row to disk
+            println!("Saving to disk");
+            // fields.iter().for_each(|f| wtr.write_record(f).unwrap());
+            wtr.write_record(fields).unwrap();
+            data_s.iter().for_each(|row| wtr.write_record(row).unwrap());
+        } else {
+            panic!("Could not write to the file: {}", file_name);
+        }
     }
 }

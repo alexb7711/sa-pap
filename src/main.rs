@@ -16,6 +16,7 @@ use sa_pap::sa::temp_func::{
 };
 use sa_pap::sa::SA;
 use sa_pap::util::bool_util;
+use sa_pap::util::data_output::DataOutput;
 use sa_pap::util::fileio::yaml_loader;
 
 //===============================================================================
@@ -121,8 +122,10 @@ fn main() {
     let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf);
 
     // Run simulated annealing simulation
-    if let Some(_res) = sa.run(load_from_file) {
+    if let Some(res) = sa.run(load_from_file) {
         // Export results to CSV
+        DataOutput::output_data(String::from("sa"), res, None);
+
         // Plot results
         if plot {}
     } else {
