@@ -24,9 +24,9 @@ pub mod DataOutput {
     /// Output data in a format for LaTeX to be able to plot
     ///
     /// # Input:
-    /// * fn : Base name of the file
-    /// * dm : Data manager
-    /// * str: Path to output directory
+    /// * fn: Base name of the file
+    /// * r: Results structure
+    /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
@@ -61,12 +61,13 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn charge_out(file_name: &String, d: &Data, _: &Charger, path: &String) {
+    fn charge_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
         // Variables
         let name = file_name.to_owned() + &"-charge";
         let N = d.param.N;
@@ -123,12 +124,13 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn usage_out(file_name: &String, d: &Data, charger: &Charger, path: &String) {
+    fn usage_out(file_name: &String, d: &Data, char: &Charger, path: &String) {
         // Variables
         let K: u16 = d.param.K;
         let N: usize = d.param.N;
@@ -141,8 +143,8 @@ pub mod DataOutput {
 
         // Table variables
         let name = file_name.to_owned() + &"-charge-cnt";
-        let wait: usize = charger.charger_count.0;
-        let slow: usize = charger.charger_count.1;
+        let wait: usize = char.charger_count.0;
+        let slow: usize = char.charger_count.1;
         let fields: Vec<String> = vec![
             String::from("time"),
             String::from("wait"),
@@ -183,12 +185,13 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn power_out(file_name: &String, d: &Data, _: &Charger, path: &String) {
+    fn power_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
         // Variables
         let K: u16 = d.param.K;
         let N: usize = d.param.N;
@@ -231,12 +234,54 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn acc_energy_out(file_name: &String, d: &Data, c: &Charger, path: &String) {}
+    fn acc_energy_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
+        // Variables
+        let K: usize = d.param.K as usize;
+        let N: usize = d.param.N;
+        let T: f32 = d.param.T;
+        let dt: f32 = T as f32 / K as f32;
+        let u: &Vec<f32> = &d.dec.u;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+        let v: &Vec<usize> = &d.dec.v;
+        let r: &Vec<f32> = &d.param.r;
+        let c: &Vec<f32> = &d.dec.c;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-acc-energy-usage";
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let fields: Vec<String> = vec![String::from("time"), String::from("power")];
+
+        // For each time step
+        for k in 0..K {
+            // Calculate time slice
+            let t: f32 = k as f32 * dt;
+            data[k as usize][0] = dt;
+
+            // If the index is greater than zero
+            if k > 0 {
+                // Use the previous data
+                data[k][1] = data[k - 1][1];
+            }
+
+            // For each visit
+            for i in 0..N {
+                // if the time step is between the current visit and the BEB has
+                // assigned
+                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                    data[k as usize][1] += r[v[i]];
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Output schedule data
@@ -244,12 +289,48 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn schedule_out(file_name: &String, d: &Data, c: &Charger, path: &String) {}
+    fn schedule_out(file_name: &String, d: &Data, _c: &Charger, path: &String) {
+        // Variables
+        let A: usize = d.param.A;
+        let N: usize = d.param.N;
+        let G: &Vec<u16> = &d.param.Gam;
+        let u: &Vec<f32> = &d.dec.u;
+        let v: &Vec<usize> = &d.dec.v;
+        let s: &Vec<f32> = &d.dec.s;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-acc-energy-usage";
+        let mut data: Vec<Vec<f32>> = vec![vec![1.0; 3 * A]; N];
+        let fields: Vec<Vec<String>> = (0..A)
+            .map(|b| {
+                vec![
+                    String::from("charger").to_owned() + &b.to_string(),
+                    String::from("u").to_owned() + &b.to_string(),
+                    String::from("s").to_owned() + &b.to_string(),
+                ]
+            })
+            .collect();
+        let fields: Vec<String> = fields.into_iter().flatten().collect();
+
+        // For each visit
+        for i in 0..N {
+            if w[i][v[i]] && s[i] > 0.001 {
+                data[i][G[i] as usize * 3 + 0] = v[i] as f32;
+                data[i][G[i] as usize * 3 + 1] = u[i];
+                data[i][G[i] as usize * 3 + 2] = s[i];
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Write data to CSV file

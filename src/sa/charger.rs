@@ -19,7 +19,8 @@ pub struct Assignment {
 
 //===============================================================================
 /// Structure to track charger information
-//
+///
+#[derive(Clone)]
 pub struct Charger {
     // Public
     pub schedule: Vec<Vec<Assignment>>, // Lists of scheduled charge times
