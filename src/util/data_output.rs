@@ -9,6 +9,7 @@ pub mod DataOutput {
 
     //==========================================================================
     // Import modules
+    use crate::sa::charger::Charger;
     use crate::sa::data::Data;
     use crate::sa::Results;
 
@@ -41,13 +42,14 @@ pub mod DataOutput {
 
         // Extract data
         let d = r.data;
+        let c = r.charger;
 
         // Create Plots
-        charge_out(&file_name, &d, &fp);
-        usage_out(&file_name, &d, &fp);
-        power_out(&file_name, &d, &fp);
-        acc_energy_out(&file_name, &d, &fp);
-        schedule_out(&file_name, &d, &fp);
+        charge_out(&file_name, &d, &c, &fp);
+        usage_out(&file_name, &d, &c, &fp);
+        power_out(&file_name, &d, &c, &fp);
+        acc_energy_out(&file_name, &d, &c, &fp);
+        schedule_out(&file_name, &d, &c, &fp);
     }
 
     //===========================================================================
@@ -64,7 +66,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn charge_out(file_name: &String, d: &Data, path: &String) {
+    fn charge_out(file_name: &String, d: &Data, c: &Charger, path: &String) {
         // Variables
         let name = file_name.to_owned() + &"-charge";
         let N = d.param.N;
@@ -126,7 +128,56 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn usage_out(file_name: &String, d: &Data, path: &String) {}
+    fn usage_out(file_name: &String, d: &Data, charger: &Charger, path: &String) {
+        // Variables
+        let K: u16 = d.param.K;
+        let N: usize = d.param.N;
+        let T: f32 = d.param.T;
+        let dt: f32 = T as f32 / K as f32;
+        let u: &Vec<f32> = &d.dec.u;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+        let v: &Vec<usize> = &d.dec.v;
+        let s: &Vec<f32> = &d.dec.s;
+        let c: &Vec<f32> = &d.dec.c;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-charge-cnt";
+        let wait: usize = charger.charger_count.0;
+        let slow: usize = charger.charger_count.1;
+        let fast: usize = charger.charger_count.2;
+        let fields: Vec<String> = vec![
+            String::from("time"),
+            String::from("wait"),
+            String::from("slow"),
+            String::from("fast"),
+        ];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 4]; K as usize];
+
+        // For each time step
+        for k in 0..K {
+            // Calculate time slice
+            let t: f32 = k as f32 * dt;
+            data[k as usize][0] = dt;
+
+            // For each visit
+            for i in 0..N {
+                // if the time step is between the current visit and the BEB has
+                // assigned
+                if u[i] <= dt && c[i] >= dt && w[i][v[i]] {
+                    if v[i] < wait {
+                        data[k as usize][1] += 1.0;
+                    } else if v[i] >= wait && v[i] < slow {
+                        data[k as usize][2] += 1.0;
+                    } else {
+                        data[k as usize][3] += 1.0;
+                    }
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Output power usage data
@@ -139,7 +190,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn power_out(file_name: &String, d: &Data, path: &String) {}
+    fn power_out(file_name: &String, d: &Data, c: &Charger, path: &String) {}
 
     //---------------------------------------------------------------------------
     /// Accumulated output power usage data
@@ -152,7 +203,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn acc_energy_out(file_name: &String, d: &Data, path: &String) {}
+    fn acc_energy_out(file_name: &String, d: &Data, c: &Charger, path: &String) {}
 
     //---------------------------------------------------------------------------
     /// Output schedule data
@@ -165,7 +216,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn schedule_out(file_name: &String, d: &Data, path: &String) {}
+    fn schedule_out(file_name: &String, d: &Data, c: &Charger, path: &String) {}
 
     //---------------------------------------------------------------------------
     /// Write data to CSV file
