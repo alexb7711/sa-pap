@@ -66,7 +66,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn charge_out(file_name: &String, d: &Data, c: &Charger, path: &String) {
+    fn charge_out(file_name: &String, d: &Data, _: &Charger, path: &String) {
         // Variables
         let name = file_name.to_owned() + &"-charge";
         let N = d.param.N;
@@ -137,14 +137,12 @@ pub mod DataOutput {
         let u: &Vec<f32> = &d.dec.u;
         let w: &Vec<Vec<bool>> = &d.dec.w;
         let v: &Vec<usize> = &d.dec.v;
-        let s: &Vec<f32> = &d.dec.s;
         let c: &Vec<f32> = &d.dec.c;
 
         // Table variables
         let name = file_name.to_owned() + &"-charge-cnt";
         let wait: usize = charger.charger_count.0;
         let slow: usize = charger.charger_count.1;
-        let fast: usize = charger.charger_count.2;
         let fields: Vec<String> = vec![
             String::from("time"),
             String::from("wait"),
@@ -163,7 +161,7 @@ pub mod DataOutput {
             for i in 0..N {
                 // if the time step is between the current visit and the BEB has
                 // assigned
-                if u[i] <= dt && c[i] >= dt && w[i][v[i]] {
+                if u[i] <= t && c[i] >= t && w[i][v[i]] {
                     if v[i] < wait {
                         data[k as usize][1] += 1.0;
                     } else if v[i] >= wait && v[i] < slow {
@@ -190,7 +188,42 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn power_out(file_name: &String, d: &Data, c: &Charger, path: &String) {}
+    fn power_out(file_name: &String, d: &Data, _: &Charger, path: &String) {
+        // Variables
+        let K: u16 = d.param.K;
+        let N: usize = d.param.N;
+        let T: f32 = d.param.T;
+        let dt: f32 = T as f32 / K as f32;
+        let u: &Vec<f32> = &d.dec.u;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+        let v: &Vec<usize> = &d.dec.v;
+        let r: &Vec<f32> = &d.param.r;
+        let c: &Vec<f32> = &d.dec.c;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-power-usage";
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let fields: Vec<String> = vec![String::from("time"), String::from("power")];
+
+        // For each time step
+        for k in 0..K {
+            // Calculate time slice
+            let t: f32 = k as f32 * dt;
+            data[k as usize][0] = dt;
+
+            // For each visit
+            for i in 0..N {
+                // if the time step is between the current visit and the BEB has
+                // assigned
+                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                    data[k as usize][1] += r[v[i]];
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Accumulated output power usage data
