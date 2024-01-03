@@ -1,4 +1,3 @@
-use sa_pap::sa::generators::Generator;
 //------------------------------------------------------------------------------
 // Import standard library
 use yaml_rust::Yaml;
@@ -8,6 +7,7 @@ use yaml_rust::Yaml;
 use sa_pap::sa::generators::gen_new_visits::GenNewVisits;
 use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
+use sa_pap::sa::generators::Generator;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
 use sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
 use sa_pap::sa::route::Route;
