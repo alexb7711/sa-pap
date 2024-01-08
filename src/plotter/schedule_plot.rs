@@ -25,7 +25,7 @@ pub struct SchedulePlot {}
 ///
 ///
 impl Plotter for SchedulePlot {
-    fn plot(&mut self, d: &mut Box<Data>) -> bool {
+    fn plot(d: &mut Box<Data>) -> bool {
         // Variables
         let N = d.param.N;
         let A = d.param.A;

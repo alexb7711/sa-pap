@@ -31,6 +31,7 @@ use crate::util::fileio::yaml_loader;
 /// TODO: Remove `#[allow(dead_code)]
 //
 #[allow(dead_code)]
+#[derive(Clone)]
 pub struct Results {
     pub data: Box<Data>,
     pub charger: Box<Charger>,

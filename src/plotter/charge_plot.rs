@@ -79,7 +79,7 @@ impl ChargePlot {
 ///
 ///
 impl Plotter for ChargePlot {
-    fn plot(&mut self, d: &mut Box<Data>) -> bool {
+    fn plot(d: &mut Box<Data>) -> bool {
         // Variables
         let A = d.param.A;
 

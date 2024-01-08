@@ -11,7 +11,7 @@ use crate::sa::data::Data;
 
 //===============================================================================
 /// Structure for `accumulated_energy_usage_plot`
-pub struct PowerUsage {}
+pub struct PowerUsagePlot {}
 
 //===============================================================================
 /// Implementation of the plotting function for the total accumulated energy.
@@ -24,8 +24,8 @@ pub struct PowerUsage {}
 /// # Output
 /// * Accumulated Energy Plot
 ///
-impl Plotter for PowerUsage {
-    fn plot(&mut self, d: &mut Box<Data>) -> bool {
+impl Plotter for PowerUsagePlot {
+    fn plot(d: &mut Box<Data>) -> bool {
         // Variables
         let A = d.param.A;
         let N = d.param.N;

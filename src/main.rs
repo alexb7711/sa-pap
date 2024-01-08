@@ -4,6 +4,7 @@ use yaml_rust::Yaml;
 
 //------------------------------------------------------------------------------
 // Import developed modules
+use sa_pap::plotter;
 use sa_pap::sa::generators::gen_new_visits::GenNewVisits;
 use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
@@ -124,10 +125,10 @@ fn main() {
     // Run simulated annealing simulation
     if let Some(res) = sa.run(load_from_file) {
         // Export results to CSV
-        DataOutput::output_data(String::from("sa"), res, None);
+        DataOutput::output_data(String::from("sa"), res.clone(), None);
 
         // Plot results
-        if plot {}
+        plotter::plot::run(plot, &mut res.data.clone());
     } else {
         panic!("No result was generated!!!");
     }

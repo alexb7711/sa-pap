@@ -26,7 +26,7 @@ pub struct ChargerUsagePlot {}
 /// * Accumulated Energy Plot
 ///
 impl Plotter for ChargerUsagePlot {
-    fn plot(&mut self, d: &mut Box<Data>) -> bool {
+    fn plot(d: &mut Box<Data>) -> bool {
         // Variables
         let A = d.param.A;
         let N = d.param.N;

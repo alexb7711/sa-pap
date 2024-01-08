@@ -26,7 +26,7 @@ pub struct AccumulatedEnergyUsagePlot {}
 ///
 ///
 impl Plotter for AccumulatedEnergyUsagePlot {
-    fn plot(&mut self, d: &mut Box<Data>) -> bool {
+    fn plot(d: &mut Box<Data>) -> bool {
         // Variables
         let K = d.param.K as usize;
         let N = d.param.N;
