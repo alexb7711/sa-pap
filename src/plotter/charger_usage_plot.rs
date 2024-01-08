@@ -35,13 +35,13 @@ impl Plotter for ChargerUsagePlot {
         let v = &d.dec.v;
         let u = &d.dec.u;
         let c = &d.dec.c;
-        let delta = K as f32 / T;
+        let delta = T / K as f32;
 
         let mut slow: Vec<usize> = vec![0; d.param.slow];
         let mut fast: Vec<usize> = vec![0; d.param.fast];
 
         // Configure plot
-        let name: String = String::from("charger_usage");
+        let name: String = String::from("Charger Usage");
         let mut fg = Figure::new();
         fg.set_multiplot_layout(2, 1);
 
@@ -73,15 +73,17 @@ impl Plotter for ChargerUsagePlot {
             .set_title(name.as_str(), &[])
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
             .set_x_label("Time [hr]", &[])
+            .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Energy Usage [KWh]", &[])
-            .lines(x.clone(), slow, &[]);
+            .boxes(x.clone(), slow, &[]);
 
         fg.axes2d()
             .set_title(name.as_str(), &[])
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
             .set_x_label("Time [hr]", &[])
+            .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Energy Usage [KWh]", &[])
-            .lines(x.clone(), fast, &[]);
+            .boxes(x.clone(), fast, &[]);
 
         // Plot Figure
         fg.show().unwrap();

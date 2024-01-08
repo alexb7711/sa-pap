@@ -35,10 +35,10 @@ impl Plotter for AccumulatedEnergyUsagePlot {
         let r = &d.param.r;
         let u = &d.dec.u;
         let v = &d.dec.v;
-        let delta = K as f32 / T;
+        let delta = T / K as f32;
 
         // Configure plot
-        let name: String = String::from("energy_usage_plot");
+        let name: String = String::from("Accumulated Energy Usage");
         let mut fg = Figure::new();
 
         // Create array to count usage
@@ -57,7 +57,7 @@ impl Plotter for AccumulatedEnergyUsagePlot {
             // For each visit
             for i in 0..N {
                 // If the discrete time is within the active time for visit i
-                if u[i] <= dt && c[i] >= delta {
+                if u[i] <= dt && c[i] >= dt {
                     usage[k] += r[v[i]] * delta;
                 }
             }
@@ -71,6 +71,7 @@ impl Plotter for AccumulatedEnergyUsagePlot {
             .set_title(name.as_str(), &[])
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
             .set_x_label("Time [hr]", &[])
+            .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Energy Usage [KWh]", &[])
             .lines(x, usage, &[]);
 

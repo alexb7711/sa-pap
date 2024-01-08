@@ -95,6 +95,7 @@ impl Plotter for ChargePlot {
                 .set_title(name.as_str(), &[])
                 .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
                 .set_x_label("Time [hr]", &[])
+                .set_x_range(Fix(0.0), Fix(24.0))
                 .set_y_label("Energy Usage [KWh]", &[])
                 .lines(x[i].clone(), y[i].clone(), &[]);
         }
