@@ -14,5 +14,5 @@ pub mod schedule_plot;
 /// Trait to define `Generator` interfaces
 //
 pub trait Plotter {
-    fn plot(&mut self, name: String, d: &mut Box<Data>) -> bool;
+    fn plot(&mut self, d: &mut Box<Data>) -> bool;
 }

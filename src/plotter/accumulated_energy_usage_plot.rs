@@ -19,15 +19,14 @@ pub struct AccumulatedEnergyUsagePlot {}
 /// energy used to run the provided charge schedule.
 ///
 /// # Input
-/// * name: String of the plot name
-/// & d: Boxed data
+/// * d: Boxed data
 ///
 /// # Output
 /// * Accumulated Energy Plot
 ///
 ///
 impl Plotter for AccumulatedEnergyUsagePlot {
-    fn plot(&mut self, name: String, d: &mut Box<Data>) -> bool {
+    fn plot(&mut self, d: &mut Box<Data>) -> bool {
         // Variables
         let K = d.param.K as usize;
         let N = d.param.N;
@@ -39,6 +38,7 @@ impl Plotter for AccumulatedEnergyUsagePlot {
         let delta = K as f32 / T;
 
         // Configure plot
+        let name: String = String::from("energy_usage_plot");
         let mut fg = Figure::new();
 
         // Create array to count usage

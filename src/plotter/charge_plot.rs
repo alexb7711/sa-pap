@@ -67,24 +67,24 @@ impl ChargePlot {
 }
 
 //===============================================================================
-/// Implementation of the plotting function for the total accumulated energy usage.
-/// This plot is a simple line graph that tracks the total amount of accumulated
-/// energy used to run the provided charge schedule.
+/// Implementation of the plotting function for plotting the individual charges
+/// for each BEB. It is a simple line graph that tracks the SOC for each BEB over
+/// the time horizon of the simulation.
 ///
 /// # Input
-/// * name: String of the plot name
-/// & d: Boxed data
+/// * d: Boxed data
 ///
 /// # Output
 /// * Accumulated Energy Plot
 ///
 ///
 impl Plotter for ChargePlot {
-    fn plot(&mut self, name: String, d: &mut Box<Data>) -> bool {
+    fn plot(&mut self, d: &mut Box<Data>) -> bool {
         // Variables
         let A = d.param.A;
 
         // Configure plot
+        let name: String = String::from("charge");
         let mut fg = Figure::new();
         let (x, y) = ChargePlot::group_charge_results(&d);
 
