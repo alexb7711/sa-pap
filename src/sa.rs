@@ -33,6 +33,7 @@ use crate::util::fileio::yaml_loader;
 #[allow(dead_code)]
 #[derive(Clone)]
 pub struct Results {
+    pub score: f64,
     pub data: Box<Data>,
     pub charger: Box<Charger>,
 }
@@ -193,6 +194,7 @@ impl<'a> SA<'a> {
         if sol_orig.dec != sol_best.dec {
             // Create result object
             result = Some(Results {
+                score: StdObj::run(&mut sol_best.clone()),
                 data: Box::new(sol_best.clone()),
                 charger: self.charger.clone(),
             });

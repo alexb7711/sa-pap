@@ -47,6 +47,11 @@ pub mod DataOutput {
             // Create Directories
             fs::create_dir_all(directory.clone()).unwrap();
 
+            // Create file with score
+            let fields: Vec<String> = Vec::new();
+            let data: Vec<Vec<f32>> = Vec::new();
+            save_to_file(&directory.clone(), &r.score.to_string(), &fields, data);
+
             // Store handle to directory
             fp = String::from(directory);
         }
