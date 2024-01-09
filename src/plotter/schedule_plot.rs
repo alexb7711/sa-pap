@@ -23,7 +23,7 @@ pub struct SchedulePlot {}
 /// * d: Boxed data
 ///
 /// # Output
-/// * Accumulated Energy Plot
+/// * Schedule plot
 ///
 ///
 impl Plotter for SchedulePlot {

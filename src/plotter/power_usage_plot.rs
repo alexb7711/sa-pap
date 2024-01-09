@@ -24,7 +24,7 @@ pub struct PowerUsagePlot {}
 /// * d: Boxed data
 ///
 /// # Output
-/// * Accumulated Energy Plot
+/// * Power usage plot
 ///
 impl Plotter for PowerUsagePlot {
     fn plot(display_plot: bool, d: &mut Box<Data>) {

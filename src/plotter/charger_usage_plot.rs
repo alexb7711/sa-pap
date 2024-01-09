@@ -25,7 +25,7 @@ pub struct ChargerUsagePlot {}
 /// * d: Boxed data
 ///
 /// # Output
-/// * Accumulated Energy Plot
+/// * Charge usage plot
 ///
 impl Plotter for ChargerUsagePlot {
     fn plot(display_plot: bool, d: &mut Box<Data>) {

@@ -77,7 +77,7 @@ impl ChargePlot {
 /// * d: Boxed data
 ///
 /// # Output
-/// * Accumulated Energy Plot
+/// * Charge plot
 ///
 ///
 impl Plotter for ChargePlot {
