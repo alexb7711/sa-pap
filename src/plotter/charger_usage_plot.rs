@@ -28,7 +28,7 @@ pub struct ChargerUsagePlot {}
 /// * Accumulated Energy Plot
 ///
 impl Plotter for ChargerUsagePlot {
-    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) {
         // Variables
         let A = d.param.A;
         let N = d.param.N;
@@ -103,7 +103,5 @@ impl Plotter for ChargerUsagePlot {
         // Save GNUPlot
         let name: String = String::from("charger-usage");
         fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
-
-        return false;
     }
 }

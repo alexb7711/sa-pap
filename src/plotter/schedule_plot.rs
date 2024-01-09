@@ -27,7 +27,7 @@ pub struct SchedulePlot {}
 ///
 ///
 impl Plotter for SchedulePlot {
-    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) {
         // Variables
         let N = d.param.N;
         let A = d.param.A;
@@ -149,7 +149,5 @@ impl Plotter for SchedulePlot {
 
         let name: String = String::from("fast-schedule");
         fg_fast.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
-
-        return false;
     }
 }

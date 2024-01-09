@@ -51,5 +51,5 @@ pub mod plot {
 /// Trait to define `Generator` interfaces
 //
 pub trait Plotter {
-    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool;
+    fn plot(display_plot: bool, d: &mut Box<Data>);
 }

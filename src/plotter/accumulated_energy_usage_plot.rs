@@ -28,7 +28,7 @@ pub struct AccumulatedEnergyUsagePlot {}
 ///
 ///
 impl Plotter for AccumulatedEnergyUsagePlot {
-    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) {
         // Variables
         let K = d.param.K as usize;
         let N = d.param.N;
@@ -93,7 +93,5 @@ impl Plotter for AccumulatedEnergyUsagePlot {
         // Save GNUPlot
         let name: String = String::from("accumulated-energy-usage");
         fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
-
-        return false;
     }
 }

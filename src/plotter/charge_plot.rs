@@ -81,7 +81,7 @@ impl ChargePlot {
 ///
 ///
 impl Plotter for ChargePlot {
-    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) {
         // Variables
         let A = d.param.A;
 
@@ -117,7 +117,5 @@ impl Plotter for ChargePlot {
 
         // Save GNUPlot
         fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
-
-        return false;
     }
 }
