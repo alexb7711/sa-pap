@@ -5,7 +5,9 @@
 pub mod DataOutput {
     //==========================================================================
     // Standard library
+    use chrono::{DateTime, Local};
     use csv::Writer;
+    use std::fs;
 
     //==========================================================================
     // Import modules
@@ -37,7 +39,16 @@ pub mod DataOutput {
         if let Some(p) = path {
             fp = p;
         } else {
-            fp = String::from("data/");
+            // Get the month and time strings
+            let current_local: DateTime<Local> = Local::now();
+            let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
+            let directory = "data/".to_string() + directory.as_str();
+
+            // Create Directories
+            fs::create_dir_all(directory.clone()).unwrap();
+
+            // Store handle to directory
+            fp = String::from(directory);
         }
 
         // Extract data
