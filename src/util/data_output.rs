@@ -17,7 +17,7 @@ pub mod DataOutput {
 
     //==========================================================================
     // Static data
-    static E_CELL: &str = "null";
+    static E_CELL: &str = "nan";
 
     //===========================================================================
     // PUBLIC
@@ -162,7 +162,7 @@ pub mod DataOutput {
         let wait: usize = char.charger_count.0;
         let slow: usize = char.charger_count.1;
         let fields: Vec<String> = vec![
-            String::from("time"),
+            String::from("visit"),
             String::from("wait"),
             String::from("slow"),
             String::from("fast"),
@@ -322,8 +322,8 @@ pub mod DataOutput {
         let w: &Vec<Vec<bool>> = &d.dec.w;
 
         // Table variables
-        let name = file_name.to_owned() + &"-acc-energy-usage";
-        let mut data: Vec<Vec<f32>> = vec![vec![1.0; 3 * A]; N];
+        let name = file_name.to_owned() + &"-schedule";
+        let mut data: Vec<Vec<f32>> = vec![vec![-1.0; 3 * A]; N];
         let fields: Vec<Vec<String>> = (0..A)
             .map(|b| {
                 vec![
@@ -377,15 +377,17 @@ pub mod DataOutput {
             // For each item in the row
             for i in 0..row.len() {
                 // If the row item is a '-1.0', replace it
-                if row[i] == "-1.0" {
+                if row[i] == "-1" {
+                    println!("changed row!");
                     row[i] = String::from(E_CELL);
                 }
             }
 
-            // If the row is only commas, clear it
-            if row.iter().all(|i| i == E_CELL) {
-                empty_rows.push(idx);
-            }
+            // BUG: this seems to break output
+            // // If the row is only commas, clear it
+            // if row.iter().all(|i| i == E_CELL) {
+            //     empty_rows.push(idx);
+            // }
 
             // Update index
             idx += 1;
