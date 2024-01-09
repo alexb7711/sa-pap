@@ -370,9 +370,11 @@ pub mod DataOutput {
             data_s.push(d_tmp);
         }
 
+        // BUG: this seems to break output
+        // let mut empty_rows: Vec<usize> = Vec::new();
+        // let mut idx: usize = 0;
+
         // For each row
-        let mut empty_rows: Vec<usize> = Vec::new();
-        let mut idx: usize = 0;
         for row in data_s.iter_mut() {
             // For each item in the row
             for i in 0..row.len() {
@@ -387,15 +389,15 @@ pub mod DataOutput {
             // if row.iter().all(|i| i == E_CELL) {
             //     empty_rows.push(idx);
             // }
-
             // Update index
-            idx += 1;
+            // idx += 1;
         }
 
-        // Clear out empty rows
-        for i in empty_rows {
-            data_s.remove(i);
-        }
+        // BUG: this seems to break output
+        // // Clear out empty rows
+        // for i in empty_rows {
+        //     data_s.remove(i);
+        // }
 
         //  Save data to disk
         if let Ok(mut wtr) = Writer::from_path(file_name.clone()) {
