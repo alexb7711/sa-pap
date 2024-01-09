@@ -5,17 +5,19 @@
 pub mod DataOutput {
     //==========================================================================
     // Standard library
+    use chrono::{DateTime, Local};
     use csv::Writer;
-    use std::error::Error;
+    use std::fs;
 
     //==========================================================================
     // Import modules
+    use crate::sa::charger::Charger;
     use crate::sa::data::Data;
     use crate::sa::Results;
 
     //==========================================================================
     // Static data
-    static E_CELL: &str = "null";
+    static E_CELL: &str = "nan";
 
     //===========================================================================
     // PUBLIC
@@ -24,9 +26,9 @@ pub mod DataOutput {
     /// Output data in a format for LaTeX to be able to plot
     ///
     /// # Input:
-    /// * fn : Base name of the file
-    /// * dm : Data manager
-    /// * str: Path to output directory
+    /// * fn: Base name of the file
+    /// * r: Results structure
+    /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
@@ -37,18 +39,33 @@ pub mod DataOutput {
         if let Some(p) = path {
             fp = p;
         } else {
-            fp = String::from("data/");
+            // Get the month and time strings
+            let current_local: DateTime<Local> = Local::now();
+            let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
+            let directory = "data/".to_string() + directory.as_str();
+
+            // Create Directories
+            fs::create_dir_all(directory.clone()).unwrap();
+
+            // Create file with score
+            let fields: Vec<String> = Vec::new();
+            let data: Vec<Vec<f32>> = Vec::new();
+            save_to_file(&directory.clone(), &r.score.to_string(), &fields, data);
+
+            // Store handle to directory
+            fp = String::from(directory);
         }
 
         // Extract data
         let d = r.data;
+        let c = r.charger;
 
         // Create Plots
-        charge_out(&file_name, &d, &fp);
-        usage_out(&file_name, &d, &fp);
-        power_out(&file_name, &d, &fp);
-        acc_energy_out(&file_name, &d, &fp);
-        schedule_out(&file_name, &d, &fp);
+        charge_out(&file_name, &d, &c, &fp);
+        usage_out(&file_name, &d, &c, &fp);
+        power_out(&file_name, &d, &c, &fp);
+        acc_energy_out(&file_name, &d, &c, &fp);
+        schedule_out(&file_name, &d, &c, &fp);
     }
 
     //===========================================================================
@@ -60,12 +77,13 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn charge_out(file_name: &String, d: &Data, path: &String) {
+    fn charge_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
         // Variables
         let name = file_name.to_owned() + &"-charge";
         let N = d.param.N;
@@ -122,12 +140,60 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn usage_out(file_name: &String, d: &Data, path: &String) {}
+    fn usage_out(file_name: &String, d: &Data, char: &Charger, path: &String) {
+        // Variables
+        let K: u16 = d.param.K;
+        let N: usize = d.param.N;
+        let T: f32 = d.param.T;
+        let dt: f32 = T as f32 / K as f32;
+        let u: &Vec<f32> = &d.dec.u;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+        let v: &Vec<usize> = &d.dec.v;
+        let c: &Vec<f32> = &d.dec.c;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-charge-cnt";
+        let wait: usize = char.charger_count.0;
+        let slow: usize = char.charger_count.1;
+        let fields: Vec<String> = vec![
+            String::from("visit"),
+            String::from("wait"),
+            String::from("slow"),
+            String::from("fast"),
+        ];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 4]; K as usize];
+
+        // For each time step
+        for k in 0..K {
+            // Calculate time slice
+            let t: f32 = k as f32 * dt;
+            data[k as usize][0] = dt;
+
+            // For each visit
+            for i in 0..N {
+                // if the time step is between the current visit and the BEB has
+                // assigned
+                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                    if v[i] < wait {
+                        data[k as usize][1] += 1.0;
+                    } else if v[i] >= wait && v[i] < slow {
+                        data[k as usize][2] += 1.0;
+                    } else {
+                        data[k as usize][3] += 1.0;
+                    }
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Output power usage data
@@ -135,12 +201,48 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn power_out(file_name: &String, d: &Data, path: &String) {}
+    fn power_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
+        // Variables
+        let K: u16 = d.param.K;
+        let N: usize = d.param.N;
+        let T: f32 = d.param.T;
+        let dt: f32 = T as f32 / K as f32;
+        let u: &Vec<f32> = &d.dec.u;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+        let v: &Vec<usize> = &d.dec.v;
+        let r: &Vec<f32> = &d.param.r;
+        let c: &Vec<f32> = &d.dec.c;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-power-usage";
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let fields: Vec<String> = vec![String::from("time"), String::from("power")];
+
+        // For each time step
+        for k in 0..K {
+            // Calculate time slice
+            let t: f32 = k as f32 * dt;
+            data[k as usize][0] = dt;
+
+            // For each visit
+            for i in 0..N {
+                // if the time step is between the current visit and the BEB has
+                // assigned
+                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                    data[k as usize][1] += r[v[i]];
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Accumulated output power usage data
@@ -148,12 +250,54 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn acc_energy_out(file_name: &String, d: &Data, path: &String) {}
+    fn acc_energy_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
+        // Variables
+        let K: usize = d.param.K as usize;
+        let N: usize = d.param.N;
+        let T: f32 = d.param.T;
+        let dt: f32 = T as f32 / K as f32;
+        let u: &Vec<f32> = &d.dec.u;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+        let v: &Vec<usize> = &d.dec.v;
+        let r: &Vec<f32> = &d.param.r;
+        let c: &Vec<f32> = &d.dec.c;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-acc-energy-usage";
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let fields: Vec<String> = vec![String::from("time"), String::from("power")];
+
+        // For each time step
+        for k in 0..K {
+            // Calculate time slice
+            let t: f32 = k as f32 * dt;
+            data[k as usize][0] = dt;
+
+            // If the index is greater than zero
+            if k > 0 {
+                // Use the previous data
+                data[k][1] = data[k - 1][1];
+            }
+
+            // For each visit
+            for i in 0..N {
+                // if the time step is between the current visit and the BEB has
+                // assigned
+                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                    data[k as usize][1] += r[v[i]];
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Output schedule data
@@ -161,12 +305,48 @@ pub mod DataOutput {
     /// # Input:
     /// * file_name : Base name of the file
     /// * d : Data manager
+    /// * char: Charger object
     /// * path: Path to output directory
     ///
     /// # Output:
     /// * Data files
     ///
-    fn schedule_out(file_name: &String, d: &Data, path: &String) {}
+    fn schedule_out(file_name: &String, d: &Data, _c: &Charger, path: &String) {
+        // Variables
+        let A: usize = d.param.A;
+        let N: usize = d.param.N;
+        let G: &Vec<u16> = &d.param.Gam;
+        let u: &Vec<f32> = &d.dec.u;
+        let v: &Vec<usize> = &d.dec.v;
+        let s: &Vec<f32> = &d.dec.s;
+        let w: &Vec<Vec<bool>> = &d.dec.w;
+
+        // Table variables
+        let name = file_name.to_owned() + &"-schedule";
+        let mut data: Vec<Vec<f32>> = vec![vec![-1.0; 3 * A]; N];
+        let fields: Vec<Vec<String>> = (0..A)
+            .map(|b| {
+                vec![
+                    String::from("charger").to_owned() + &b.to_string(),
+                    String::from("u").to_owned() + &b.to_string(),
+                    String::from("s").to_owned() + &b.to_string(),
+                ]
+            })
+            .collect();
+        let fields: Vec<String> = fields.into_iter().flatten().collect();
+
+        // For each visit
+        for i in 0..N {
+            if w[i][v[i]] && s[i] > 0.001 {
+                data[i][G[i] as usize * 3 + 0] = v[i] as f32;
+                data[i][G[i] as usize * 3 + 1] = u[i];
+                data[i][G[i] as usize * 3 + 2] = s[i];
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
 
     //---------------------------------------------------------------------------
     /// Write data to CSV file
@@ -190,37 +370,39 @@ pub mod DataOutput {
             data_s.push(d_tmp);
         }
 
+        // BUG: this seems to break output
+        // let mut empty_rows: Vec<usize> = Vec::new();
+        // let mut idx: usize = 0;
+
         // For each row
-        let mut empty_rows: Vec<usize> = Vec::new();
-        let mut idx: usize = 0;
         for row in data_s.iter_mut() {
             // For each item in the row
             for i in 0..row.len() {
                 // If the row item is a '-1.0', replace it
-                if row[i] == "-1.0" {
+                if row[i] == "-1" {
                     row[i] = String::from(E_CELL);
                 }
             }
 
-            // If the row is only commas, clear it
-            if row.iter().all(|i| i == E_CELL) {
-                empty_rows.push(idx);
-            }
-
+            // BUG: this seems to break output
+            // // If the row is only commas, clear it
+            // if row.iter().all(|i| i == E_CELL) {
+            //     empty_rows.push(idx);
+            // }
             // Update index
-            idx += 1;
+            // idx += 1;
         }
 
-        // Clear out empty rows
-        for i in empty_rows {
-            data_s.remove(i);
-        }
+        // BUG: this seems to break output
+        // // Clear out empty rows
+        // for i in empty_rows {
+        //     data_s.remove(i);
+        // }
 
         //  Save data to disk
         if let Ok(mut wtr) = Writer::from_path(file_name.clone()) {
             // Write each row to disk
-            println!("Saving to disk");
-            // fields.iter().for_each(|f| wtr.write_record(f).unwrap());
+            println!("Saving to disk: {}", name);
             wtr.write_record(fields).unwrap();
             data_s.iter().for_each(|row| wtr.write_record(row).unwrap());
         } else {

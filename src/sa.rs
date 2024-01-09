@@ -30,10 +30,12 @@ use crate::util::fileio::yaml_loader;
 /// Results from simulated annealing
 /// TODO: Remove `#[allow(dead_code)]
 //
-#[derive(Default)]
 #[allow(dead_code)]
+#[derive(Clone)]
 pub struct Results {
+    pub score: f64,
     pub data: Box<Data>,
+    pub charger: Box<Charger>,
 }
 
 //==============================================================================
@@ -43,9 +45,8 @@ pub struct Results {
 pub struct SA<'a> {
     gsol: Box<dyn Generator>,   // Solution generator
     gsys: Box<dyn Route>,       // Route generator
-    gtweak: Box<dyn Generator>, // Solution perterber
+    gtweak: Box<dyn Generator>, // Solution modifier
     charger: Box<Charger>,      // Charge schedule keeper
-    r: Results,                 // Results
     tf: &'a mut Box<TempFunc>,  // Cooling Schedule
     config_path: &'a str,       // Path to simulation configuration file
 }
@@ -90,7 +91,6 @@ impl<'a> SA<'a> {
             gsys,
             gtweak,
             charger: Box::new(Charger::new(config_path, true, A, None)),
-            r: Default::default(),
             tf,
             config_path,
         };
@@ -194,7 +194,9 @@ impl<'a> SA<'a> {
         if sol_orig.dec != sol_best.dec {
             // Create result object
             result = Some(Results {
+                score: StdObj::run(&mut sol_best.clone()),
                 data: Box::new(sol_best.clone()),
+                charger: self.charger.clone(),
             });
         } else {
             result = None;

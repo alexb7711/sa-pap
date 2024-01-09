@@ -1,13 +1,14 @@
-use sa_pap::sa::generators::Generator;
 //------------------------------------------------------------------------------
 // Import standard library
 use yaml_rust::Yaml;
 
 //------------------------------------------------------------------------------
 // Import developed modules
+use sa_pap::plotter;
 use sa_pap::sa::generators::gen_new_visits::GenNewVisits;
 use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
+use sa_pap::sa::generators::Generator;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
 use sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
 use sa_pap::sa::route::Route;
@@ -124,10 +125,10 @@ fn main() {
     // Run simulated annealing simulation
     if let Some(res) = sa.run(load_from_file) {
         // Export results to CSV
-        DataOutput::output_data(String::from("sa"), res, None);
+        DataOutput::output_data(String::from("sa"), res.clone(), None);
 
         // Plot results
-        if plot {}
+        plotter::plot::run(plot, &mut res.data.clone());
     } else {
         panic!("No result was generated!!!");
     }

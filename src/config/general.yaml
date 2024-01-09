@@ -2,7 +2,7 @@
 jobs: 8
 
 # 1: True; 0: False
-plot: 1
+plot: 0
 
 # "rand"; "csv"
 schedule: "csv"
