@@ -2,7 +2,9 @@
 
 //===============================================================================
 // Standard library
+use chrono::{DateTime, Local};
 use gnuplot::*;
+use std::fs;
 
 //===============================================================================
 // Import modules
@@ -130,6 +132,21 @@ impl Plotter for SchedulePlot {
         // Plot Figure
         fg_slow.show().unwrap();
         fg_fast.show().unwrap();
+
+        // Get the month and time strings
+        let current_local: DateTime<Local> = Local::now();
+        let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
+        let directory = "data/".to_string() + directory.as_str();
+
+        // Create Directories
+        fs::create_dir_all(directory.clone()).unwrap();
+
+        // Save GNUPlot
+        let name: String = String::from("Slow Schedule");
+        fg_slow.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
+
+        let name: String = String::from("Fast Schedule");
+        fg_fast.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
 
         return false;
     }
