@@ -378,7 +378,6 @@ pub mod DataOutput {
             for i in 0..row.len() {
                 // If the row item is a '-1.0', replace it
                 if row[i] == "-1" {
-                    println!("changed row!");
                     row[i] = String::from(E_CELL);
                 }
             }
