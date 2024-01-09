@@ -28,7 +28,7 @@ pub struct AccumulatedEnergyUsagePlot {}
 ///
 ///
 impl Plotter for AccumulatedEnergyUsagePlot {
-    fn plot(d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
         // Variables
         let K = d.param.K as usize;
         let N = d.param.N;
@@ -78,7 +78,9 @@ impl Plotter for AccumulatedEnergyUsagePlot {
             .lines(x, usage, &[]);
 
         // Plot Figure
-        fg.show().unwrap();
+        if display_plot {
+            fg.show().unwrap();
+        }
 
         // Get the month and time strings
         let current_local: DateTime<Local> = Local::now();
@@ -89,6 +91,7 @@ impl Plotter for AccumulatedEnergyUsagePlot {
         fs::create_dir_all(directory.clone()).unwrap();
 
         // Save GNUPlot
+        let name: String = String::from("accumulated-energy-usage");
         fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
 
         return false;

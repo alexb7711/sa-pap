@@ -27,7 +27,7 @@ pub struct SchedulePlot {}
 ///
 ///
 impl Plotter for SchedulePlot {
-    fn plot(d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
         // Variables
         let N = d.param.N;
         let A = d.param.A;
@@ -130,8 +130,10 @@ impl Plotter for SchedulePlot {
             .x_error_bars(fast_x.clone(), fast_y.clone(), fast_err.clone(), &[]);
 
         // Plot Figure
-        fg_slow.show().unwrap();
-        fg_fast.show().unwrap();
+        if display_plot {
+            fg_slow.show().unwrap();
+            fg_fast.show().unwrap();
+        }
 
         // Get the month and time strings
         let current_local: DateTime<Local> = Local::now();
@@ -142,10 +144,10 @@ impl Plotter for SchedulePlot {
         fs::create_dir_all(directory.clone()).unwrap();
 
         // Save GNUPlot
-        let name: String = String::from("Slow Schedule");
+        let name: String = String::from("slow-schedule");
         fg_slow.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
 
-        let name: String = String::from("Fast Schedule");
+        let name: String = String::from("fast-schedule");
         fg_fast.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
 
         return false;

@@ -35,20 +35,15 @@ pub mod plot {
     /// * None
     ///
     pub fn run(should_plot: bool, d: &mut Box<Data>) {
-        // If the flag is `false`, return early
-        if !should_plot {
-            return;
-        }
-
         // Indicate the plots are being drown
         println!("Drawing plots...");
 
         // Execute plots
-        AccumulatedEnergyUsagePlot::plot(d);
-        ChargePlot::plot(d);
-        ChargerUsagePlot::plot(d);
-        PowerUsagePlot::plot(d);
-        SchedulePlot::plot(d);
+        AccumulatedEnergyUsagePlot::plot(should_plot, d);
+        ChargePlot::plot(should_plot, d);
+        ChargerUsagePlot::plot(should_plot, d);
+        PowerUsagePlot::plot(should_plot, d);
+        SchedulePlot::plot(should_plot, d);
     }
 }
 
@@ -56,5 +51,5 @@ pub mod plot {
 /// Trait to define `Generator` interfaces
 //
 pub trait Plotter {
-    fn plot(d: &mut Box<Data>) -> bool;
+    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool;
 }

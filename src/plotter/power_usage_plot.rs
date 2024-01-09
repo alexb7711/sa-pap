@@ -27,7 +27,7 @@ pub struct PowerUsagePlot {}
 /// * Accumulated Energy Plot
 ///
 impl Plotter for PowerUsagePlot {
-    fn plot(d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
         // Variables
         let A = d.param.A;
         let N = d.param.N;
@@ -89,7 +89,9 @@ impl Plotter for PowerUsagePlot {
             .boxes(x.clone(), fast, &[]);
 
         // Plot Figure
-        fg.show().unwrap();
+        if display_plot {
+            fg.show().unwrap();
+        }
 
         // Get the month and time strings
         let current_local: DateTime<Local> = Local::now();
@@ -100,6 +102,7 @@ impl Plotter for PowerUsagePlot {
         fs::create_dir_all(directory.clone()).unwrap();
 
         // Save GNUPlot
+        let name: String = String::from("slow-charger-power-usage");
         fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
 
         return false;

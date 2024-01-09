@@ -81,7 +81,7 @@ impl ChargePlot {
 ///
 ///
 impl Plotter for ChargePlot {
-    fn plot(d: &mut Box<Data>) -> bool {
+    fn plot(display_plot: bool, d: &mut Box<Data>) -> bool {
         // Variables
         let A = d.param.A;
 
@@ -103,7 +103,9 @@ impl Plotter for ChargePlot {
         }
 
         // Plot Figure
-        fg.show().unwrap();
+        if display_plot {
+            fg.show().unwrap();
+        }
 
         // Get the month and time strings
         let current_local: DateTime<Local> = Local::now();
