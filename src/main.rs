@@ -167,6 +167,9 @@ fn main() {
     // Create multiple progress bars
     let m = MultiProgress::new();
 
+    // Set the progress bar delay
+    let delay = 3;
+
     //--------------------------------------------------------------------------
     // Execute the algorithm N times with M threads
     for _ in 0..cores {
@@ -176,7 +179,7 @@ fn main() {
                 execute(&mut pb);
 
                 // Add delay to next execution
-                thread::sleep(std::time::Duration::from_secs(5));
+                thread::sleep(std::time::Duration::from_secs(delay));
 
                 // Reset the progress bar
                 pb.reset();
@@ -187,7 +190,7 @@ fn main() {
         thread_handle.push(handle);
 
         // Add delay between each thread creation
-        thread::sleep(std::time::Duration::from_secs(5));
+        thread::sleep(std::time::Duration::from_secs(delay));
     }
 
     // Joint the thread if the process is complete
