@@ -142,7 +142,7 @@ fn main() {
     // Initialize
 
     // Get number of cores
-    let cores = num_cpus::get();
+    let cores = num_cpus::get() - 1;
 
     // Read input parameters
     let args: Vec<String> = env::args().collect();
