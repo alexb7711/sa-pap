@@ -199,4 +199,7 @@ fn main() {
         println!("Thread done!");
         h.join().unwrap();
     }
+
+    // Clean up progress bars
+    m.clear().unwrap();
 }
