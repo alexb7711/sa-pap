@@ -18,8 +18,13 @@ test: ## Run tests
 
 ##==============================================================================
 #
-remote: ## Run on remote server (chuggy)
+remote-once: ## Run on remote server once (chuggy)
 	@ssh chuggy "cd ~/sa-pap; git pull; pwd; screen -L -S sa-pap -md "/usr/bin/cargo run --release""
+
+##==============================================================================
+#
+remote: ## Run on remote server 1000 times (chuggy)
+	@ssh chuggy "cd ~/sa-pap; git pull; pwd; screen -L -S sa-pap -md "/usr/bin/cargo run 1000 --release""
 
 ##==============================================================================
 #

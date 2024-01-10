@@ -1,5 +1,6 @@
 //------------------------------------------------------------------------------
 // Import standard library
+use std::env;
 use yaml_rust::Yaml;
 
 //------------------------------------------------------------------------------
@@ -41,9 +42,9 @@ fn general_path() -> &'static str {
     return "./src/config/general.yaml";
 }
 
-//===============================================================================
-// MAIN
-fn main() {
+//------------------------------------------------------------------------------
+//
+fn execute() {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Initialize
 
@@ -131,5 +132,17 @@ fn main() {
         plotter::plot::run(plot, &mut res.data.clone());
     } else {
         panic!("No result was generated!!!");
+    }
+}
+
+//===============================================================================
+// MAIN
+fn main() {
+    // Read input parameters
+    let args: Vec<String> = env::args().collect();
+
+    // Execute the algorithm N times
+    for _ in 0..args[1].parse::<usize>().unwrap() {
+        execute();
     }
 }
