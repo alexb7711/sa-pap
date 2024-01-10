@@ -1,6 +1,7 @@
 //------------------------------------------------------------------------------
 // Import standard library
 use std::env;
+use std::thread;
 use yaml_rust::Yaml;
 
 //------------------------------------------------------------------------------
@@ -138,11 +139,56 @@ fn execute() {
 //===============================================================================
 // MAIN
 fn main() {
+    //--------------------------------------------------------------------------
+    // Initialize
+
+    // Get number of cores
+    let cores = num_cpus::get();
+
     // Read input parameters
     let args: Vec<String> = env::args().collect();
 
-    // Execute the algorithm N times
-    for _ in 0..args[1].parse::<usize>().unwrap() {
-        execute();
+    // Default loop count to 4 * core count
+    let mut loop_cnt: usize = 4 * cores;
+
+    // If the loop count was passed as an argument
+    if args.len() > 1 {
+        // Use that value instead
+        loop_cnt = args[1].parse::<usize>().unwrap();
+    }
+
+    // Create vector of threads
+    let mut thread_handle = Vec::<std::thread::JoinHandle<()>>::new();
+
+    // Divide the number of loops among the threads
+    let loop_cnt = loop_cnt / cores;
+
+    println!("{}", cores);
+    println!("{}", loop_cnt);
+
+    //--------------------------------------------------------------------------
+    // Execute the algorithm N times with M threads
+    for _ in 0..cores {
+        let handle = thread::spawn(move || {
+            for _ in 0..loop_cnt {
+                execute();
+
+                // Add delay to next execution
+                thread::sleep(std::time::Duration::from_secs(5));
+            }
+        });
+
+        // Keep track of the thread handles
+        thread_handle.push(handle);
+
+        // Add delay between each thread creation
+        thread::sleep(std::time::Duration::from_secs(5));
+    }
+
+    // Joint the thread if the process is complete
+    for h in thread_handle.into_iter() {
+        // Join the thread
+        println!("Thread done!");
+        h.join().unwrap();
     }
 }
