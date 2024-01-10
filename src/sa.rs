@@ -10,7 +10,7 @@ pub mod temp_func; // Temperature functions
 
 //==============================================================================
 // Import standard library
-use indicatif::ProgressIterator;
+use indicatif::{ProgressBar, ProgressStyle};
 use rand::{thread_rng, Rng};
 use yaml_rust::Yaml;
 
@@ -49,6 +49,7 @@ pub struct SA<'a> {
     charger: Box<Charger>,      // Charge schedule keeper
     tf: &'a mut Box<TempFunc>,  // Cooling Schedule
     config_path: &'a str,       // Path to simulation configuration file
+    sol_found: bool,            // Indicates whether a solution was found
 }
 
 //==============================================================================
@@ -93,6 +94,7 @@ impl<'a> SA<'a> {
             charger: Box::new(Charger::new(config_path, true, A, None)),
             tf,
             config_path,
+            sol_found: false,
         };
 
         return sa;
@@ -145,8 +147,22 @@ impl<'a> SA<'a> {
         // Make the world a little more pretty
         println!("Executing SA:");
 
+        // Create progress bar and set style
+        let bar = ProgressBar::new(self.tf.get_temp_vec().unwrap().len() as u64);
+        bar.set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
+
         // While the temperature function is cooling down
-        for t in self.tf.get_temp_vec().unwrap().into_iter().progress() {
+        for t in self.tf.get_temp_vec().unwrap() {
+            // Set the prefix depending on whether a solution has been found or not
+            if self.sol_found {
+                bar.set_prefix(format!("✓"));
+            } else {
+                bar.set_prefix(format!("×"));
+            }
+
+            // Print solution found indicator
+            bar.inc(1);
+
             // Generate new solution
             self.gsol.run(&mut self.gsys, &mut self.charger);
 
@@ -247,7 +263,8 @@ impl<'a> SA<'a> {
             // Bail
             return;
         } else {
-            println!("YAY");
+            // Indicate a solution was found
+            self.sol_found = true;
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
