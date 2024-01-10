@@ -132,8 +132,6 @@ fn execute(pb: &mut ProgressBar) {
 
         // Plot results
         plotter::plot::run(plot, &mut res.data.clone());
-    } else {
-        panic!("No result was generated!!!");
     }
 }
 
