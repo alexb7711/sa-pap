@@ -194,7 +194,6 @@ fn main() {
     // Joint the thread if the process is complete
     for h in thread_handle.into_iter() {
         // Join the thread
-        println!("Thread done!");
         h.join().unwrap();
     }
 
