@@ -35,9 +35,6 @@ pub mod plot {
     /// * None
     ///
     pub fn run(should_plot: bool, d: &mut Box<Data>) {
-        // Indicate the plots are being drown
-        println!("Drawing plots...");
-
         // Execute plots
         AccumulatedEnergyUsagePlot::plot(should_plot, d);
         ChargePlot::plot(should_plot, d);

@@ -1,5 +1,6 @@
 //------------------------------------------------------------------------------
 // Import standard library
+use indicatif::{MultiProgress, ProgressBar};
 use std::env;
 use std::thread;
 use yaml_rust::Yaml;
@@ -45,7 +46,7 @@ fn general_path() -> &'static str {
 
 //------------------------------------------------------------------------------
 //
-fn execute() {
+fn execute(pb: &mut ProgressBar) {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Initialize
 
@@ -122,7 +123,7 @@ fn execute() {
     // Create SA object and run SA
 
     // Pass schedule generator, temperature function, solution generator, and solution tweaker into the SA module
-    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf);
+    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf, pb);
 
     // Run simulated annealing simulation
     if let Some(res) = sa.run(load_from_file) {
@@ -163,18 +164,22 @@ fn main() {
     // Divide the number of loops among the threads
     let loop_cnt = loop_cnt / cores;
 
-    println!("{}", cores);
-    println!("{}", loop_cnt);
+    // Create multiple progress bars
+    let m = MultiProgress::new();
 
     //--------------------------------------------------------------------------
     // Execute the algorithm N times with M threads
     for _ in 0..cores {
+        let mut pb = m.add(ProgressBar::new(0));
         let handle = thread::spawn(move || {
             for _ in 0..loop_cnt {
-                execute();
+                execute(&mut pb);
 
                 // Add delay to next execution
                 thread::sleep(std::time::Duration::from_secs(5));
+
+                // Reset the progress bar
+                pb.reset();
             }
         });
 

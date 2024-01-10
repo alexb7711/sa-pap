@@ -50,6 +50,7 @@ pub struct SA<'a> {
     tf: &'a mut Box<TempFunc>,  // Cooling Schedule
     config_path: &'a str,       // Path to simulation configuration file
     sol_found: bool,            // Indicates whether a solution was found
+    pb: &'a ProgressBar,        // Progress Bar for this thread
 }
 
 //==============================================================================
@@ -79,6 +80,7 @@ impl<'a> SA<'a> {
         mut gsys: Box<dyn Route>,
         gtweak: Box<dyn Generator>,
         tf: &'a mut Box<TempFunc>,
+        pb: &'a mut ProgressBar,
     ) -> SA<'a> {
         // Generate new solution
         gsys.run();
@@ -95,6 +97,7 @@ impl<'a> SA<'a> {
             tf,
             config_path,
             sol_found: false,
+            pb,
         };
 
         return sa;
@@ -144,24 +147,24 @@ impl<'a> SA<'a> {
             self.update_current_values(&mut sol_current, &mut sol_new);
         }
 
-        // Make the world a little more pretty
-        println!("Executing SA:");
-
         // Create progress bar and set style
-        let bar = ProgressBar::new(self.tf.get_temp_vec().unwrap().len() as u64);
-        bar.set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
+        // let bar = ProgressBar::new(self.tf.get_temp_vec().unwrap().len() as u64);
+        self.pb
+            .set_length(self.tf.get_temp_vec().unwrap().len() as u64);
+        self.pb
+            .set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
 
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
             // Set the prefix depending on whether a solution has been found or not
             if self.sol_found {
-                bar.set_prefix(format!("✓"));
+                self.pb.set_prefix(format!("✓"));
             } else {
-                bar.set_prefix(format!("×"));
+                self.pb.set_prefix(format!("×"));
             }
 
             // Print solution found indicator
-            bar.inc(1);
+            self.pb.inc(1);
 
             // Generate new solution
             self.gsol.run(&mut self.gsys, &mut self.charger);
