@@ -1,5 +1,8 @@
 //------------------------------------------------------------------------------
 // Import standard library
+use indicatif::{MultiProgress, ProgressBar};
+use std::env;
+use std::thread;
 use yaml_rust::Yaml;
 
 //------------------------------------------------------------------------------
@@ -41,9 +44,9 @@ fn general_path() -> &'static str {
     return "./src/config/general.yaml";
 }
 
-//===============================================================================
-// MAIN
-fn main() {
+//------------------------------------------------------------------------------
+//
+fn execute(pb: &mut ProgressBar) {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Initialize
 
@@ -120,7 +123,7 @@ fn main() {
     // Create SA object and run SA
 
     // Pass schedule generator, temperature function, solution generator, and solution tweaker into the SA module
-    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf);
+    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf, pb);
 
     // Run simulated annealing simulation
     if let Some(res) = sa.run(load_from_file) {
@@ -129,7 +132,72 @@ fn main() {
 
         // Plot results
         plotter::plot::run(plot, &mut res.data.clone());
-    } else {
-        panic!("No result was generated!!!");
     }
+}
+
+//===============================================================================
+// MAIN
+fn main() {
+    //--------------------------------------------------------------------------
+    // Initialize
+
+    // Get number of cores
+    let cores = num_cpus::get();
+
+    // Read input parameters
+    let args: Vec<String> = env::args().collect();
+
+    // Default loop count to 4 * core count
+    let mut loop_cnt: usize = 4 * cores;
+
+    // If the loop count was passed as an argument
+    if args.len() > 1 {
+        // Use that value instead
+        loop_cnt = args[1].parse::<usize>().unwrap();
+    }
+
+    // Create vector of threads
+    let mut thread_handle = Vec::<std::thread::JoinHandle<()>>::new();
+
+    // Divide the number of loops among the threads
+    let loop_cnt = loop_cnt / cores;
+
+    // Create multiple progress bars
+    let m = MultiProgress::new();
+
+    // Set the progress bar delay
+    let delay = 3;
+
+    //--------------------------------------------------------------------------
+    // Execute the algorithm N times with M threads
+    for _ in 0..cores {
+        let mut pb = m.add(ProgressBar::new(0));
+        let handle = thread::spawn(move || {
+            for _ in 0..loop_cnt {
+                execute(&mut pb);
+
+                // Add delay to next execution
+                thread::sleep(std::time::Duration::from_secs(delay));
+
+                // Reset the progress bar
+                pb.reset();
+            }
+        });
+
+        // Keep track of the thread handles
+        thread_handle.push(handle);
+
+        // Add delay between each thread creation
+        thread::sleep(std::time::Duration::from_secs(delay));
+    }
+
+    // Joint the thread if the process is complete
+    for h in thread_handle.into_iter() {
+        // Join the thread
+        println!("Thread done!");
+        h.join().unwrap();
+    }
+
+    // Clean up progress bars
+    m.clear().unwrap();
 }

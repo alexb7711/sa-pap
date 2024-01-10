@@ -402,7 +402,6 @@ pub mod DataOutput {
         //  Save data to disk
         if let Ok(mut wtr) = Writer::from_path(file_name.clone()) {
             // Write each row to disk
-            println!("Saving to disk: {}", name);
             wtr.write_record(fields).unwrap();
             data_s.iter().for_each(|row| wtr.write_record(row).unwrap());
         } else {
