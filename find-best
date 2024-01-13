@@ -1,0 +1,53 @@
+#!/bin/perl
+
+################################################################################
+# MODULES
+################################################################################
+use File::Find;
+use File::Basename;
+
+################################################################################
+# VARIABLES
+################################################################################
+my $score     = 999999999999999;
+my $full_path;
+
+################################################################################
+# FUNCTIONS
+################################################################################
+
+##==============================================================================
+#
+sub find_best_solution {
+    # Clean up candidate text
+    my $candidate = basename($File::Find::name);
+    $candidate    =~ s/\.[^.]+$//;
+
+    # Return if the file being processed is not a score
+    return unless $candidate =~ /^\d+\.\d+/;
+
+    # Get the value of the current score
+    $candidate = $candidate;
+
+    # Compare candidate with the current score
+    return unless $candidate < $score;
+
+    # Update the best score
+    $score = $candidate;
+
+    # Update the file path
+    $full_path = $File::Find::name;
+}
+
+################################################################################
+# SCRIPT
+################################################################################
+
+# Set the path
+@ARGV = ("./data") unless @ARGV;
+
+# Search for the best solution
+find(\&find_best_solution, @ARGV);
+
+# Print the best solution score
+print "Best score: $score.\nWith a path of: $full_path";
