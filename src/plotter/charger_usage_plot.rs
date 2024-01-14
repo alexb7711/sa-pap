@@ -17,9 +17,8 @@ pub struct ChargerUsagePlot {}
 
 //===============================================================================
 /// Implementation of the plotting function for the slow/fast charger usage.
-/// It is a line graph that (effectively) looks like a bar graph due to the fact
-/// that it is merely tracking how many fast/slow chargers are being utilized
-/// at any given discrete time.
+/// It is a box graph that is merely tracking how many fast/slow chargers are
+/// being utilized at any given discrete time.
 ///
 /// # Input
 /// * d: Boxed data
@@ -39,9 +38,8 @@ impl Plotter for ChargerUsagePlot {
         let c = &d.dec.c;
         let delta = T / K as f32;
 
-        // BUG: Arrays are not big enough
-        let mut slow: Vec<usize> = vec![0; d.param.slow];
-        let mut fast: Vec<usize> = vec![0; d.param.fast];
+        let mut slow: Vec<usize> = vec![0; K as usize];
+        let mut fast: Vec<usize> = vec![0; K as usize];
 
         // Configure plot
         let name: String = String::from("Charger Usage");
