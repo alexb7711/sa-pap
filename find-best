@@ -50,4 +50,4 @@ sub find_best_solution {
 find(\&find_best_solution, @ARGV);
 
 # Print the best solution score
-print "Best score: $score.\nWith a path of: $full_path";
+print "Best score: $score.\nWith a path of: $full_path.\n";
