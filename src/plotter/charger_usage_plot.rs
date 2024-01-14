@@ -39,6 +39,7 @@ impl Plotter for ChargerUsagePlot {
         let c = &d.dec.c;
         let delta = T / K as f32;
 
+        // BUG: Arrays are not big enough
         let mut slow: Vec<usize> = vec![0; d.param.slow];
         let mut fast: Vec<usize> = vec![0; d.param.fast];
 
