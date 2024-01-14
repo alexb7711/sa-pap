@@ -141,8 +141,11 @@ fn main() {
     //--------------------------------------------------------------------------
     // Initialize
 
+    // Load in general YAML
+    let gen_config: Yaml = yaml_loader::load_yaml(general_path());
+
     // Get number of cores
-    let cores = num_cpus::get() - 1;
+    let cores = gen_config["cores"].clone().into_i64().unwrap() as usize;
 
     // Read input parameters
     let args: Vec<String> = env::args().collect();
