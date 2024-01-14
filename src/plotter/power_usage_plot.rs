@@ -39,8 +39,8 @@ impl Plotter for PowerUsagePlot {
         let r = &d.param.r;
         let delta = T / K as f32;
 
-        let mut slow: Vec<f32> = vec![0.0; d.param.slow];
-        let mut fast: Vec<f32> = vec![0.0; d.param.fast];
+        let mut slow: Vec<f32> = vec![0.0; K as usize];
+        let mut fast: Vec<f32> = vec![0.0; K as usize];
 
         // Configure plot
         let mut fg = Figure::new();
