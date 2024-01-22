@@ -1,5 +1,5 @@
 //==============================================================================
-/// The `new_window` primitive is used to remove then add a bus back in.
+/// The `new_window_quick` primitive is used to remove then add a bus back in.
 //
 pub mod new_window {
 

@@ -44,13 +44,11 @@ pub mod new_visit {
         // Attempt to assign the visit
 
         // Check if the arrival/departure fits in the time slice
-        // Note that this line is what differentiates this function from `new_visit` by applying the same
-        // start/stop charge time as before, just on a new charger.
-        let (fits, _) = ch.find_free_time(ud, ts);
+        let (fits, ud_new) = ch.find_free_time(ae, ch.free_time[q_new][ts_idx]);
 
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
-        if fits && ch.assign(q_new, ch.free_time[q_new][ts_idx], b) {
+        if fits && ch.assign(q_new, ud_new, b) {
             // Update route data
             if d.dec.w.len() > q_new {
                 // Update queue

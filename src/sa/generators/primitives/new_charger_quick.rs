@@ -9,7 +9,7 @@ pub mod new_charger_quick {
     // Import modules
     use crate::sa::charger::Charger;
     use crate::sa::data::Data;
-    use crate::sa::generators::primitives::{self, purge::*};
+    use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_charger_quick` module. This module
@@ -35,6 +35,7 @@ pub mod new_charger_quick {
         b: usize,
         ud: &(f32, f32),
     ) -> bool {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Remove the visit, return false if unsuccessful
         if !purge::run(d, i, ch, q, ud) {
             return false;
@@ -44,10 +45,7 @@ pub mod new_charger_quick {
         // Random selection
 
         // Select a random charger queue
-        let q_new = rand_range(0, ch.charger_count);
-
-        // Select random time slice availability
-        let ts_idx = rand_range(0, ch.free_time[q_new].len());
+        let q_new = rand_utils::rand_range(0, ch.schedule.len());
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Attempt to assign the visit
@@ -55,7 +53,7 @@ pub mod new_charger_quick {
         // Check if the arrival/departure fits in the time slice
         // Note that this line is what differentiates this function from `new_visit` by applying the same
         // start/stop charge time as before, just on a new charger.
-        let (fits, _) = ch.find_free_time(ud, ts);
+        let (fits, _) = ch.find_free_time(ud, ud);
 
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
