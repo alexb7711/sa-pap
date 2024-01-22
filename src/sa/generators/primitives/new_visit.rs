@@ -2,13 +2,12 @@
 /// The `new_visit` primitive is used to assign a bus to an available charger.
 //
 pub mod new_visit {
-    // Import standard lib
-    use crate::util::rand_utils;
 
     // Import modules
     use crate::sa::charger::Charger;
     use crate::sa::data::Data;
     use crate::sa::generators::primitives;
+    use crate::util::rand_utils;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_visit` module. Given the set of
@@ -17,9 +16,11 @@ pub mod new_visit {
     /// failed and true if successful.
     ///
     /// # Input
+    /// * d: MILP data object
+    /// * i: Visit index
     /// * ch: Charger object
     /// * b: Bus id
-    /// * ae: Arrive/Exit times of the bus
+    /// * ae: Arrival/exit times
     ///
     /// # Output
     /// * bool: Assignment failure/success

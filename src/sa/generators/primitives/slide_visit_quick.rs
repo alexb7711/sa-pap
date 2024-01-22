@@ -1,15 +1,11 @@
 //==============================================================================
 /// The `slide_visit` primitive is used to assign a bus to an available charger.
 //
-pub mod slide_visit {
-
-    // Standard lib modules
-    use crate::util::rand_utils;
-
+pub mod slide_visit_quick {
     // Import modules
     use crate::sa::charger::Charger;
     use crate::sa::data::Data;
-    use crate::sa::generators::primitives::{self, purge::*};
+    use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `slide_visit` module. This modules attempts
@@ -45,10 +41,10 @@ pub mod slide_visit {
         // Attempt to assign the visit
 
         // Get the time slice of interest
-        let ts = ch.get_ts(q, ae);
+        let ts = ch.get_ts(&q, ae);
 
         // Check if the arrival/departure fits in the time slice
-        let (fits, ud_new) = ch.find_free_time(ae, ts);
+        let (fits, ud_new) = ch.find_free_time(ae, &ts);
 
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times

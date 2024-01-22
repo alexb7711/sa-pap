@@ -91,7 +91,7 @@ impl Generator for TweakSchedule {
             // Try running the primitive and store the result
             success = match p {
                 Primitives::NewCharger => new_charger::run(&mut rd, ri, c, q, id, ud),
-                Primitives::NewWindow => new_window::run(&mut rd, ri, c, q, ae, ud),
+                Primitives::NewWindow => new_window::run(&mut rd, ri, c, q, id, ae, ud),
                 Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ud),
                 Primitives::SlideVisit => slide_visit::run(&mut rd, ri, c, id, q, ae, ud),
             };

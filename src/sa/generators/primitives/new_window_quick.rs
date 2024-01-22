@@ -1,7 +1,7 @@
 //==============================================================================
 /// The `new_window_quick` primitive is used to remove then add a bus back in.
 //
-pub mod new_window {
+pub mod new_window_quick {
 
     // Import modules
     use crate::sa::charger::Charger;
@@ -18,6 +18,7 @@ pub mod new_window {
     /// * i: Visit index
     /// * ch: Charger object
     /// * q: Charger queue index
+    /// * b: Bus id
     /// * ae: Arrival/exit times
     /// * ud: Start/stop charging times
     ///
@@ -29,6 +30,7 @@ pub mod new_window {
         i: usize,
         ch: &mut Charger,
         q: usize,
+        b: usize,
         ae: &(f32, f32),
         ud: &(f32, f32),
     ) -> bool {
@@ -38,7 +40,7 @@ pub mod new_window {
         }
 
         // Add the same bus back in as a new visit, return false if unsuccessful
-        if !new_visit_quick::run(d, i, ch, q, ae) {
+        if !new_visit_quick::run(d, i, ch, q, b, ae, ud) {
             return false;
         }
 

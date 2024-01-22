@@ -1,14 +1,12 @@
 //==============================================================================
 /// The `new_visit` primitive is used to assign a bus to an available charger.
 //
-pub mod new_visit {
-    // Import standard lib
-    use crate::util::rand_utils;
-
+pub mod new_visit_quick {
     // Import modules
     use crate::sa::charger::Charger;
     use crate::sa::data::Data;
-    use crate::sa::generators::primitives;
+    use crate::sa::generators::primitives::purge::*;
+    use crate::util::rand_utils;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_visit` module. Given the set of
@@ -17,14 +15,26 @@ pub mod new_visit {
     /// failed and true if successful.
     ///
     /// # Input
+    /// * d: MILP data object
+    /// * i: Visit index
     /// * ch: Charger object
+    /// * q: Charger queue index
     /// * b: Bus id
     /// * ae: Arrive/Exit times of the bus
+    /// * ud: Start/stop charging times
     ///
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    pub fn run(d: &mut Data, i: usize, ch: &mut Charger, b: usize, ae: &(f32, f32)) -> bool {
+    pub fn run(
+        d: &mut Data,
+        i: usize,
+        ch: &mut Charger,
+        q: usize,
+        b: usize,
+        ae: &(f32, f32),
+        ud: &(f32, f32),
+    ) -> bool {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Remove the visit, return false if unsuccessful
         if !purge::run(d, i, ch, q, ud) {
@@ -35,16 +45,16 @@ pub mod new_visit {
         // Random selection
 
         // Select a random charger queue
-        let q_new = rand_range(0, ch.charger_count);
+        let q_new = rand_utils::rand_range(0, ch.schedule.len());
 
         // Select random time slice availability
-        let ts_idx = rand_range(0, ch.free_time[q_new].len());
+        let ts_idx = rand_utils::rand_range(0, ch.free_time[q_new].len());
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Attempt to assign the visit
 
         // Check if the arrival/departure fits in the time slice
-        let (fits, ud_new) = ch.find_free_time(ae, ch.free_time[q_new][ts_idx]);
+        let (fits, ud_new) = ch.find_free_time(ae, &ch.free_time[q_new][ts_idx].clone());
 
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
