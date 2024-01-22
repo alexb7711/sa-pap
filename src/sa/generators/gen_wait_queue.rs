@@ -51,32 +51,26 @@ impl Generator for GenWaitQueue {
         // Get information about the route
         let mut data = r.get_data();
 
-        // Determine the amount of BEBs
-        let A: usize = data.param.A;
+        // For each visit
+        for i in route.iter_mut() {
+            // Extract the bus id
+            let b = i.id as usize;
 
-        // For each bus
-        for b in 0..A {
-            // For each visit
-            for i in route.iter_mut() {
-                // If the bus id matches `b`
-                if i.id == b as u16 {
-                    // Set the start/stop charge times
-                    let ad = (i.arrival_time, i.departure_time);
+            // Set the start/stop charge times
+            let ad = (i.arrival_time, i.departure_time);
 
-                    // Check if the bus can be assigned, assign the bus wait queue
-                    if c.assign(b.clone(), ad.clone(), b.clone()) {
-                        // Update route event
-                        i.attach_time = ad.0.clone();
-                        i.detach_time = ad.1.clone();
-                        i.queue = b.clone() as u16;
+            // Check if the bus can be assigned, assign the bus wait queue
+            if c.assign(b.clone(), ad.clone(), b.clone()) {
+                // Update route event
+                i.attach_time = ad.0.clone();
+                i.detach_time = ad.1.clone();
+                i.queue = b.clone() as u16;
 
-                        // Update MILP data
-                        data.dec.u[i.visit] = ad.0.clone();
-                        data.dec.c[i.visit] = ad.1.clone();
-                        data.dec.v[i.visit] = b;
-                        data.dec.w[i.visit][b] = true;
-                    }
-                }
+                // Update MILP data
+                data.dec.u[i.visit] = ad.0.clone();
+                data.dec.c[i.visit] = ad.1.clone();
+                data.dec.v[i.visit] = b;
+                data.dec.w[i.visit][b] = true;
             }
         }
 
