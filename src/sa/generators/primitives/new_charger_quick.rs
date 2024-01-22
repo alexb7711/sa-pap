@@ -45,7 +45,7 @@ pub mod new_charger_quick {
         // Random selection
 
         // Select a random charger queue
-        let q_new = rand_utils::rand_range(0, ch.schedule.len());
+        let q_new = rand_utils::rand_range(0, ch.schedule.len() - 1);
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Attempt to assign the visit

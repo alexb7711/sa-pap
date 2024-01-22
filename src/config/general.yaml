@@ -10,6 +10,9 @@ schedule: "csv"
 # "wait"; "rand"
 solution_gen: "wait"
 
+# "quick"; "exhaustive"
+tweak_method: "quick"
+
 # Output previous decision variable/param results
 load_from_file: 0
 
