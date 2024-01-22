@@ -116,6 +116,13 @@ impl<'a> SA<'a> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
 
+        // Create progress bar and set style
+        self.pb
+            .set_length(self.tf.get_temp_vec().unwrap().len() as u64);
+        self.pb
+            .set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
+
+
         // Extract solution sets
         let sol_orig = *self.gsys.get_data();
         let mut sol_best = *self.gsys.get_data();
@@ -147,13 +154,6 @@ impl<'a> SA<'a> {
             self.update_current_values(&mut sol_current, &mut sol_new);
         }
 
-        // Create progress bar and set style
-        // let bar = ProgressBar::new(self.tf.get_temp_vec().unwrap().len() as u64);
-        self.pb
-            .set_length(self.tf.get_temp_vec().unwrap().len() as u64);
-        self.pb
-            .set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
-
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
             // Set the prefix depending on whether a solution has been found or not
@@ -165,25 +165,6 @@ impl<'a> SA<'a> {
 
             // Print solution found indicator
             self.pb.inc(1);
-
-            // Generate new solution
-            self.gsol.run(&mut self.gsys, &mut self.charger);
-
-            // Extract new data set
-            sol_new = *self.gsys.get_data();
-
-            // Calculate objective function
-            J1 = StdObj::run(&mut sol_new);
-
-            // Update data sets
-            self.update_data_sets(
-                &mut sol_best,
-                &mut sol_current,
-                &mut sol_new,
-                &mut J0,
-                &mut J1,
-                t,
-            );
 
             // Iterate though local search
             for _ in 0..k {
