@@ -1,3 +1,10 @@
+// NOTE ON TESTS
+//
+// `new_window`: In place of the BEB ID, the value of 0 is passed due to the way
+// that the charger data structures are created for testing. This is only occurs
+// for testing, normal use case should include the BEB id.
+//
+
 extern crate sa_pap;
 
 //===============================================================================
@@ -244,7 +251,7 @@ mod test_primitive_generators {
 
         // Un-assign and reassign bus
         assert_eq!(
-            new_window::run(&mut rd, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.1, 0.2), &(0.1, 0.2)),
             true
         );
         assert_eq!(charger.schedule[q].len(), 3);
@@ -274,7 +281,7 @@ mod test_primitive_generators {
 
         // Un-assign and reassign bus
         assert_eq!(
-            new_window::run(&mut rd, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5)),
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.3, 0.5), &(0.3, 0.5)),
             true
         );
         assert_eq!(charger.schedule[q].len(), 3);
@@ -332,7 +339,7 @@ mod test_primitive_generators {
 
         // Test 2 - Un-assign and reassign bus
         assert!(
-            new_window::run(&mut rd, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.1, 0.2), &(0.1, 0.2)),
             "Failed to find new window."
         );
         assert_eq!(charger.schedule[q].len(), 3);
