@@ -80,7 +80,7 @@ impl Plotter for SchedulePlot {
                 // If the current visit is for bus b
                 if *b == G[i] {
                     // Append the visit information to vectors
-                    slow_x.push((cslow[i] - uslow[i]) / 2.0);
+                    slow_x.push((cslow[i] + uslow[i]) / 2.0);
                     slow_err.push(cslow[i] - uslow[i]);
                     slow_y.push(vslow[i]);
                 }
@@ -95,7 +95,7 @@ impl Plotter for SchedulePlot {
                 // If the current visit is for bus b
                 if *b == G[i] {
                     // Append the visit information to vectors
-                    fast_x.push((cfast[i] - ufast[i]) / 2.0);
+                    fast_x.push((cfast[i] + ufast[i]) / 2.0);
                     fast_err.push(cfast[i] - ufast[i]);
                     fast_y.push(vfast[i]);
                 }
