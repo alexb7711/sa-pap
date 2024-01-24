@@ -48,7 +48,7 @@ pub mod new_visit_quick {
         let q_new = rand_utils::rand_range(0, ch.schedule.len() - 1);
 
         // Select random time slice availability
-        let ts_idx = rand_utils::rand_range(0, ch.free_time[q_new].len());
+        let ts_idx = rand_utils::rand_range(0, ch.free_time[q_new].len() - 1);
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Attempt to assign the visit

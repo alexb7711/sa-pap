@@ -17,7 +17,9 @@ mod test_primitive_generators {
     use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::data::Data;
     use super::sa_pap::sa::generators::primitives::new_charger::*;
+    use super::sa_pap::sa::generators::primitives::new_charger_quick::*;
     use super::sa_pap::sa::generators::primitives::new_visit::*;
+    use super::sa_pap::sa::generators::primitives::new_visit_quick::*;
     use super::sa_pap::sa::generators::primitives::new_window::*;
     use super::sa_pap::sa::generators::primitives::purge::*;
     use super::sa_pap::sa::generators::primitives::slide_visit::*;
@@ -416,4 +418,101 @@ mod test_primitive_generators {
         ));
         assert_ne!(rd.dec.v[0], 1);
     }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_new_charger_quick() {
+        // Get route data
+        let mut rd = get_data();
+
+        // Create charger
+        let mut charger: Charger = Charger::new(schedule_path(), true, Some(rd.param.A), None);
+
+        // Create a simple schedule
+        let q: usize = 1;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+        charger.assign(q, c, id);
+
+        let q: usize = 0;
+        let id: usize = 1;
+        let c: (f32, f32) = (0.0, 0.02);
+        charger.assign(q, c, id);
+
+        let q: usize = 1;
+        let id: usize = 2;
+        let c: (f32, f32) = (0.3174, 0.5);
+        charger.assign(q, c, id);
+
+        // Test 1 - Check the number of assignments
+        assert_eq!(charger.schedule[q].len(), 2);
+
+        // Test 2 - Change charger
+        assert!(new_charger_quick::run(
+            &mut rd,
+            0,
+            &mut charger,
+            1,
+            3,
+            &(0.1, 0.2)
+        ));
+        assert_ne!(rd.dec.v[0], 1);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_new_visit_quick() {
+        // Get route data
+        let mut rd = get_data();
+
+        // Create charger
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
+
+        // Queue index
+        let q: usize = 0;
+
+        // Bus ID
+        let id: usize = 0;
+
+        // Create random assignment
+        charger.assign(0, (0.01, 0.09), 0);
+
+        // Test 0 - Ensure that the free time is (BOD, EOD)
+        assert_eq!(charger.free_time[q][0], (0.0, 0.01));
+        assert_eq!(charger.free_time[q][1], (0.09, 24.0));
+
+        // Test 1 - Ensure the size of free times is 1
+        assert_eq!(charger.free_time[q].len(), 2);
+
+        // Test 2 - Create a new visit in an empty schedule
+        assert!(
+            new_visit_quick::run(
+                &mut rd,
+                0,
+                &mut charger,
+                q,
+                id,
+                &(0.01, 0.09),
+                &(0.01, 0.09)
+            ),
+            "Could not create new visit."
+        );
+        assert_eq!(rd.dec.v[0], 0);
+        assert_eq!(rd.dec.w[0][0], true);
+
+        // Test 3 - Ensure the size of free times is now 2
+        assert_eq!(charger.free_time[q].len(), 2);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_new_window_quick() {}
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_slide_visit_quick() {}
 }
