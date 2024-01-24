@@ -509,10 +509,30 @@ mod test_primitive_generators {
     //---------------------------------------------------------------------------
     //
     #[test]
-    fn test_new_window_quick() {}
+    fn test_slide_visit_quick() {
+        // Create charger
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
-    //---------------------------------------------------------------------------
-    //
-    #[test]
-    fn test_slide_visit_quick() {}
+        // Get route data
+        let mut rd = get_data();
+
+        // Create a simple schedule
+        let q: usize = 0;
+        let id: usize = 0;
+
+        let c: (f32, f32) = (0.1, 0.2);
+        charger.assign(q, c, id);
+
+        // Test 1 - Check the number of assignments
+        assert_eq!(charger.schedule[q].len(), 1);
+
+        // Test 2 - Un-assign and reassign bus
+        assert!(
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.1, 0.2), &(0.1, 0.2)),
+            "Failed to find new window."
+        );
+        assert_eq!(charger.schedule[q].len(), 1);
+        assert!(rd.dec.u[0] >= 0.1 && rd.dec.u[0] <= 0.2);
+        assert!(rd.dec.c[0] >= rd.dec.u[0] && rd.dec.c[0] <= 0.2);
+    }
 }

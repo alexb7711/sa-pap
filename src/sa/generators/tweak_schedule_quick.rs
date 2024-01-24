@@ -9,7 +9,7 @@ use strum::{EnumIter, IntoEnumIterator};
 // Import developed modules
 use crate::sa::charger::Charger;
 use crate::sa::generators::primitives::new_charger_quick::*;
-use crate::sa::generators::primitives::new_window_quick::*;
+use crate::sa::generators::primitives::new_visit_quick::*;
 use crate::sa::generators::primitives::slide_visit_quick::*;
 use crate::sa::generators::primitives::wait::*;
 use crate::sa::generators::Generator;
@@ -91,7 +91,7 @@ impl Generator for TweakScheduleQuick {
             // Try running the primitive and store the result
             success = match p {
                 Primitives::NewCharger => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
-                Primitives::NewWindow => new_window_quick::run(&mut rd, ri, c, q, id, ae, ud),
+                Primitives::NewWindow => new_visit_quick::run(&mut rd, ri, c, q, id, ae, ud),
                 Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
                 Primitives::SlideVisit => slide_visit_quick::run(&mut rd, ri, c, id, q, ae, ud),
             };
