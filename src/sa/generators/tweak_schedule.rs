@@ -92,12 +92,13 @@ impl Generator for TweakSchedule {
             success = match p {
                 Primitives::NewCharger => new_charger::run(&mut rd, ri, c, q, id, ud),
                 Primitives::NewWindow => new_window::run(&mut rd, ri, c, q, id, ae, ud),
-                Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ud),
+                Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
                 Primitives::SlideVisit => slide_visit::run(&mut rd, ri, c, id, q, ae, ud),
             };
 
             // If successful, update the MILP data and break out of loop
             if success {
+                println!("{:?} said it was successful", p);
                 r.set_data(rd.clone());
                 break;
             }

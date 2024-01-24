@@ -8,7 +8,7 @@ mod test_tweak_schedule {
     //--------------------------------------------------------------------------
     // Import modules
     use super::sa_pap::sa::charger::Charger;
-    use super::sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
+    use super::sa_pap::sa::generators::gen_new_visits::GenNewVisits;
     use super::sa_pap::sa::generators::tweak_schedule::TweakSchedule;
     use super::sa_pap::sa::generators::Generator;
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
@@ -44,7 +44,7 @@ mod test_tweak_schedule {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Create solution generator and run it
-        let mut gsol: Box<GenWaitQueue> = Box::new(GenWaitQueue::new());
+        let mut gsol: Box<GenNewVisits> = Box::new(GenNewVisits::new());
         gsol.run(&mut gsys, &mut charger);
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

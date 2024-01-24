@@ -187,7 +187,15 @@ mod test_primitive_generators {
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 1
-        assert!(wait::run(&mut rd, i, &mut charger, q, id, &(0.1, 0.2)));
+        assert!(wait::run(
+            &mut rd,
+            i,
+            &mut charger,
+            q,
+            id,
+            &(0.1, 0.2),
+            &(0.1, 0.2)
+        ));
         assert_eq!(rd.dec.v[i], id);
         assert_eq!(rd.dec.w[i][rd.dec.v[i]], true);
         assert_eq!(time_slice_exists(&charger, &id, &(0.1, 0.2)), true);
@@ -205,14 +213,22 @@ mod test_primitive_generators {
         // Test 2
         println!("{:?}", charger.schedule[0]);
         assert_eq!(
-            wait::run(&mut rd, i, &mut charger, q, id, &(0.1, 0.2)),
+            wait::run(&mut rd, i, &mut charger, q, id, &(0.1, 0.2), &(0.1, 0.2)),
             false
         );
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
         assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 3
-        assert!(wait::run(&mut rd, 0, &mut charger, q, id, &(0.0, 0.02)));
+        assert!(wait::run(
+            &mut rd,
+            0,
+            &mut charger,
+            q,
+            id,
+            &(0.0, 0.02),
+            &(0.0, 0.02)
+        ));
         assert_eq!(time_slice_exists(&charger, &id, &(0.0, 0.02)), true);
         assert_eq!(charger.schedule[id].len(), 1);
         assert_eq!(charger.schedule[q].len(), 1);

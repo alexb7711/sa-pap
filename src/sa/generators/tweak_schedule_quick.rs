@@ -92,7 +92,7 @@ impl Generator for TweakScheduleQuick {
             success = match p {
                 Primitives::NewCharger => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
                 Primitives::NewWindow => new_window_quick::run(&mut rd, ri, c, q, id, ae, ud),
-                Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ud),
+                Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
                 Primitives::SlideVisit => slide_visit_quick::run(&mut rd, ri, c, id, q, ae, ud),
             };
 
