@@ -577,4 +577,56 @@ mod test_charger {
             assert!(!fits);
         }
     }
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_get_ts() {
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+
+        // Add queues (four three chargers)
+        charger.add_chargers(2);
+
+        // Test 0
+        let q: usize = 0;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+
+        // Ensure that the charger space is available
+        assert!(charger.avail(&q, &c));
+
+        // No assignments been made, should return the entire day
+        assert_eq!(charger.get_ts(&0, &(0.12, 0.19)), (0.0, 24.0));
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
+        // One assignment has been made
+        assert_eq!(charger.get_ts(&0, &(0.12, 0.19)), (0.0, 0.0));
+        assert_eq!(charger.get_ts(&0, &(0.01, 0.05)), (0.0, 0.1));
+        assert_eq!(charger.get_ts(&0, &(0.3, 5.0)), (0.2, 24.0));
+
+        // Test 1
+        let q: usize = 0;
+        let c: (f32, f32) = (0.25, 0.3);
+        let id: usize = 3;
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
+        // One assignment has been made
+        assert_eq!(charger.get_ts(&0, &(0.12, 0.19)), (0.0, 0.0));
+        assert_eq!(charger.get_ts(&0, &(0.01, 0.05)), (0.0, 0.1));
+        assert_eq!(charger.get_ts(&0, &(0.3, 5.0)), (0.3, 24.0));
+
+        // Test 2
+        let q: usize = 1;
+        let c: (f32, f32) = (0.0, 0.5);
+        let id: usize = 2;
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
+        assert_eq!(charger.schedule[q][0], Assignment { t: c, b: id });
+    }
 }
