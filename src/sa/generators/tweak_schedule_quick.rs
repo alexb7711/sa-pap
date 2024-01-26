@@ -8,9 +8,9 @@ use strum::{EnumIter, IntoEnumIterator};
 //===============================================================================
 // Import developed modules
 use crate::sa::charger::Charger;
-use crate::sa::generators::primitives::new_charger::*;
-use crate::sa::generators::primitives::new_window::*;
-use crate::sa::generators::primitives::slide_visit::*;
+use crate::sa::generators::primitives::new_charger_quick::*;
+use crate::sa::generators::primitives::new_visit_quick::*;
+use crate::sa::generators::primitives::slide_visit_quick::*;
 use crate::sa::generators::primitives::wait::*;
 use crate::sa::generators::Generator;
 use crate::sa::route::Route;
@@ -44,31 +44,31 @@ impl Distribution<Primitives> for Standard {
 /// Structure defining the information to create a charge schedule
 //
 #[derive(Default)]
-pub struct TweakSchedule {}
+pub struct TweakScheduleQuick {}
 
 //===============================================================================
-/// Implementation of `TweakSchedule`
+/// Implementation of `TweakScheduleQuick`
 //
-impl TweakSchedule {
+impl TweakScheduleQuick {
     //---------------------------------------------------------------------------
-    /// Initialize the `TweakSchedule` object
+    /// Initialize the `TweakScheduleQuick` object
     ///
     /// # Input
     /// * NONE
     ///
     /// # Output
-    /// * `TweakSchedule`: Simulated annealing structure
+    /// * `TweakScheduleQuick`: Simulated annealing structure
     ///
-    pub fn new() -> TweakSchedule {
-        return TweakSchedule {};
+    pub fn new() -> TweakScheduleQuick {
+        return TweakScheduleQuick {};
     }
 }
 
 //===============================================================================
-/// Implementation of `Generator` for `TweakSchedule`
+/// Implementation of `Generator` for `TweakScheduleQuick`
 //
-impl Generator for TweakSchedule {
-    fn run(self: &mut TweakSchedule, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
+impl Generator for TweakScheduleQuick {
+    fn run(self: &mut TweakScheduleQuick, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Track the success of tweak
         let mut success: bool = false;
 
@@ -90,15 +90,14 @@ impl Generator for TweakSchedule {
         for p in primitives {
             // Try running the primitive and store the result
             success = match p {
-                Primitives::NewCharger => new_charger::run(&mut rd, ri, c, q, id, ud),
-                Primitives::NewWindow => new_window::run(&mut rd, ri, c, q, id, ae, ud),
+                Primitives::NewCharger => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
+                Primitives::NewWindow => new_visit_quick::run(&mut rd, ri, c, q, id, ae, ud),
                 Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
-                Primitives::SlideVisit => slide_visit::run(&mut rd, ri, c, id, q, ae, ud),
+                Primitives::SlideVisit => slide_visit_quick::run(&mut rd, ri, c, id, q, ae, ud),
             };
 
             // If successful, update the MILP data and break out of loop
             if success {
-                println!("{:?} said it was successful", p);
                 r.set_data(rd.clone());
                 break;
             }

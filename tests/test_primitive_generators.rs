@@ -1,3 +1,10 @@
+// NOTE ON TESTS
+//
+// `new_window`: In place of the BEB ID, the value of 0 is passed due to the way
+// that the charger data structures are created for testing. This is only occurs
+// for testing, normal use case should include the BEB id.
+//
+
 extern crate sa_pap;
 
 //===============================================================================
@@ -10,7 +17,9 @@ mod test_primitive_generators {
     use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::data::Data;
     use super::sa_pap::sa::generators::primitives::new_charger::*;
+    use super::sa_pap::sa::generators::primitives::new_charger_quick::*;
     use super::sa_pap::sa::generators::primitives::new_visit::*;
+    use super::sa_pap::sa::generators::primitives::new_visit_quick::*;
     use super::sa_pap::sa::generators::primitives::new_window::*;
     use super::sa_pap::sa::generators::primitives::purge::*;
     use super::sa_pap::sa::generators::primitives::slide_visit::*;
@@ -180,7 +189,15 @@ mod test_primitive_generators {
         assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 1
-        assert!(wait::run(&mut rd, i, &mut charger, q, id, &(0.1, 0.2)));
+        assert!(wait::run(
+            &mut rd,
+            i,
+            &mut charger,
+            q,
+            id,
+            &(0.1, 0.2),
+            &(0.1, 0.2)
+        ));
         assert_eq!(rd.dec.v[i], id);
         assert_eq!(rd.dec.w[i][rd.dec.v[i]], true);
         assert_eq!(time_slice_exists(&charger, &id, &(0.1, 0.2)), true);
@@ -198,14 +215,22 @@ mod test_primitive_generators {
         // Test 2
         println!("{:?}", charger.schedule[0]);
         assert_eq!(
-            wait::run(&mut rd, i, &mut charger, q, id, &(0.1, 0.2)),
+            wait::run(&mut rd, i, &mut charger, q, id, &(0.1, 0.2), &(0.1, 0.2)),
             false
         );
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
         assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 3
-        assert!(wait::run(&mut rd, 0, &mut charger, q, id, &(0.0, 0.02)));
+        assert!(wait::run(
+            &mut rd,
+            0,
+            &mut charger,
+            q,
+            id,
+            &(0.0, 0.02),
+            &(0.0, 0.02)
+        ));
         assert_eq!(time_slice_exists(&charger, &id, &(0.0, 0.02)), true);
         assert_eq!(charger.schedule[id].len(), 1);
         assert_eq!(charger.schedule[q].len(), 1);
@@ -244,7 +269,7 @@ mod test_primitive_generators {
 
         // Un-assign and reassign bus
         assert_eq!(
-            new_window::run(&mut rd, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.1, 0.2), &(0.1, 0.2)),
             true
         );
         assert_eq!(charger.schedule[q].len(), 3);
@@ -274,7 +299,7 @@ mod test_primitive_generators {
 
         // Un-assign and reassign bus
         assert_eq!(
-            new_window::run(&mut rd, 0, &mut charger, q, &(0.3, 0.5), &(0.3, 0.5)),
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.3, 0.5), &(0.3, 0.5)),
             true
         );
         assert_eq!(charger.schedule[q].len(), 3);
@@ -332,7 +357,7 @@ mod test_primitive_generators {
 
         // Test 2 - Un-assign and reassign bus
         assert!(
-            new_window::run(&mut rd, 0, &mut charger, q, &(0.1, 0.2), &(0.1, 0.2)),
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.1, 0.2), &(0.1, 0.2)),
             "Failed to find new window."
         );
         assert_eq!(charger.schedule[q].len(), 3);
@@ -392,5 +417,122 @@ mod test_primitive_generators {
             &(0.1, 0.2)
         ));
         assert_ne!(rd.dec.v[0], 1);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_new_charger_quick() {
+        // Get route data
+        let mut rd = get_data();
+
+        // Create charger
+        let mut charger: Charger = Charger::new(schedule_path(), true, Some(rd.param.A), None);
+
+        // Create a simple schedule
+        let q: usize = 1;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+        charger.assign(q, c, id);
+
+        let q: usize = 0;
+        let id: usize = 1;
+        let c: (f32, f32) = (0.0, 0.02);
+        charger.assign(q, c, id);
+
+        let q: usize = 1;
+        let id: usize = 2;
+        let c: (f32, f32) = (0.3174, 0.5);
+        charger.assign(q, c, id);
+
+        // Test 1 - Check the number of assignments
+        assert_eq!(charger.schedule[q].len(), 2);
+
+        // Test 2 - Change charger
+        assert!(new_charger_quick::run(
+            &mut rd,
+            0,
+            &mut charger,
+            1,
+            3,
+            &(0.1, 0.2)
+        ));
+        assert_ne!(rd.dec.v[0], 1);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_new_visit_quick() {
+        // Get route data
+        let mut rd = get_data();
+
+        // Create charger
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
+
+        // Queue index
+        let q: usize = 0;
+
+        // Bus ID
+        let id: usize = 0;
+
+        // Create random assignment
+        charger.assign(0, (0.01, 0.09), 0);
+
+        // Test 0 - Ensure that the free time is (BOD, EOD)
+        assert_eq!(charger.free_time[q][0], (0.0, 0.01));
+        assert_eq!(charger.free_time[q][1], (0.09, 24.0));
+
+        // Test 1 - Ensure the size of free times is 1
+        assert_eq!(charger.free_time[q].len(), 2);
+
+        // Test 2 - Create a new visit in an empty schedule
+        assert!(
+            new_visit_quick::run(
+                &mut rd,
+                0,
+                &mut charger,
+                q,
+                id,
+                &(0.01, 0.09),
+                &(0.01, 0.09)
+            ),
+            "Could not create new visit."
+        );
+        assert_eq!(rd.dec.v[0], 0);
+        assert_eq!(rd.dec.w[0][0], true);
+
+        // Test 3 - Ensure the size of free times is now 2
+        assert_eq!(charger.free_time[q].len(), 2);
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_slide_visit_quick() {
+        // Create charger
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
+
+        // Get route data
+        let mut rd = get_data();
+
+        // Create a simple schedule
+        let q: usize = 0;
+        let id: usize = 0;
+
+        let c: (f32, f32) = (0.1, 0.2);
+        charger.assign(q, c, id);
+
+        // Test 1 - Check the number of assignments
+        assert_eq!(charger.schedule[q].len(), 1);
+
+        // Test 2 - Un-assign and reassign bus
+        assert!(
+            new_window::run(&mut rd, 0, &mut charger, q, 0, &(0.1, 0.2), &(0.1, 0.2)),
+            "Failed to find new window."
+        );
+        assert_eq!(charger.schedule[q].len(), 1);
+        assert!(rd.dec.u[0] >= 0.1 && rd.dec.u[0] <= 0.2);
+        assert!(rd.dec.c[0] >= rd.dec.u[0] && rd.dec.c[0] <= 0.2);
     }
 }

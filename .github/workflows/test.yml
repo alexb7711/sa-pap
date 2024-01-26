@@ -21,4 +21,4 @@ jobs:
     - name: Build Project
       run: cargo build
     - name: Test Project
-      run: cargo test
+      run: make long-test

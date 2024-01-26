@@ -221,6 +221,50 @@ impl Charger {
     }
 
     //--------------------------------------------------------------------------
+    /// The `get_ts` function checks if the given a charger queue and time frame
+    /// is available for assignment and returns the time slice.
+    ///
+    /// # Input
+    /// * q: Charger queue index
+    /// * c: Candidate time frame tuple
+    ///
+    /// # Output
+    /// * ts: returns the range [L,U] if a time slice is available. [0,0]
+    /// is returned otherwise.
+    ///
+    pub fn get_ts(self: &mut Charger, q: &usize, c: &(f32, f32)) -> (f32, f32) {
+        // If the queue is empty, return true
+        if self.schedule[*q].len() == 0 {
+            return self.free_time[*q][0];
+        }
+
+        // Iterate through the schedule for charger q
+        for it in self.free_time[*q].iter() {
+            // Extract the iterator
+            let ts = *it;
+
+            // Compare the current scheduled time with the candidate
+            // If the candidate time has any of the following properties:
+            //
+            // * the candidates initial and final are greater than or equal to the lower free time
+            // * the candidates initial and final times are less than or equal to the upper free time
+            //
+            // That is L <= c.0 <= c.1 <= U.
+            //
+            if (c.0 >= ts.0 && c.1 >= ts.0) && (c.0 <= ts.1 && c.1 <= ts.1) {
+                // Return the matched time slice
+                return ts;
+            } else {
+                // Continue searching for an availability
+                continue;
+            }
+        }
+
+        // Indicate that no time is available
+        return (0.0, 0.0);
+    }
+
+    //--------------------------------------------------------------------------
     /// The `exists` function checks if given candidate time slice exists in the current queue
     ///
     /// # Input

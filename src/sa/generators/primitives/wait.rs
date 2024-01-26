@@ -18,6 +18,7 @@ pub mod wait {
     /// * ch: Charger object
     /// * q: Charger queue index
     /// * b: Bus id
+    /// * ae: Arrival/exit times
     /// * ud: Start/stop charging times
     ///
     /// # Output
@@ -29,6 +30,7 @@ pub mod wait {
         ch: &mut Charger,
         q: usize,
         b: usize,
+        ae: &(f32, f32),
         ud: &(f32, f32),
     ) -> bool {
         // Remove the visit, return false if unsuccessful
@@ -40,7 +42,7 @@ pub mod wait {
         let q: usize = b;
 
         // Return true/false if assignment succeeded/failed
-        if ch.assign(q, *ud, b) {
+        if ch.assign(q, *ae, b) {
             // Update route data
             if d.param.N > 0 {
                 // Update queue to wait queue
@@ -49,10 +51,10 @@ pub mod wait {
                 d.dec.w[i][d.dec.v[i]] = true;
 
                 // Update attach
-                d.dec.u[i] = ud.0;
+                d.dec.u[i] = ae.0;
 
                 // Update detach time
-                d.dec.c[i] = ud.1;
+                d.dec.c[i] = ae.1;
             }
 
             return true;

@@ -28,16 +28,19 @@ pub fn rand_route_count(vec_size: u16, sum_val: u16) -> Vec<u16> {
 }
 
 //===============================================================================
-/// Creates a list of `vec_size` values that sum up `sum_val`
+/// Wrapper to generate a random value in the given range.
 ///
 /// # Input
-/// * `vec_size`: Size of vec
-/// * `sum_val`   : Value that all numbers in vec add up to
+/// * `lower_bound`: Smallest value allowed
+/// * `upper_bound`: Largest value allowed
 ///
 /// # Output
-/// * `rand_vec`: vec of random values that add up to `sum_val`
+/// * `rand`: A random value within the range [lower_bound, upper_bound]
 ///
-pub fn rand_range(lower_bound: f32, upper_bound: f32) -> f32 {
+pub fn rand_range<T: rand::distributions::uniform::SampleUniform + std::cmp::PartialOrd>(
+    lower_bound: T,
+    upper_bound: T,
+) -> T {
     return rand::thread_rng().gen_range(lower_bound..=upper_bound);
 }
 

@@ -11,6 +11,7 @@ use sa_pap::plotter;
 use sa_pap::sa::generators::gen_new_visits::GenNewVisits;
 use sa_pap::sa::generators::gen_wait_queue::GenWaitQueue;
 use sa_pap::sa::generators::tweak_schedule::TweakSchedule;
+use sa_pap::sa::generators::tweak_schedule_quick::TweakScheduleQuick;
 use sa_pap::sa::generators::Generator;
 use sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
 use sa_pap::sa::route::route_rand_generator::RouteRandGenerator;
@@ -61,6 +62,9 @@ fn execute(pb: &mut ProgressBar) {
 
     // Determine solution generator
     let sol_gen = gen_config["solution_gen"].clone().into_string().unwrap();
+
+    // Determine schedule tweaker
+    let sched_tweaker = gen_config["tweak_method"].clone().into_string().unwrap();
 
     // Decide to load previous run solution
     let load_from_file: bool =
@@ -117,7 +121,12 @@ fn execute(pb: &mut ProgressBar) {
     }
 
     // Create tweaker
-    let gtweak: Box<TweakSchedule> = Box::new(TweakSchedule::new());
+    let gtweak: Box<dyn Generator>;
+    if sched_tweaker == "quick" {
+        gtweak = Box::new(TweakScheduleQuick::new());
+    } else {
+        gtweak = Box::new(TweakSchedule::new());
+    }
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Create SA object and run SA

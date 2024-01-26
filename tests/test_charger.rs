@@ -382,6 +382,70 @@ mod test_charger {
     //---------------------------------------------------------------------------
     //
     #[test]
+    fn test_charger_get_ts() {
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+
+        // Add queues (four total chargers)
+        charger.add_chargers(3);
+
+        // Test 1 - Assign to empty queue
+        let q: usize = 0;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+
+        // Ensure that the charger space is available
+        assert_ne!(charger.get_ts(&q, &c), (0.0, 0.0));
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
+        // Test 2 - Check if previous assigned charger is still available
+        assert_eq!(charger.get_ts(&q, &c), (0.0, 0.0));
+
+        // Test 3 - Assign a few new time slices
+        let q: usize = 0;
+        let c: (f32, f32) = (0.21, 0.23);
+        let id: usize = 3;
+        assert_ne!(charger.get_ts(&q, &c), (0.0, 0.0));
+        charger.assign(q, c, id);
+
+        let q: usize = 0;
+        let c: (f32, f32) = (0.01, 0.09);
+        let id: usize = 3;
+        assert_ne!(charger.get_ts(&q, &c), (0.0, 0.0));
+        charger.assign(q, c, id);
+
+        let q: usize = 0;
+        let c: (f32, f32) = (0.4, 0.51);
+        let id: usize = 3;
+        assert_ne!(charger.get_ts(&q, &c), (0.0, 0.0));
+        charger.assign(q, c, id);
+
+        // Test 4 - Assign a huge time
+        let q: usize = 0;
+        let c: (f32, f32) = (0.0, 1.0);
+        assert_eq!(charger.get_ts(&q, &c), (0.0, 0.0));
+
+        // Test 5 - Assign a small but unavailable time
+        let q: usize = 0;
+        let c: (f32, f32) = (0.02, 0.03);
+        assert_eq!(charger.get_ts(&q, &c), (0.0, 0.0));
+
+        // Test 6 - Assign a small but available time
+        let q: usize = 0;
+        let c: (f32, f32) = (0.331, 0.339);
+        assert_ne!(charger.get_ts(&q, &c), (0.0, 0.0));
+
+        // Test 7 - Assign a small but unavailable time
+        let q: usize = 0;
+        let c: (f32, f32) = (0.401, 0.403);
+        assert_eq!(charger.get_ts(&q, &c), (0.0, 0.0));
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
     fn test_free_time() {
         // Create charger
         let q: usize = 0;
@@ -512,5 +576,57 @@ mod test_charger {
         } else {
             assert!(!fits);
         }
+    }
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_get_ts() {
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+
+        // Add queues (four three chargers)
+        charger.add_chargers(2);
+
+        // Test 0
+        let q: usize = 0;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+
+        // Ensure that the charger space is available
+        assert!(charger.avail(&q, &c));
+
+        // No assignments been made, should return the entire day
+        assert_eq!(charger.get_ts(&0, &(0.12, 0.19)), (0.0, 24.0));
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
+        // One assignment has been made
+        assert_eq!(charger.get_ts(&0, &(0.12, 0.19)), (0.0, 0.0));
+        assert_eq!(charger.get_ts(&0, &(0.01, 0.05)), (0.0, 0.1));
+        assert_eq!(charger.get_ts(&0, &(0.3, 5.0)), (0.2, 24.0));
+
+        // Test 1
+        let q: usize = 0;
+        let c: (f32, f32) = (0.25, 0.3);
+        let id: usize = 3;
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
+        // One assignment has been made
+        assert_eq!(charger.get_ts(&0, &(0.12, 0.19)), (0.0, 0.0));
+        assert_eq!(charger.get_ts(&0, &(0.01, 0.05)), (0.0, 0.1));
+        assert_eq!(charger.get_ts(&0, &(0.3, 5.0)), (0.3, 24.0));
+
+        // Test 2
+        let q: usize = 1;
+        let c: (f32, f32) = (0.0, 0.5);
+        let id: usize = 2;
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
+        assert_eq!(charger.schedule[q][0], Assignment { t: c, b: id });
     }
 }
