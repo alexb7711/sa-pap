@@ -252,6 +252,10 @@ impl<'a> SA<'a> {
         if in_sol_space {
             // Indicate a solution was found
             self.sol_found = true;
+        } else {
+            // Otherwise the solution is not in the feasible space, so give J1
+            // a really bad score.
+            *j1 = INVALID_SOLUTION;
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -262,12 +266,8 @@ impl<'a> SA<'a> {
             // Update the current solution with the new data set
             self.update_current_values(sol_current, sol_new);
 
-            if in_sol_space {
-                // Update J0
-                *j0 = *j1;
-            } else {
-                *j0 = INVALID_SOLUTION;
-            }
+            // Update J0
+            *j0 = *j1;
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
