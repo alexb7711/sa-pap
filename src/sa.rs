@@ -27,6 +27,10 @@ use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
 
 //==============================================================================
+// Static Variables
+static INVALID_SOLUTION: f64 = 99999999.0;
+
+//==============================================================================
 /// Results from simulated annealing
 /// TODO: Remove `#[allow(dead_code)]
 //
@@ -122,7 +126,6 @@ impl<'a> SA<'a> {
         self.pb
             .set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
 
-
         // Extract solution sets
         let sol_orig = *self.gsys.get_data();
         let mut sol_best = *self.gsys.get_data();
@@ -135,7 +138,7 @@ impl<'a> SA<'a> {
 
         // Initialize objective function variables
         let mut J0: f64;
-        let mut J1: f64 = 99999999.0; // Initialize to some obscene value
+        let mut J1: f64 = INVALID_SOLUTION;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
@@ -242,11 +245,11 @@ impl<'a> SA<'a> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Check if the data is valid
 
-        // If the constraint check failed
-        if !constraints::run(sol_new) {
-            // Bail
-            return;
-        } else {
+        // Determine if the solution is in the feasible space
+        let in_sol_space = constraints::run(sol_new);
+
+        // If the constraint check succeeded
+        if in_sol_space {
             // Indicate a solution was found
             self.sol_found = true;
         }
@@ -259,8 +262,12 @@ impl<'a> SA<'a> {
             // Update the current solution with the new data set
             self.update_current_values(sol_current, sol_new);
 
-            // Update J0
-            *j0 = *j1;
+            if in_sol_space {
+                // Update J0
+                *j0 = *j1;
+            } else {
+                *j0 = INVALID_SOLUTION;
+            }
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -268,7 +275,7 @@ impl<'a> SA<'a> {
         let jbest = StdObj::run(sol_best);
 
         // If the current solution is strictly better than the current best
-        if jbest == 0.0 || jbest - *j0 > 0.0 {
+        if in_sol_space && jbest - *j0 > 0.0 {
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }
