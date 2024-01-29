@@ -118,4 +118,8 @@ impl Plotter for ChargePlot {
         // Save GNUPlot
         fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
     }
+
+    //===============================================================================
+    //
+    fn real_time(_: bool, _: &mut Box<Data>, _: &mut Figure, _: &mut Figure) {}
 }

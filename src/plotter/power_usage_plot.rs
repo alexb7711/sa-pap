@@ -105,4 +105,8 @@ impl Plotter for PowerUsagePlot {
         let name: String = String::from("slow-charger-power-usage");
         fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
     }
+
+    //===============================================================================
+    //
+    fn real_time(_: bool, _: &mut Box<Data>, _: &mut Figure, _: &mut Figure) {}
 }
