@@ -205,11 +205,18 @@ impl Plotter for SchedulePlot {
         fg_slow: &mut Figure,
         fg_fast: &mut Figure,
     ) {
+        if display_plot {
+            // Clear plots
+            fg_slow.clear_axes();
+            fg_fast.clear_axes();
+        }
+
         // Create plot
         SchedulePlot::create_plot(d, fg_slow, fg_fast);
 
         // Plot Figure
         if display_plot {
+            // Update plots
             fg_slow.show_and_keep_running().unwrap();
             fg_fast.show_and_keep_running().unwrap();
         }
