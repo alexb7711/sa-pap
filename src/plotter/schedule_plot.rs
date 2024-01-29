@@ -16,8 +16,8 @@ use crate::sa::data::Data;
 pub struct SchedulePlot {}
 
 //===============================================================================
-/// Implementation of the plotting function to display the schedule of the BEBs.
-/// The plot consists of
+/// Helper functions for the `SchedulePlot` object.
+///
 ///
 /// # Input
 /// * d: Boxed data
@@ -26,8 +26,17 @@ pub struct SchedulePlot {}
 /// * Schedule plot
 ///
 ///
-impl Plotter for SchedulePlot {
-    fn plot(display_plot: bool, d: &mut Box<Data>) {
+impl SchedulePlot {
+    //--------------------------------------------------------------------------
+    ///
+    /// # Input
+    /// * : Boxed data
+    ///
+    /// # Output
+    /// * None
+    ///
+    ///
+    fn create_plot(d: &mut Box<Data>, fg_slow: &mut Figure, fg_fast: &mut Figure) {
         // Variables
         let N = d.param.N;
         let A = d.param.A;
@@ -55,7 +64,7 @@ impl Plotter for SchedulePlot {
                 cslow.push(c[i]);
                 uslow.push(u[i]);
                 vslow.push(v[i]);
-            } else {
+            } else if v[i] >= A + d.param.slow && v[i] < A + d.param.slow + d.param.fast {
                 afast.push(a[i]);
                 cfast.push(c[i]);
                 ufast.push(u[i]);
@@ -104,9 +113,6 @@ impl Plotter for SchedulePlot {
 
         //----------------------------------------------------------------------
         // Configure plot
-        let mut fg_slow = Figure::new();
-        let mut fg_fast = Figure::new();
-
         // Plot slow charges
         let name: String = String::from("Slow Schedule");
         fg_slow
@@ -115,7 +121,8 @@ impl Plotter for SchedulePlot {
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
-            .set_y_label("Energy Usage [KWh]", &[])
+            .set_y_label("Queue", &[])
+            .set_y_range(Fix(0.0), Fix(d.param.slow as f64))
             .x_error_bars(slow_x.clone(), slow_y.clone(), slow_err, &[]);
 
         // Plot fast charges
@@ -126,15 +133,22 @@ impl Plotter for SchedulePlot {
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
-            .set_y_label("Energy Usage [KWh]", &[])
+            .set_y_label("Queue", &[])
+            .set_y_range(Fix(0.0), Fix(d.param.fast as f64))
             .x_error_bars(fast_x.clone(), fast_y.clone(), fast_err.clone(), &[]);
+    }
 
-        // Plot Figure
-        if display_plot {
-            fg_slow.show().unwrap();
-            fg_fast.show().unwrap();
-        }
-
+    //--------------------------------------------------------------------------
+    /// The `save_do_disk` function outputs the results of the plot to disk.
+    ///
+    /// # Input
+    /// * fg_slow: Figure for slow charger schedule
+    /// * fg_fast: Figure for fast charger schedule
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn save_to_disk(fg_slow: &Figure, fg_fast: &Figure) {
         // Get the month and time strings
         let current_local: DateTime<Local> = Local::now();
         let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
@@ -149,5 +163,55 @@ impl Plotter for SchedulePlot {
 
         let name: String = String::from("fast-schedule");
         fg_fast.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
+    }
+}
+
+//===============================================================================
+/// Implementation of the plotting function to display the schedule of the BEBs.
+/// The plot consists of
+impl Plotter for SchedulePlot {
+    //--------------------------------------------------------------------------
+    ///
+    /// # Input
+    /// * d: Boxed data
+    ///
+    /// # Output
+    /// * Schedule plot
+    ///
+    ///
+    fn plot(display_plot: bool, d: &mut Box<Data>) {
+        // Create object
+        let mut fg_slow = Figure::new();
+        let mut fg_fast = Figure::new();
+
+        // Create plot
+        SchedulePlot::create_plot(d, &mut fg_slow, &mut fg_fast);
+
+        // Plot Figure
+        if display_plot {
+            fg_slow.show().unwrap();
+            fg_fast.show().unwrap();
+        }
+
+        // Save to disk
+        SchedulePlot::save_to_disk(&fg_slow, &fg_fast);
+    }
+
+    //--------------------------------------------------------------------------
+    //
+    fn real_time(
+        display_plot: bool,
+        d: &mut Box<Data>,
+        fg_slow: &mut Figure,
+        fg_fast: &mut Figure,
+    ) {
+        // Create plot
+        SchedulePlot::create_plot(d, fg_slow, fg_fast);
+
+        // Plot Figure
+        if display_plot {
+            fg_slow.show_and_keep_running().unwrap();
+            fg_fast.show_and_keep_running().unwrap();
+        }
     }
 }
