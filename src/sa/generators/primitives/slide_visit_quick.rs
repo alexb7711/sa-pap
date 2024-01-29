@@ -50,7 +50,7 @@ pub mod slide_visit_quick {
         // times
         if fits && ch.assign(q, ud_new, b) {
             // Update route data
-            if d.dec.w.len() > q {
+            if d.dec.w[i].len() > q {
                 // Update queue
                 d.dec.v[i] = q;
 
