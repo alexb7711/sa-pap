@@ -40,7 +40,6 @@ impl SchedulePlot {
         // Variables
         let N = d.param.N;
         let A = d.param.A;
-        let G = &d.param.Gam;
         let a = &d.param.a;
         let c = &d.dec.c;
         let u = &d.dec.u;
@@ -58,6 +57,7 @@ impl SchedulePlot {
 
         //----------------------------------------------------------------------
         // Loop through each visit
+        println!("v: {:?}", v);
         for i in 0..N {
             if v[i] >= A && v[i] < A + d.param.slow {
                 aslow.push(a[i]);
@@ -83,32 +83,20 @@ impl SchedulePlot {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Create slow arrow vector data
-        for b in G {
-            // For each slow charger visit
-            for i in 0..aslow.len() {
-                // If the current visit is for bus b
-                if *b == G[i] {
-                    // Append the visit information to vectors
-                    slow_x.push((cslow[i] + uslow[i]) / 2.0);
-                    slow_err.push(cslow[i] - uslow[i]);
-                    slow_y.push(vslow[i]);
-                }
-            }
+        for i in 0..aslow.len() {
+            // Append the visit information to vectors
+            slow_x.push((cslow[i] + uslow[i]) / 2.0);
+            slow_err.push(cslow[i] - uslow[i]);
+            slow_y.push(vslow[i]);
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Create fast arrow vector data
-        for b in G {
-            // For each fast charger visit
-            for i in 0..afast.len() {
-                // If the current visit is for bus b
-                if *b == G[i] {
-                    // Append the visit information to vectors
-                    fast_x.push((cfast[i] + ufast[i]) / 2.0);
-                    fast_err.push(cfast[i] - ufast[i]);
-                    fast_y.push(vfast[i]);
-                }
-            }
+        for i in 0..afast.len() {
+            // Append the visit information to vectors
+            fast_x.push((cfast[i] + ufast[i]) / 2.0);
+            fast_err.push(cfast[i] - ufast[i]);
+            fast_y.push(vfast[i]);
         }
 
         //----------------------------------------------------------------------
@@ -134,7 +122,7 @@ impl SchedulePlot {
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Queue", &[])
-            .set_y_range(Fix(0.0), Fix(d.param.fast as f64))
+            // .set_y_range(Fix(0.0), Fix(d.param.fast as f64))
             .x_error_bars(fast_x.clone(), fast_y.clone(), fast_err.clone(), &[]);
     }
 
