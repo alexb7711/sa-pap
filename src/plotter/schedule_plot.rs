@@ -201,7 +201,7 @@ impl Plotter for SchedulePlot {
     }
 
     //--------------------------------------------------------------------------
-    ///
+    //
     fn real_time(
         display_plot: bool,
         d: &mut Box<Data>,
