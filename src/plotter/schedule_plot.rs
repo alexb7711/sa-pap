@@ -57,7 +57,6 @@ impl SchedulePlot {
 
         //----------------------------------------------------------------------
         // Loop through each visit
-        println!("v: {:?}", v);
         for i in 0..N {
             if v[i] >= A && v[i] < A + d.param.slow {
                 aslow.push(a[i]);
