@@ -4,6 +4,9 @@ cores: 1
 # 1: True; 0: False
 plot: 0
 
+# Real Time Plot - 1: True; 0: False
+rtp: 1
+
 # "rand"; "csv"
 schedule: "csv"
 

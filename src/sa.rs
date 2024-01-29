@@ -115,7 +115,7 @@ impl<'a> SA<'a> {
     /// # Output
     /// * `Results`: Output of SA algorithm
     ///
-    pub fn run(self: &mut SA<'a>, _lff: bool) -> Option<Results> {
+    pub fn run(self: &mut SA<'a>, rtp: bool, _lff: bool) -> Option<Results> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
 
@@ -196,7 +196,7 @@ impl<'a> SA<'a> {
 
             // Plot schedule in real time
             SchedulePlot::real_time(
-                true,
+                rtp,
                 &mut Box::new(sol_current.clone()),
                 &mut fg_slow,
                 &mut fg_fast,
