@@ -64,7 +64,7 @@ impl SchedulePlot {
                 cslow.push(c[i]);
                 uslow.push(u[i]);
                 vslow.push(v[i]);
-            } else {
+            } else if v[i] >= A + d.param.slow && v[i] < A + d.param.slow + d.param.fast {
                 afast.push(a[i]);
                 cfast.push(c[i]);
                 ufast.push(u[i]);
@@ -121,7 +121,8 @@ impl SchedulePlot {
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
-            .set_y_label("Energy Usage [KWh]", &[])
+            .set_y_label("Queue", &[])
+            .set_y_range(Fix(0.0), Fix(d.param.slow as f64))
             .x_error_bars(slow_x.clone(), slow_y.clone(), slow_err, &[]);
 
         // Plot fast charges
@@ -132,7 +133,8 @@ impl SchedulePlot {
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
-            .set_y_label("Energy Usage [KWh]", &[])
+            .set_y_label("Queue", &[])
+            .set_y_range(Fix(0.0), Fix(d.param.fast as f64))
             .x_error_bars(fast_x.clone(), fast_y.clone(), fast_err.clone(), &[]);
     }
 
@@ -208,7 +210,7 @@ impl Plotter for SchedulePlot {
 
         // Plot Figure
         if display_plot {
-            // fg_slow.show_and_keep_running().unwrap();
+            fg_slow.show_and_keep_running().unwrap();
             fg_fast.show_and_keep_running().unwrap();
         }
     }

@@ -180,14 +180,6 @@ impl<'a> SA<'a> {
                 // Extract new data set
                 sol_new = *self.gsys.get_data();
 
-                // Plot schedule in real time
-                SchedulePlot::real_time(
-                    true,
-                    &mut Box::new(sol_new.clone()),
-                    &mut fg_slow,
-                    &mut fg_fast,
-                );
-
                 // Calculate objective function
                 J1 = StdObj::run(&mut sol_new);
 
@@ -201,6 +193,14 @@ impl<'a> SA<'a> {
                     t,
                 );
             }
+
+            // Plot schedule in real time
+            SchedulePlot::real_time(
+                true,
+                &mut Box::new(sol_current.clone()),
+                &mut fg_slow,
+                &mut fg_fast,
+            );
         }
 
         // Check if the data has been changed
