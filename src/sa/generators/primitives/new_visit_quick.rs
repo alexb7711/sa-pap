@@ -67,6 +67,10 @@ pub mod new_visit_quick {
                 // Update vector representation
                 d.dec.w[i].fill(false);
                 d.dec.w[i][q_new] = true;
+
+                // Update initial/final charge times
+                d.dec.u[i] = ud_new.0;
+                d.dec.c[i] = ud_new.1;
             }
             return true;
         }
