@@ -187,14 +187,6 @@ impl<'a> SA<'a> {
                 // Calculate objective function
                 J1 = StdObj::run(&mut sol_new);
 
-                // Plot schedule in real time
-                SchedulePlot::real_time(
-                    rtp,
-                    &mut Box::new(sol_new.clone()),
-                    &mut fg_slow,
-                    &mut fg_fast,
-                );
-
                 // Update data sets
                 self.update_data_sets(
                     &mut sol_best,
@@ -205,6 +197,14 @@ impl<'a> SA<'a> {
                     t,
                 );
             }
+
+            // Plot schedule in real time
+            SchedulePlot::real_time(
+                rtp,
+                &mut Box::new(sol_new.clone()),
+                &mut fg_slow,
+                &mut fg_fast,
+            );
         }
 
         // Close the real time plot windows
