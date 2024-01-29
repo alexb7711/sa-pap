@@ -28,13 +28,15 @@ pub struct SchedulePlot {}
 ///
 impl SchedulePlot {
     //--------------------------------------------------------------------------
+    /// Process the data for the figure.
     ///
     /// # Input
-    /// * : Boxed data
+    /// * d : Boxed data
+    /// * fg_slow: Slow charger schedule figure
+    /// * fg_fast: Fast charger schedule figure
     ///
     /// # Output
     /// * None
-    ///
     ///
     fn create_plot(d: &mut Box<Data>, fg_slow: &mut Figure, fg_fast: &mut Figure) {
         // Variables
@@ -167,10 +169,11 @@ impl SchedulePlot {
 }
 
 //===============================================================================
-/// Implementation of the plotting function to display the schedule of the BEBs.
-/// The plot consists of
+//
 impl Plotter for SchedulePlot {
     //--------------------------------------------------------------------------
+    /// Implementation of the plotting function to display the schedule of the BEBs.
+    /// The plot consists of
     ///
     /// # Input
     /// * d: Boxed data
