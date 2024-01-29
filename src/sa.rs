@@ -10,6 +10,7 @@ pub mod temp_func; // Temperature functions
 
 //==============================================================================
 // Import standard library
+use gnuplot::Figure;
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::{thread_rng, Rng};
 use yaml_rust::Yaml;
@@ -20,6 +21,8 @@ use self::temp_func::TempFunc;
 use crate::lp::constraints::constraints;
 use crate::lp::objectives::std_obj::StdObj;
 use crate::lp::objectives::Objective;
+use crate::plotter::schedule_plot::SchedulePlot;
+use crate::plotter::Plotter;
 use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 use crate::sa::generators::Generator;
@@ -112,16 +115,19 @@ impl<'a> SA<'a> {
     /// # Output
     /// * `Results`: Output of SA algorithm
     ///
-    pub fn run(self: &mut SA<'a>, _lff: bool) -> Option<Results> {
+    pub fn run(self: &mut SA<'a>, rtp: bool, _lff: bool) -> Option<Results> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Initialize
+
+        // Create real time figures
+        let mut fg_slow = Figure::new();
+        let mut fg_fast = Figure::new();
 
         // Create progress bar and set style
         self.pb
             .set_length(self.tf.get_temp_vec().unwrap().len() as u64);
         self.pb
             .set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
-
 
         // Extract solution sets
         let sol_orig = *self.gsys.get_data();
@@ -187,6 +193,14 @@ impl<'a> SA<'a> {
                     t,
                 );
             }
+
+            // Plot schedule in real time
+            SchedulePlot::real_time(
+                rtp,
+                &mut Box::new(sol_current.clone()),
+                &mut fg_slow,
+                &mut fg_fast,
+            );
         }
 
         // Check if the data has been changed

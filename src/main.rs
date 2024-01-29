@@ -73,6 +73,9 @@ fn execute(pb: &mut ProgressBar) {
     // Decide whether to plot results or not
     let plot: bool = bool_util::i64_to_bool(gen_config["plot"].clone().into_i64().unwrap());
 
+    // Decide whether to display real time plot
+    let rtp: bool = bool_util::i64_to_bool(gen_config["rtp"].clone().into_i64().unwrap());
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Generate schedule
 
@@ -135,7 +138,7 @@ fn execute(pb: &mut ProgressBar) {
     let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf, pb);
 
     // Run simulated annealing simulation
-    if let Some(res) = sa.run(load_from_file) {
+    if let Some(res) = sa.run(rtp, load_from_file) {
         // Export results to CSV
         DataOutput::output_data(String::from("sa"), res.clone(), None);
 
