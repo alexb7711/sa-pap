@@ -6,7 +6,7 @@ plot: 0
 
 # Real Time Plot - 1: True; 0: False
 # NOTE: If this is set to 1, it is recommended to change "cores" to 1.
-rtp: 1
+rtp: 0
 
 # "rand"; "csv"
 schedule: "csv"
