@@ -109,7 +109,7 @@ impl SchedulePlot {
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Queue", &[])
-            .set_y_range(Fix(0.0), Fix(d.param.slow as f64))
+            .set_y_range(Fix(A as f64), Fix(A as f64 + d.param.slow as f64))
             .x_error_bars(slow_x.clone(), slow_y.clone(), slow_err, &[]);
 
         // Plot fast charges
@@ -121,7 +121,10 @@ impl SchedulePlot {
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Queue", &[])
-            .set_y_range(Fix(0.0), Fix(d.param.fast as f64))
+            .set_y_range(
+                Fix(A as f64 + d.param.slow as f64),
+                Fix(A as f64 + d.param.slow as f64 + d.param.fast as f64),
+            )
             .x_error_bars(fast_x.clone(), fast_y.clone(), fast_err.clone(), &[]);
     }
 
