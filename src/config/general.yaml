@@ -12,7 +12,7 @@ rtp: 0
 schedule: "csv"
 
 # "wait"; "rand"
-solution_gen: "wait"
+solution_gen: "rand"
 
 # "quick"; "exhaustive"
 tweak_method: "quick"
