@@ -28,16 +28,30 @@ impl StdObj {
     ///
     fn AC(d: &mut Data, i: usize, q: usize) -> f64 {
         // Extract input parameters
-        let m = &d.param.m;
+        let G = &d.param.Gam;
         let ep = &d.param.ep;
+        let nu = d.param.nu;
+        let k = &d.param.k;
 
         // Extract decision variables
         let w = &d.dec.w;
-        let s = &d.dec.s;
+        let wiq = f64::from(w[i][q]);
+        let eta = &d.dec.eta;
+
+        // Calculate the penalty
+        let mut phi: f64 = 0.0;
+
+        // If the charge goes below the threshold
+        if (eta[i] - (nu * k[G[i] as usize]) as f32) < 0.0 {
+            // Calculate the penalty
+            let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
+            let C: f32 = 500.0;
+
+            phi = (0.5 * C * f32::powf(c_dif, 2.0)) as f64;
+        }
 
         // Calculate the assignment cost
-        let wiq = f64::from(w[i][q]);
-        return wiq * m[q] as f64 + s[i] as f64 * wiq as f64 * ep[q] as f64;
+        return wiq as f64 * ep[q] as f64 + phi;
     }
 
     //--------------------------------------------------------------------------
