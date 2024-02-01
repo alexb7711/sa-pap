@@ -139,7 +139,7 @@ impl<'a> SA<'a> {
 
         // Initialize objective function variables
         let mut J0: f64;
-        let mut J1: f64 = 99999999.0; // Initialize to some obscene value
+        let mut J1: f64; // Initialize to some obscene value
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
@@ -153,10 +153,8 @@ impl<'a> SA<'a> {
         // Calculate objective function
         (self.sol_found, J0) = StdObj::run(&mut sol_current);
 
-        // Compare the objective functions
-        if self.cmp_obj_fnc(J0, J1, self.tf.get_temp(None).unwrap()) {
-            self.update_current_values(&mut sol_current, &mut sol_new);
-        }
+        // Initialize the current solution to the initially generated solution
+        self.update_current_values(&mut sol_current, &mut sol_new);
 
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
