@@ -1,5 +1,6 @@
 //===============================================================================
 // Import developed modules
+use crate::lp::constraints::constraints;
 use crate::lp::objectives::Objective;
 use crate::sa::data::Data;
 
@@ -89,20 +90,24 @@ impl Objective for StdObj {
     /// # Output
     /// * J: Objective function cost
     ///
-    fn run(d: &mut Data) -> f64 {
+    fn run(d: &mut Data) -> (bool, f64) {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Variables
+        let val_sched = constraints::run(d);
         let mut J: f64 = 0.0;
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Extract input parameters
         let N = d.param.N;
         let Q = d.param.Q;
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Calculate the objective function
         for i in 0..N {
             for q in 0..Q {
                 J += StdObj::AC(d, i, q) + StdObj::UC(d, i, q);
             }
         }
-        return J;
+        return (val_sched, J);
     }
 }

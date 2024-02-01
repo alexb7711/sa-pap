@@ -30,7 +30,6 @@ impl Constraint for ChargePropagate {
         let Q = d.param.Q;
         let Gam = &d.param.Gam;
         let gam = &d.param.gam;
-        let nu = &d.param.nu;
         let r = &d.param.r;
         let kappa = &d.param.k;
         let l = &d.param.l;

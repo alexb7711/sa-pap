@@ -18,7 +18,6 @@ use yaml_rust::Yaml;
 //==============================================================================
 // Import modules
 use self::temp_func::TempFunc;
-use crate::lp::constraints::constraints;
 use crate::lp::objectives::std_obj::StdObj;
 use crate::lp::objectives::Objective;
 use crate::plotter::schedule_plot::SchedulePlot;
@@ -33,7 +32,6 @@ use crate::util::fileio::yaml_loader;
 /// Results from simulated annealing
 /// TODO: Remove `#[allow(dead_code)]
 //
-#[allow(dead_code)]
 #[derive(Clone)]
 pub struct Results {
     pub score: f64,
@@ -153,7 +151,7 @@ impl<'a> SA<'a> {
         sol_new = *self.gsys.get_data();
 
         // Calculate objective function
-        J0 = StdObj::run(&mut sol_current);
+        (self.sol_found, J0) = StdObj::run(&mut sol_current);
 
         // Compare the objective functions
         if self.cmp_obj_fnc(J0, J1, self.tf.get_temp(None).unwrap()) {
@@ -163,11 +161,7 @@ impl<'a> SA<'a> {
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
             // Set the prefix depending on whether a solution has been found or not
-            if self.sol_found {
-                self.pb.set_prefix(format!("✓"));
-            } else {
-                self.pb.set_prefix(format!("×"));
-            }
+            self.update_prefix();
 
             // Print solution found indicator
             self.pb.inc(1);
@@ -181,7 +175,7 @@ impl<'a> SA<'a> {
                 sol_new = *self.gsys.get_data();
 
                 // Calculate objective function
-                J1 = StdObj::run(&mut sol_new);
+                (self.sol_found, J1) = StdObj::run(&mut sol_new);
 
                 // Update data sets
                 self.update_data_sets(
@@ -206,9 +200,11 @@ impl<'a> SA<'a> {
         // Check if the data has been changed
         let result: Option<Results>;
         if sol_orig.dec != sol_best.dec {
+            let (_, J) = StdObj::run(&mut sol_best.clone());
+
             // Create result object
             result = Some(Results {
-                score: StdObj::run(&mut sol_best.clone()),
+                score: J,
                 data: Box::new(sol_best.clone()),
                 charger: self.charger.clone(),
             });
@@ -222,6 +218,24 @@ impl<'a> SA<'a> {
     //==========================================================================
     // PRIVATE
     //==========================================================================
+
+    //--------------------------------------------------------------------------
+    /// Update the visual indicator next to the progress bar.
+    ///
+    /// # Input
+    /// * None
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn update_prefix(self: &SA<'a>)
+    {
+        if self.sol_found {
+            self.pb.set_prefix(format!("✓"));
+        } else {
+            self.pb.set_prefix(format!("×"));
+        }
+    }
 
     //--------------------------------------------------------------------------
     /// Update current data sets. Three data sets are provided: best, current,
@@ -257,12 +271,9 @@ impl<'a> SA<'a> {
         // Check if the data is valid
 
         // If the constraint check failed
-        if !constraints::run(sol_new) {
+        if !self.sol_found {
             // Bail
             return;
-        } else {
-            // Indicate a solution was found
-            self.sol_found = true;
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -279,7 +290,7 @@ impl<'a> SA<'a> {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compare current data with best data
-        let jbest = StdObj::run(sol_best);
+        let (_, jbest) = StdObj::run(sol_best);
 
         // If the current solution is strictly better than the current best
         if jbest == 0.0 || jbest - *j0 > 0.0 {
