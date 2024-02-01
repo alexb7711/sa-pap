@@ -60,13 +60,17 @@ pub mod new_visit_quick {
         // times
         if fits && ch.assign(q_new, ud_new, b) {
             // Update route data
-            if d.dec.w.len() > q_new {
+            if d.dec.w[i].len() > q_new {
                 // Update queue
                 d.dec.v[i] = q_new;
 
                 // Update vector representation
                 d.dec.w[i].fill(false);
                 d.dec.w[i][q_new] = true;
+
+                // Update initial/final charge times
+                d.dec.u[i] = ud_new.0;
+                d.dec.c[i] = ud_new.1;
             }
             return true;
         }

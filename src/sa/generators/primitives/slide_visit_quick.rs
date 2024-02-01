@@ -50,13 +50,10 @@ pub mod slide_visit_quick {
         // times
         if fits && ch.assign(q, ud_new, b) {
             // Update route data
-            if d.dec.w.len() > q {
-                // Update queue
-                d.dec.v[i] = q;
-
-                // Update vector representation
-                d.dec.w[i].fill(false);
-                d.dec.w[i][q] = true;
+            if d.dec.w[i].len() > q {
+                // Update initial/final charge times
+                d.dec.u[i] = ud_new.0;
+                d.dec.c[i] = ud_new.1;
             }
             return true;
         }

@@ -1,18 +1,18 @@
 # Number of processes to input values
-cores: 1
+cores: 4
 
 # 1: True; 0: False
 plot: 0
 
 # Real Time Plot - 1: True; 0: False
 # NOTE: If this is set to 1, it is recommended to change "cores" to 1.
-rtp: 1
+rtp: 0
 
 # "rand"; "csv"
 schedule: "csv"
 
 # "wait"; "rand"
-solution_gen: "wait"
+solution_gen: "rand"
 
 # "quick"; "exhaustive"
 tweak_method: "quick"
