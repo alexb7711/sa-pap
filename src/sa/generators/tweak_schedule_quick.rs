@@ -90,10 +90,14 @@ impl Generator for TweakScheduleQuick {
         for p in primitives {
             // Try running the primitive and store the result
             success = match p {
+                // Primitives::NewCharger => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
+                // Primitives::NewWindow => new_visit_quick::run(&mut rd, ri, c, q, id, ae, ud),
+                // Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
+                // Primitives::SlideVisit => slide_visit_quick::run(&mut rd, ri, c, id, q, ae, ud),
                 Primitives::NewCharger => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
-                Primitives::NewWindow => new_visit_quick::run(&mut rd, ri, c, q, id, ae, ud),
-                Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
-                Primitives::SlideVisit => slide_visit_quick::run(&mut rd, ri, c, id, q, ae, ud),
+                Primitives::NewWindow => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
+                Primitives::Wait => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
+                Primitives::SlideVisit => new_charger_quick::run(&mut rd, ri, c, q, id, ud),
             };
 
             // If successful, update the MILP data and break out of loop

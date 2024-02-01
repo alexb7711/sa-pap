@@ -576,6 +576,24 @@ mod test_charger {
         } else {
             assert!(!fits);
         }
+
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, Some(2));
+
+        // Create a simple schedule
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+        assert!(charger.assign(0, c, id));
+
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 2;
+        assert_eq!(charger.assign(0, c, id), false);
+
+        let c: (f32, f32) = (0.4, 0.5);
+        assert!(charger.assign(1, c, id));
+
+        let c: (f32, f32) = (0.7, 0.8);
+        assert!(charger.assign(0, c, id));
     }
     //---------------------------------------------------------------------------
     //

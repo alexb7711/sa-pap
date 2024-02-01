@@ -51,6 +51,9 @@ impl Constraint for PsiSigma {
         // Check the spatiotemporal ordering
         if !(psi[i][j] as usize + psi[j][i] as usize + sig[i][j] as usize + sig[j][i] as usize >= 1)
         {
+            println!("SIGMA+PSI:");
+            println!("I: v: {}, u: {}, d: {}", d.dec.v[i], d.dec.u[i], d.dec.c[i]);
+            println!("j: v: {}, u: {}, d: {}", d.dec.v[j], d.dec.u[j], d.dec.c[j]);
             return false;
         }
 

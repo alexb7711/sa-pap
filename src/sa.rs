@@ -30,7 +30,6 @@ use crate::util::fileio::yaml_loader;
 
 //==============================================================================
 /// Results from simulated annealing
-/// TODO: Remove `#[allow(dead_code)]
 //
 #[derive(Clone)]
 pub struct Results {
@@ -151,7 +150,7 @@ impl<'a> SA<'a> {
         sol_new = *self.gsys.get_data();
 
         // Calculate objective function
-        (self.sol_found, J0) = StdObj::run(&mut sol_current);
+        (self.sol_found, J0) = StdObj::run(&mut sol_new);
 
         // Initialize the current solution to the initially generated solution
         self.update_current_values(&mut sol_current, &mut sol_new);
@@ -170,20 +169,20 @@ impl<'a> SA<'a> {
                 self.gtweak.run(&mut self.gsys, &mut self.charger);
 
                 // Extract new data set
-                sol_new = *self.gsys.get_data();
+                // sol_new = *self.gsys.get_data();
 
                 // Calculate objective function
                 (self.sol_found, J1) = StdObj::run(&mut sol_new);
 
                 // Update data sets
-                self.update_data_sets(
-                    &mut sol_best,
-                    &mut sol_current,
-                    &mut sol_new,
-                    &mut J0,
-                    &mut J1,
-                    t,
-                );
+                // self.update_data_sets(
+                //     &mut sol_best,
+                //     &mut sol_current,
+                //     &mut sol_new,
+                //     &mut J0,
+                //     &mut J1,
+                //     t,
+                // );
             }
 
             // Plot schedule in real time
@@ -226,8 +225,7 @@ impl<'a> SA<'a> {
     /// # Output
     /// * None
     ///
-    fn update_prefix(self: &SA<'a>)
-    {
+    fn update_prefix(self: &SA<'a>) {
         if self.sol_found {
             self.pb.set_prefix(format!("✓"));
         } else {
