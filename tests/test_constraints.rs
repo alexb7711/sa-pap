@@ -172,8 +172,8 @@ mod test_packing_constraints {
 
             for i in 0..rg.data.param.N {
                 let idx = i % rg.data.param.Q;
-                u[i] = i as f32 * i as f32 * 1.1;
-                c[i] = c[i] + i as f32;
+                u[i] = i as f32;
+                c[i] = 0.01 + i as f32;
                 v[i] = idx;
             }
         }
@@ -200,8 +200,8 @@ mod test_packing_constraints {
             let u = &mut rg.data.dec.u;
 
             for i in 0..rg.data.param.N {
-                u[i] = i as f32 * i as f32 * 1.1;
-                c[i] = c[i] + i as f32;
+                u[i] = i as f32;
+                c[i] = 0.01 + i as f32;
             }
         }
 
