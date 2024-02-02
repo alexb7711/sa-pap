@@ -49,12 +49,10 @@ pub mod slide_visit_quick {
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
         if fits && ch.assign(q, ud_new, b) {
-            // Update route data
-            if d.dec.w[i].len() > q {
-                // Update initial/final charge times
-                d.dec.u[i] = ud_new.0;
-                d.dec.c[i] = ud_new.1;
-            }
+            // Update initial/final charge times
+            d.dec.u[i] = ud_new.0;
+            d.dec.c[i] = ud_new.1;
+
             return true;
         }
 
