@@ -265,15 +265,6 @@ impl<'a> SA<'a> {
         t: f32,
     ) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Check if the data is valid
-
-        // If the constraint check failed
-        if !self.sol_found {
-            // Bail
-            return;
-        }
-
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compare current data with new data
 
         // Compare the objective functions
