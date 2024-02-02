@@ -10,7 +10,7 @@ mod test_tweak_schedule {
     use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::generators::gen_new_visits::GenNewVisits;
     use super::sa_pap::sa::generators::tweak_schedule::TweakSchedule;
-    use super::sa_pap::sa::generators::tweak_schedule::TweakScheduleQuick;
+    use super::sa_pap::sa::generators::tweak_schedule_quick::TweakScheduleQuick;
     use super::sa_pap::sa::generators::Generator;
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
     use super::sa_pap::sa::route::Route;
