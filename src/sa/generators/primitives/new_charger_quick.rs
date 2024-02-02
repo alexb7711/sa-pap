@@ -45,7 +45,10 @@ pub mod new_charger_quick {
         // Random selection
 
         // Select a random charger queue
-        let q_new = rand_utils::rand_range(0, ch.schedule.len() - 1);
+        let q_new = rand_utils::rand_range(ch.charger_count.0, ch.schedule.len() - 1);
+
+        // Find a ts that fits this time slot
+        let ts = ch.get_ts(&q_new, ud);
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Attempt to assign the visit
@@ -53,13 +56,13 @@ pub mod new_charger_quick {
         // Check if the arrival/departure fits in the time slice
         // Note that this line is what differentiates this function from `new_visit` by applying the same
         // start/stop charge time as before, just on a new charger.
-        let (fits, _) = ch.find_free_time(ud, ud);
+        let (fits, _) = ch.find_free_time(ud, &ts);
 
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
         if fits && ch.assign(q_new, *ud, b) {
             // Update route data
-            if d.dec.w.len() > q_new {
+            if d.dec.w[i].len() > q_new {
                 // Update queue
                 d.dec.v[i] = q_new;
 

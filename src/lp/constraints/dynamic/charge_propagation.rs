@@ -30,7 +30,6 @@ impl Constraint for ChargePropagate {
         let Q = d.param.Q;
         let Gam = &d.param.Gam;
         let gam = &d.param.gam;
-        let nu = &d.param.nu;
         let r = &d.param.r;
         let kappa = &d.param.k;
         let l = &d.param.l;
@@ -53,19 +52,6 @@ impl Constraint for ChargePropagate {
 
             // Update the charge
             charge = (0..Q).map(|q| f32::from(w[i][q]) * r[q] * s[i]).sum();
-        }
-
-        // Ensure the charge does not go below the minimum allowed threshold
-        if !(eta[i] + charge - l[i] >= nu * kappa[Gam[i] as usize]) {
-            // println!(
-            //     "{} + {} - {} >= {}",
-            //     eta[i],
-            //     charge,
-            //     l[i],
-            //     nu * kappa[Gam[i] as usize]
-            // );
-            // println!("Gam[i]: {}", Gam[i]);
-            return false;
         }
 
         // If the BEB has another visit
