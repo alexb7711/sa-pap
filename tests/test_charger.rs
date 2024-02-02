@@ -223,6 +223,35 @@ mod test_charger {
 
         // Make sure that the time slice was not assigned
         assert_eq!(time_slice_exists(&charger, &q, &c), false);
+
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+
+        // Add queues (four three chargers)
+        charger.add_chargers(2);
+
+        // Test 12
+        let q: usize = 0;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+
+        // Ensure that the charger space is available
+        assert!(charger.avail(&q, &c));
+
+        // Assign the charger
+        assert!(charger.assign(q, c, id));
+
+        assert_eq!(charger.schedule[q][0], Assignment { t: c, b: id });
+
+        // Test 13
+        let q: usize = 0;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 4;
+
+        // Assign the charger
+        assert_eq!(charger.assign(q, c, id), false);
+
+        assert!(charger.exists(&q, &c));
     }
 
     //---------------------------------------------------------------------------

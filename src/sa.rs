@@ -169,7 +169,7 @@ impl<'a> SA<'a> {
                 self.gtweak.run(&mut self.gsys, &mut self.charger);
 
                 // Extract new data set
-                // sol_new = *self.gsys.get_data();
+                sol_new = *self.gsys.get_data();
 
                 // Calculate objective function
                 (self.sol_found, J1) = StdObj::run(&mut sol_new);

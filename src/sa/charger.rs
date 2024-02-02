@@ -168,15 +168,18 @@ impl Charger {
 
         // Check if the time slice exists in the charger queue
         if self.exists(&q, &c) {
-            // State that the item is being removed
-            rem = true;
+            // Store length
+            let l_bef = self.schedule[q].len();
 
             // Remove the item
             self.schedule[q].retain(|s| s.t != c);
-        }
 
-        // Update the free time for the qth charger
-        self.update_free_time(q);
+            // State that the item is being removed
+            rem = l_bef > self.schedule[q].len();
+
+            // Update the free time for the qth charger
+            self.update_free_time(q);
+        }
 
         return rem;
     }
