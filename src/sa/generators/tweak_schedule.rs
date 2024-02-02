@@ -76,12 +76,10 @@ impl Generator for TweakSchedule {
         let primitives = Primitives::iter().collect::<Vec<_>>();
         let primitives = rand_utils::shuffle_vec(&primitives);
 
-        // Extract the number of chargers
-        let q: usize = rand::thread_rng().gen_range(0..c.schedule.len());
-
         // Get random visit
         let mut rd = r.get_data();
         let ri = rand::thread_rng().gen_range(0..rd.param.N);
+        let q = rd.dec.v[ri];
         let id = rd.param.Gam[ri] as usize;
         let ud = &(rd.dec.u[ri], rd.dec.c[ri]);
         let ae = &(rd.param.a[ri], rd.param.e[ri]);
