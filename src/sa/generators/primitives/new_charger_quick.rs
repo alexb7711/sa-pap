@@ -60,7 +60,7 @@ pub mod new_charger_quick {
 
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
-        if q_new != q && fits && ch.assign(q_new, *ud, b) {
+        if fits && ch.assign(q_new, *ud, b) {
             // Update queue
             d.dec.v[i] = q_new;
 
