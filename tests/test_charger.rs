@@ -279,31 +279,42 @@ mod test_charger {
         // Assign the charger
         charger.assign(q, c, id);
 
+        let c: (f32, f32) = (0.6, 0.6001);
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
         // Make sure they are all there
         assert!(time_slice_exists(&charger, &q, &(0.1, 0.2)));
         assert!(time_slice_exists(&charger, &q, &(0.0, 0.02)));
         assert!(time_slice_exists(&charger, &q, &(0.3, 0.5)));
-        assert_eq!(charger.schedule[q].len(), 3);
+        assert!(time_slice_exists(&charger, &q, &(0.6, 0.6001)));
+        assert_eq!(charger.schedule[q].len(), 4);
 
         // Test 1
         assert!(charger.remove(q, (0.1, 0.2)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
-        assert_eq!(charger.schedule[q].len(), 2);
+        assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 2
         println!("{:?}", charger.schedule[0]);
         assert_eq!(charger.remove(q, (0.1, 0.2)), false);
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
-        assert_eq!(charger.schedule[q].len(), 2);
+        assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 3
         assert!(charger.remove(q, (0.0, 0.02)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.0, 0.02)), false);
-        assert_eq!(charger.schedule[q].len(), 1);
+        assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 4
         assert!(charger.remove(q, (0.3, 0.5)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.3, 0.5)), false);
+        assert_eq!(charger.schedule[q].len(), 1);
+
+        // Test 5
+        assert!(charger.remove(q, (0.6, 0.6001)));
+        assert_eq!(time_slice_exists(&charger, &q, &(0.6, 0.6001)), false);
         assert_eq!(charger.schedule[q].len(), 0);
     }
 

@@ -11,7 +11,6 @@
 ///
 /// Defines the structure that contains the metadata to generate the start/stop routes from the csv file.
 ///
-#[allow(dead_code)]
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct Data {
     pub param: Parameter,

@@ -73,9 +73,9 @@ pub mod new_charger_quick {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Place the original visit back in the queue availability matrix
-        // if !ch.assign(q, *ud, b) {
-        //     panic!("Lost a visit!");
-        // };
+        if !ch.assign(q, *ud, b) {
+            panic!("Lost a visit!");
+        };
 
         return false;
     }

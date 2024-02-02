@@ -92,7 +92,7 @@ impl RouteCSVGenerator {
             let v = self.data.dec.v[i];
 
             // If the BEB has another visit
-            if gam > 0 {
+            if gam >= 0 {
                 rt = e - a[gam as usize];
             }
 
