@@ -40,17 +40,14 @@ pub mod wait {
 
         // Return true/false if assignment succeeded/failed
         if ch.assign(b, *ae, b) {
-            // Update route data
-            if d.param.N > 0 {
-                // Update queue to wait queue
-                d.dec.v[i] = b;
-                d.dec.w[i].fill(false);
-                d.dec.w[i][b] = true;
+            // Update queue to wait queue
+            d.dec.v[i] = b;
+            d.dec.w[i].fill(false);
+            d.dec.w[i][b] = true;
 
-                // Update attach/detach time
-                d.dec.u[i] = ae.0;
-                d.dec.c[i] = ae.1;
-            }
+            // Update attach/detach time
+            d.dec.u[i] = ae.0;
+            d.dec.c[i] = ae.1;
 
             return true;
         }
