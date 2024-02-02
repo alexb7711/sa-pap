@@ -39,7 +39,7 @@ pub mod wait {
         }
 
         // Return true/false if assignment succeeded/failed
-        if ch.assign(q, *ae, b) {
+        if ch.assign(b, *ae, b) {
             // Update route data
             if d.param.N > 0 {
                 // Update queue to wait queue
