@@ -128,8 +128,8 @@ impl<'a> SA<'a> {
 
         // Extract solution sets
         let sol_orig = *self.gsys.get_data();
-        let mut sol_best = *self.gsys.get_data();
         let mut sol_current = *self.gsys.get_data();
+        let mut sol_best;
         let mut sol_new;
 
         // Set local search iteration count
@@ -146,8 +146,9 @@ impl<'a> SA<'a> {
         // Generate new solution
         self.gsol.run(&mut self.gsys, &mut self.charger);
 
-        // Extract new data set
+        // Extract new data set and initialize new solution as best solution
         sol_new = *self.gsys.get_data();
+        sol_best = *self.gsys.get_data();
 
         // Calculate objective function
         (self.sol_found, J0) = StdObj::run(&mut sol_new);
@@ -175,14 +176,14 @@ impl<'a> SA<'a> {
                 (self.sol_found, J1) = StdObj::run(&mut sol_new);
 
                 // Update data sets
-                // self.update_data_sets(
-                //     &mut sol_best,
-                //     &mut sol_current,
-                //     &mut sol_new,
-                //     &mut J0,
-                //     &mut J1,
-                //     t,
-                // );
+                self.update_data_sets(
+                    &mut sol_best,
+                    &mut sol_current,
+                    &mut sol_new,
+                    &mut J0,
+                    &mut J1,
+                    t,
+                );
             }
 
             // Plot schedule in real time
