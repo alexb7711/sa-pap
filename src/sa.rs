@@ -136,9 +136,9 @@ impl<'a> SA<'a> {
         let config: Yaml = yaml_loader::load_yaml(self.config_path);
         let k = config["time"]["K"].clone().into_i64().unwrap();
 
-        // Initialize objective function variables
+        // Create objective function variables
         let mut J0: f64;
-        let mut J1: f64; // Initialize to some obscene value
+        let mut J1: f64;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
