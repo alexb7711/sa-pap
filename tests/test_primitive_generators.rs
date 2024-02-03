@@ -290,8 +290,8 @@ mod test_primitive_generators {
 
         // Final charge time
         let mut found_visit = false;
-        for c in rd.dec.d.clone() {
-            if c >= 0.1 && c <= 0.2 {
+        for d in rd.dec.d.clone() {
+            if d >= 0.1 && d <= 0.2 {
                 found_visit = true;
             }
         }
@@ -321,8 +321,8 @@ mod test_primitive_generators {
 
         // Final charge time
         let mut found_visit = false;
-        for c in rd.dec.d.clone() {
-            if c >= 0.3 && c <= 0.5 {
+        for d in rd.dec.d.clone() {
+            if d >= 0.3 && d <= 0.5 {
                 found_visit = true;
             }
         }
