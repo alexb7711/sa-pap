@@ -68,7 +68,7 @@ impl Generator for GenWaitQueue {
 
                 // Update MILP data
                 data.dec.u[i.visit] = ad.0.clone();
-                data.dec.c[i.visit] = ad.1.clone();
+                data.dec.d[i.visit] = ad.1.clone();
                 data.dec.v[i.visit] = b;
                 data.dec.w[i.visit][b] = true;
             }

@@ -35,7 +35,7 @@ impl Plotter for ChargerUsagePlot {
         let K = d.param.K;
         let v = &d.dec.v;
         let u = &d.dec.u;
-        let c = &d.dec.c;
+        let c = &d.dec.d;
         let delta = T / K as f32;
 
         let mut slow: Vec<usize> = vec![0; K as usize];

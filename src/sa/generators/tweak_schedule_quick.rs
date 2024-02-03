@@ -81,7 +81,7 @@ impl Generator for TweakScheduleQuick {
         let ri = rand::thread_rng().gen_range(0..rd.param.N);
         let q = rd.dec.v[ri];
         let id = rd.param.Gam[ri] as usize;
-        let ud = &(rd.dec.u[ri], rd.dec.c[ri]);
+        let ud = &(rd.dec.u[ri], rd.dec.d[ri]);
         let ae = &(rd.param.a[ri], rd.param.e[ri]);
 
         // Loop through the primitives

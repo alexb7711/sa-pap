@@ -91,7 +91,7 @@ pub mod DataOutput {
         let G = &d.param.Gam;
         let eta = &d.dec.eta;
         let u = &d.dec.u;
-        let c = &d.dec.c;
+        let c = &d.dec.d;
         let v = &d.dec.v;
         let r = &d.param.r;
         let s = &d.dec.s;
@@ -155,7 +155,7 @@ pub mod DataOutput {
         let u: &Vec<f32> = &d.dec.u;
         let w: &Vec<Vec<bool>> = &d.dec.w;
         let v: &Vec<usize> = &d.dec.v;
-        let c: &Vec<f32> = &d.dec.c;
+        let c: &Vec<f32> = &d.dec.d;
 
         // Table variables
         let name = file_name.to_owned() + &"-charge-cnt";
@@ -217,7 +217,7 @@ pub mod DataOutput {
         let w: &Vec<Vec<bool>> = &d.dec.w;
         let v: &Vec<usize> = &d.dec.v;
         let r: &Vec<f32> = &d.param.r;
-        let c: &Vec<f32> = &d.dec.c;
+        let c: &Vec<f32> = &d.dec.d;
 
         // Table variables
         let name = file_name.to_owned() + &"-power-usage";
@@ -266,7 +266,7 @@ pub mod DataOutput {
         let w: &Vec<Vec<bool>> = &d.dec.w;
         let v: &Vec<usize> = &d.dec.v;
         let r: &Vec<f32> = &d.param.r;
-        let c: &Vec<f32> = &d.dec.c;
+        let c: &Vec<f32> = &d.dec.d;
 
         // Table variables
         let name = file_name.to_owned() + &"-acc-energy-usage";

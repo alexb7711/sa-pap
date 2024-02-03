@@ -47,7 +47,7 @@ pub mod wait {
 
             // Update attach/detach time
             d.dec.u[i] = ae.0;
-            d.dec.c[i] = ae.1;
+            d.dec.d[i] = ae.1;
 
             return true;
         }

@@ -33,7 +33,7 @@ impl Plotter for AccumulatedEnergyUsagePlot {
         let K = d.param.K as usize;
         let N = d.param.N;
         let T = d.param.T;
-        let c = &d.dec.c;
+        let c = &d.dec.d;
         let r = &d.param.r;
         let u = &d.dec.u;
         let v = &d.dec.v;

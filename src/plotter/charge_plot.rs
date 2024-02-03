@@ -31,7 +31,7 @@ impl ChargePlot {
         let A = d.param.A;
         let N = d.param.N;
         let G = &d.param.Gam;
-        let c = &d.dec.c;
+        let c = &d.dec.d;
         let r = &d.param.r;
         let u = &d.dec.u;
         let eta = &d.dec.eta;

@@ -128,7 +128,7 @@ mod test_packing_constraints {
 
         // Update initial and final charge times
         {
-            let c = &mut rg.data.dec.c;
+            let c = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..n {
@@ -145,7 +145,7 @@ mod test_packing_constraints {
         }
 
         // Check constraints
-        let c = &mut rg.data.dec.c;
+        let c = &mut rg.data.dec.d;
         let u = &mut rg.data.dec.u;
         let s = &mut rg.data.dec.s;
 
@@ -166,7 +166,7 @@ mod test_packing_constraints {
 
         // Set some visit queues
         {
-            let c = &mut rg.data.dec.c;
+            let c = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
             let v = &mut rg.data.dec.v;
 
@@ -196,7 +196,7 @@ mod test_packing_constraints {
 
         // Set some visit queues
         {
-            let c = &mut rg.data.dec.c;
+            let c = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..rg.data.param.N {
@@ -224,7 +224,7 @@ mod test_packing_constraints {
         // Set some visit queues
         {
             let v = &mut rg.data.dec.v;
-            let c = &mut rg.data.dec.c;
+            let c = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..rg.data.param.N {
@@ -268,7 +268,7 @@ mod test_packing_constraints {
             let a = &mut rg.data.param.a;
             let e = &mut rg.data.param.e;
 
-            let c = &mut rg.data.dec.c;
+            let c = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..n {
@@ -326,7 +326,7 @@ mod test_dynamic_constraints {
 
         // Update initial and final charge times
         {
-            let c = &mut rg.data.dec.c;
+            let c = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
             let v = &mut rg.data.dec.v;
 

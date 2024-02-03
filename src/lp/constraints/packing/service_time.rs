@@ -23,7 +23,7 @@ pub struct ServiceTime {}
 impl Constraint for ServiceTime {
     fn run(d: &mut Data, i: usize, _: usize) -> bool {
         // Extract decision variables
-        let c = &d.dec.c;
+        let c = &d.dec.d;
         let u = &d.dec.u;
         let s = &mut d.dec.s;
 

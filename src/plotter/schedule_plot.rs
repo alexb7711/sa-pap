@@ -42,7 +42,7 @@ impl SchedulePlot {
         // Variables
         let N = d.param.N;
         let A = d.param.A;
-        let c = &d.dec.c;
+        let c = &d.dec.d;
         let u = &d.dec.u;
         let v = &d.dec.v;
 

@@ -290,7 +290,7 @@ mod test_primitive_generators {
 
         // Final charge time
         let mut found_visit = false;
-        for c in rd.dec.c.clone() {
+        for c in rd.dec.d.clone() {
             if c >= 0.1 && c <= 0.2 {
                 found_visit = true;
             }
@@ -321,7 +321,7 @@ mod test_primitive_generators {
 
         // Final charge time
         let mut found_visit = false;
-        for c in rd.dec.c.clone() {
+        for c in rd.dec.d.clone() {
             if c >= 0.3 && c <= 0.5 {
                 found_visit = true;
             }
@@ -362,7 +362,7 @@ mod test_primitive_generators {
         );
         assert_eq!(charger.schedule[q].len(), 3);
         assert!(rd.dec.u[0] >= 0.1 && rd.dec.u[0] <= 0.2);
-        assert!(rd.dec.c[0] >= rd.dec.u[0] && rd.dec.c[0] <= 0.2);
+        assert!(rd.dec.d[0] >= rd.dec.u[0] && rd.dec.d[0] <= 0.2);
 
         // Un-assign and reassign bus
         assert!(
@@ -374,8 +374,8 @@ mod test_primitive_generators {
         assert_eq!(charger.exists(&q, &(0.3, 0.5)), false);
         assert!(rd.dec.u[0] >= 0.3);
         assert!(rd.dec.u[0] <= 0.5);
-        assert!(rd.dec.c[0] >= rd.dec.u[0]);
-        assert!(rd.dec.c[0] <= 0.5);
+        assert!(rd.dec.d[0] >= rd.dec.u[0]);
+        assert!(rd.dec.d[0] <= 0.5);
     }
 
     //---------------------------------------------------------------------------
@@ -533,6 +533,6 @@ mod test_primitive_generators {
         );
         assert_eq!(charger.schedule[q].len(), 1);
         assert!(rd.dec.u[0] >= 0.1 && rd.dec.u[0] <= 0.2);
-        assert!(rd.dec.c[0] >= rd.dec.u[0] && rd.dec.c[0] <= 0.2);
+        assert!(rd.dec.d[0] >= rd.dec.u[0] && rd.dec.d[0] <= 0.2);
     }
 }
