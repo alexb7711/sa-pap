@@ -26,17 +26,17 @@ impl ChargePlot {
     /// - x : Array of incrementing values from 1 to N
     /// - y : Array of charges for each bus
     ///
-    fn group_charge_results(d: &Data) -> (Vec<Vec<f32>>, Vec<Vec<f32>>) {
+    fn group_charge_results(dat: &Data) -> (Vec<Vec<f32>>, Vec<Vec<f32>>) {
         // Variables
-        let A = d.param.A;
-        let N = d.param.N;
-        let G = &d.param.Gam;
-        let c = &d.dec.d;
-        let r = &d.param.r;
-        let u = &d.dec.u;
-        let eta = &d.dec.eta;
-        let v = &d.dec.v;
-        let s = &d.dec.s;
+        let A = dat.param.A;
+        let N = dat.param.N;
+        let G = &dat.param.Gam;
+        let d = &dat.dec.d;
+        let r = &dat.param.r;
+        let u = &dat.dec.u;
+        let eta = &dat.dec.eta;
+        let v = &dat.dec.v;
+        let s = &dat.dec.s;
 
         let mut charges: Vec<Vec<f32>> = Vec::new();
         let mut idx: Vec<Vec<f32>> = Vec::new();
@@ -54,7 +54,7 @@ impl ChargePlot {
                     tmpy.push(eta[i]);
 
                     // Append the charge on departure
-                    tmpx.push(c[i]);
+                    tmpx.push(d[i]);
                     tmpy.push(eta[i] + s[i] * r[v[i]]);
                 }
             }

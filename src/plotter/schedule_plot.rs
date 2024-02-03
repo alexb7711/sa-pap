@@ -38,13 +38,13 @@ impl SchedulePlot {
     /// # Output
     /// * None
     ///
-    fn create_plot(d: &mut Box<Data>, fg_slow: &mut Figure, fg_fast: &mut Figure) {
+    fn create_plot(dat: &mut Box<Data>, fg_slow: &mut Figure, fg_fast: &mut Figure) {
         // Variables
-        let N = d.param.N;
-        let A = d.param.A;
-        let c = &d.dec.d;
-        let u = &d.dec.u;
-        let v = &d.dec.v;
+        let N = dat.param.N;
+        let A = dat.param.A;
+        let d = &dat.dec.d;
+        let u = &dat.dec.u;
+        let v = &dat.dec.v;
 
         // Create array buffers
         let mut cslow: Vec<f32> = Vec::new();
@@ -57,12 +57,12 @@ impl SchedulePlot {
         //----------------------------------------------------------------------
         // Loop through each visit
         for i in 0..N {
-            if v[i] >= A && v[i] < A + d.param.slow {
-                cslow.push(c[i]);
+            if v[i] >= A && v[i] < A + dat.param.slow {
+                cslow.push(d[i]);
                 uslow.push(u[i]);
                 vslow.push(v[i]);
-            } else if v[i] >= A + d.param.slow && v[i] < A + d.param.slow + d.param.fast {
-                cfast.push(c[i]);
+            } else if v[i] >= A + dat.param.slow && v[i] < A + dat.param.slow + dat.param.fast {
+                cfast.push(d[i]);
                 ufast.push(u[i]);
                 vfast.push(v[i]);
             }
@@ -106,7 +106,7 @@ impl SchedulePlot {
             .set_x_label("Time [hr]", &[])
             .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Queue", &[])
-            .set_y_range(Fix(A as f64), Fix(A as f64 + d.param.slow as f64))
+            .set_y_range(Fix(A as f64), Fix(A as f64 + dat.param.slow as f64))
             .x_error_bars(slow_x.clone(), slow_y.clone(), slow_err, &[]);
 
         // Plot fast charges
@@ -119,8 +119,8 @@ impl SchedulePlot {
             .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Queue", &[])
             .set_y_range(
-                Fix(A as f64 + d.param.slow as f64),
-                Fix(A as f64 + d.param.slow as f64 + d.param.fast as f64),
+                Fix(A as f64 + dat.param.slow as f64),
+                Fix(A as f64 + dat.param.slow as f64 + dat.param.fast as f64),
             )
             .x_error_bars(fast_x.clone(), fast_y.clone(), fast_err.clone(), &[]);
     }
@@ -167,13 +167,13 @@ impl Plotter for SchedulePlot {
     /// * Schedule plot
     ///
     ///
-    fn plot(display_plot: bool, d: &mut Box<Data>) {
+    fn plot(display_plot: bool, dat: &mut Box<Data>) {
         // Create object
         let mut fg_slow = Figure::new();
         let mut fg_fast = Figure::new();
 
         // Create plot
-        SchedulePlot::create_plot(d, &mut fg_slow, &mut fg_fast);
+        SchedulePlot::create_plot(dat, &mut fg_slow, &mut fg_fast);
 
         // Plot Figure
         if display_plot {
@@ -189,7 +189,7 @@ impl Plotter for SchedulePlot {
     //
     fn real_time(
         display_plot: bool,
-        d: &mut Box<Data>,
+        dat: &mut Box<Data>,
         fg_slow: &mut Figure,
         fg_fast: &mut Figure,
     ) {
@@ -199,7 +199,7 @@ impl Plotter for SchedulePlot {
             fg_fast.clear_axes();
 
             // Create plot
-            SchedulePlot::create_plot(d, fg_slow, fg_fast);
+            SchedulePlot::create_plot(dat, fg_slow, fg_fast);
 
             // Update plots
             fg_slow.show_and_keep_running().unwrap();

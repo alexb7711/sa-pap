@@ -23,13 +23,13 @@ pub struct PsiSigma {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for PsiSigma {
-    fn run(d: &mut Data, i: usize, j: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, j: usize) -> bool {
         // Update decision variables
-        PsiSigma::update_dec_var(d, i, j);
+        PsiSigma::update_dec_var(dat, i, j);
 
         // Extract decision variables
-        let psi = &d.dec.psi;
-        let sig = &d.dec.sigma;
+        let psi = &dat.dec.psi;
+        let sig = &dat.dec.sigma;
 
         // Constraints
 
@@ -42,8 +42,11 @@ impl Constraint for PsiSigma {
         if !(psi[i][j] as usize + psi[j][i] as usize <= 1) {
             println!("Visit {}", i);
             println!("{} + {} > 1", psi[i][j], psi[j][i]);
-            println!("I: i: {}, Gam: {}, v: {}", i, d.param.Gam[i], d.dec.v[i]);
-            println!("j: j: {} Gam: {} v: {}", j, d.param.Gam[i], d.dec.v[j]);
+            println!(
+                "I: i: {}, Gam: {}, v: {}",
+                i, dat.param.Gam[i], dat.dec.v[i]
+            );
+            println!("j: j: {} Gam: {} v: {}", j, dat.param.Gam[i], dat.dec.v[j]);
             println!("psi_sigma.rs: PSI > 1");
             return false;
         }
@@ -54,11 +57,11 @@ impl Constraint for PsiSigma {
             println!("{} + {} > 1", sig[i][j], sig[j][i]);
             println!(
                 "I: i: {}, Gam: {},  u: {}, d: {}",
-                i, d.param.Gam[i], d.dec.u[i], d.dec.d[i]
+                i, dat.param.Gam[i], dat.dec.u[i], dat.dec.d[i]
             );
             println!(
                 "j: j: {} Gam: {} u: {}, d: {}",
-                j, d.param.Gam[i], d.dec.u[j], d.dec.d[j]
+                j, dat.param.Gam[i], dat.dec.u[j], dat.dec.d[j]
             );
             println!("psi_sigma.rs: SIGMA > 1");
             return false;
@@ -74,11 +77,11 @@ impl Constraint for PsiSigma {
             );
             println!(
                 "I: i: {}, Gam: {}, v: {}, u: {}, d: {}",
-                i, d.param.Gam[i], d.dec.v[i], d.dec.u[i], d.dec.d[i]
+                i, dat.param.Gam[i], dat.dec.v[i], dat.dec.u[i], dat.dec.d[i]
             );
             println!(
                 "j: j: {} Gam: {} v: {}, u: {}, d: {}",
-                j, d.param.Gam[i], d.dec.v[j], d.dec.u[j], d.dec.d[j]
+                j, dat.param.Gam[i], dat.dec.v[j], dat.dec.u[j], dat.dec.d[j]
             );
             println!("psi_sigma.rs: SIGMA+PSI < 1");
             return false;
