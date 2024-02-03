@@ -40,18 +40,38 @@ impl Constraint for PsiSigma {
 
         // Check the spatial ordering
         if !(psi[i][j] as usize + psi[j][i] as usize <= 1) {
+            println!("Visit {}", i);
+            println!("{} + {} > 1", psi[i][j], psi[j][i]);
+            println!("I: i: {}, Gam: {}, v: {}", i, d.param.Gam[i], d.dec.v[i]);
+            println!("j: j: {} Gam: {} v: {}", j, d.param.Gam[i], d.dec.v[j]);
+            println!("psi_sigma.rs: PSI > 1");
             return false;
         }
 
         // Check the temporal ordering
         if !(sig[i][j] as usize + sig[j][i] as usize <= 1) {
+            println!("Visit {}", i);
+            println!("{} + {} > 1", sig[i][j], sig[j][i]);
+            println!(
+                "I: i: {}, Gam: {},  u: {}, d: {}",
+                i, d.param.Gam[i], d.dec.u[i], d.dec.c[i]
+            );
+            println!(
+                "j: j: {} Gam: {} u: {}, d: {}",
+                j, d.param.Gam[i], d.dec.u[j], d.dec.c[j]
+            );
+            println!("psi_sigma.rs: SIGMA > 1");
             return false;
         }
 
         // Check the spatiotemporal ordering
         if !(psi[i][j] as usize + psi[j][i] as usize + sig[i][j] as usize + sig[j][i] as usize >= 1)
         {
-            println!("SIGMA+PSI:");
+            println!("Visit {}", i);
+            println!(
+                "{} + {} + {} + {} <= 1",
+                psi[i][j], psi[j][i], sig[i][j], sig[j][i]
+            );
             println!(
                 "I: i: {}, Gam: {}, v: {}, u: {}, d: {}",
                 i, d.param.Gam[i], d.dec.v[i], d.dec.u[i], d.dec.c[i]
@@ -60,6 +80,7 @@ impl Constraint for PsiSigma {
                 "j: j: {} Gam: {} v: {}, u: {}, d: {}",
                 j, d.param.Gam[i], d.dec.v[j], d.dec.u[j], d.dec.c[j]
             );
+            println!("psi_sigma.rs: SIGMA+PSI < 1");
             return false;
         }
 
