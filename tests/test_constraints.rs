@@ -488,10 +488,12 @@ mod test_dynamic_constraints {
         // Update charge queues
         {
             let v = &mut rg.data.dec.v;
+            let w = &mut rg.data.dec.w;
             let Gam = &rg.data.param.Gam;
 
             for i in 0..rg.data.param.N {
                 v[i] = Gam[i] as usize;
+                w[i][v[i]] = true;
             }
         }
 
