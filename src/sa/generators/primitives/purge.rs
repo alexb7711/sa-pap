@@ -21,21 +21,8 @@ pub mod purge {
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    pub fn run(d: &mut Data, i: usize, ch: &mut Charger, q: usize, ud: &(f32, f32)) -> bool {
+    pub fn run(_: &mut Data, _: usize, ch: &mut Charger, q: usize, ud: &(f32, f32)) -> bool {
         if ch.remove(q, *ud) {
-            // Update route data
-            if d.param.N > 0 {
-                // Put BEB in wait queue
-                d.dec.v[i] = d.param.Gam[i] as usize;
-                d.dec.w[i][q] = false;
-                d.dec.w[i][d.dec.v[i]] = true;
-
-                // Attach time is arrival time
-                d.dec.u[i] = d.param.a[i];
-
-                // Detach time is departure time
-                d.dec.c[i] = d.param.e[i];
-            }
             return true;
         } else {
             return false;

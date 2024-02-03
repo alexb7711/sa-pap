@@ -30,7 +30,6 @@ use crate::util::fileio::yaml_loader;
 
 //==============================================================================
 /// Results from simulated annealing
-/// TODO: Remove `#[allow(dead_code)]
 //
 #[derive(Clone)]
 pub struct Results {
@@ -129,17 +128,17 @@ impl<'a> SA<'a> {
 
         // Extract solution sets
         let sol_orig = *self.gsys.get_data();
-        let mut sol_best = *self.gsys.get_data();
         let mut sol_current = *self.gsys.get_data();
+        let mut sol_best;
         let mut sol_new;
 
         // Set local search iteration count
         let config: Yaml = yaml_loader::load_yaml(self.config_path);
         let k = config["time"]["K"].clone().into_i64().unwrap();
 
-        // Initialize objective function variables
+        // Create objective function variables
         let mut J0: f64;
-        let mut J1: f64; // Initialize to some obscene value
+        let mut J1: f64;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
@@ -147,11 +146,12 @@ impl<'a> SA<'a> {
         // Generate new solution
         self.gsol.run(&mut self.gsys, &mut self.charger);
 
-        // Extract new data set
+        // Extract new data set and initialize new solution as best solution
         sol_new = *self.gsys.get_data();
+        sol_best = *self.gsys.get_data();
 
         // Calculate objective function
-        (self.sol_found, J0) = StdObj::run(&mut sol_current);
+        (self.sol_found, J0) = StdObj::run(&mut sol_new);
 
         // Initialize the current solution to the initially generated solution
         self.update_current_values(&mut sol_current, &mut sol_new);
@@ -226,8 +226,7 @@ impl<'a> SA<'a> {
     /// # Output
     /// * None
     ///
-    fn update_prefix(self: &SA<'a>)
-    {
+    fn update_prefix(self: &SA<'a>) {
         if self.sol_found {
             self.pb.set_prefix(format!("✓"));
         } else {
@@ -265,15 +264,6 @@ impl<'a> SA<'a> {
         j1: &mut f64,
         t: f32,
     ) {
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Check if the data is valid
-
-        // If the constraint check failed
-        if !self.sol_found {
-            // Bail
-            return;
-        }
-
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compare current data with new data
 

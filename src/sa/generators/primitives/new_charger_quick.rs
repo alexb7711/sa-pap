@@ -61,21 +61,18 @@ pub mod new_charger_quick {
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
         if fits && ch.assign(q_new, *ud, b) {
-            // Update route data
-            if d.dec.w[i].len() > q_new {
-                // Update queue
-                d.dec.v[i] = q_new;
+            // Update queue
+            d.dec.v[i] = q_new;
 
-                // Update vector representation
-                d.dec.w[i].fill(false);
-                d.dec.w[i][q_new] = true;
-            }
+            // Update vector representation
+            d.dec.w[i].fill(false);
+            d.dec.w[i][q_new] = true;
+
             return true;
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Place the original visit back in the queue availability matrix
-
         if !ch.assign(q, *ud, b) {
             panic!("Lost a visit!");
         };

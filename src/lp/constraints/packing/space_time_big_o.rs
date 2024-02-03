@@ -43,6 +43,10 @@ impl Constraint for SpaceTimeBigO {
             return true;
         // Otherwise `i != j`
         } else {
+            // Default to true
+            psi[i][j] = true;
+            sig[i][j] = true;
+
             // Calculate constraints
             let psi_big_o =
                 (v[j] as i32 - v[i] as i32 - S as i32 - (psi[i][j] as i32 - S as i32) * Q as i32)

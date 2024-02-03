@@ -38,28 +38,27 @@ pub mod wait {
             return false;
         }
 
-        // Extract the number of chargers
-        let q: usize = b;
-
         // Return true/false if assignment succeeded/failed
-        if ch.assign(q, *ae, b) {
-            // Update route data
-            if d.param.N > 0 {
-                // Update queue to wait queue
-                d.dec.v[i] = d.param.Gam[i] as usize;
-                d.dec.w[i][q] = false;
-                d.dec.w[i][d.dec.v[i]] = true;
+        if ch.assign(b, *ae, b) {
+            // Update queue to wait queue
+            d.dec.v[i] = b;
+            d.dec.w[i].fill(false);
+            d.dec.w[i][b] = true;
 
-                // Update attach
-                d.dec.u[i] = ae.0;
-
-                // Update detach time
-                d.dec.c[i] = ae.1;
-            }
+            // Update attach/detach time
+            d.dec.u[i] = ae.0;
+            d.dec.c[i] = ae.1;
 
             return true;
-        } else {
-            return false;
         }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Place the original visit back in the queue availability matrix
+
+        if !ch.assign(q, *ud, b) {
+            panic!("Lost a visit!");
+        };
+
+        return false;
     }
 }

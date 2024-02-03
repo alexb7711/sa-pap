@@ -223,6 +223,35 @@ mod test_charger {
 
         // Make sure that the time slice was not assigned
         assert_eq!(time_slice_exists(&charger, &q, &c), false);
+
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+
+        // Add queues (four three chargers)
+        charger.add_chargers(2);
+
+        // Test 12
+        let q: usize = 0;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+
+        // Ensure that the charger space is available
+        assert!(charger.avail(&q, &c));
+
+        // Assign the charger
+        assert!(charger.assign(q, c, id));
+
+        assert_eq!(charger.schedule[q][0], Assignment { t: c, b: id });
+
+        // Test 13
+        let q: usize = 0;
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 4;
+
+        // Assign the charger
+        assert_eq!(charger.assign(q, c, id), false);
+
+        assert!(charger.exists(&q, &c));
     }
 
     //---------------------------------------------------------------------------
@@ -250,31 +279,42 @@ mod test_charger {
         // Assign the charger
         charger.assign(q, c, id);
 
+        let c: (f32, f32) = (0.6, 0.6001);
+
+        // Assign the charger
+        charger.assign(q, c, id);
+
         // Make sure they are all there
         assert!(time_slice_exists(&charger, &q, &(0.1, 0.2)));
         assert!(time_slice_exists(&charger, &q, &(0.0, 0.02)));
         assert!(time_slice_exists(&charger, &q, &(0.3, 0.5)));
-        assert_eq!(charger.schedule[q].len(), 3);
+        assert!(time_slice_exists(&charger, &q, &(0.6, 0.6001)));
+        assert_eq!(charger.schedule[q].len(), 4);
 
         // Test 1
         assert!(charger.remove(q, (0.1, 0.2)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
-        assert_eq!(charger.schedule[q].len(), 2);
+        assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 2
         println!("{:?}", charger.schedule[0]);
         assert_eq!(charger.remove(q, (0.1, 0.2)), false);
         assert_eq!(time_slice_exists(&charger, &q, &(0.1, 0.2)), false);
-        assert_eq!(charger.schedule[q].len(), 2);
+        assert_eq!(charger.schedule[q].len(), 3);
 
         // Test 3
         assert!(charger.remove(q, (0.0, 0.02)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.0, 0.02)), false);
-        assert_eq!(charger.schedule[q].len(), 1);
+        assert_eq!(charger.schedule[q].len(), 2);
 
         // Test 4
         assert!(charger.remove(q, (0.3, 0.5)));
         assert_eq!(time_slice_exists(&charger, &q, &(0.3, 0.5)), false);
+        assert_eq!(charger.schedule[q].len(), 1);
+
+        // Test 5
+        assert!(charger.remove(q, (0.6, 0.6001)));
+        assert_eq!(time_slice_exists(&charger, &q, &(0.6, 0.6001)), false);
         assert_eq!(charger.schedule[q].len(), 0);
     }
 
@@ -576,6 +616,24 @@ mod test_charger {
         } else {
             assert!(!fits);
         }
+
+        // Create charger
+        let mut charger: Charger = Charger::new(yaml_path(), false, None, Some(2));
+
+        // Create a simple schedule
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 3;
+        assert!(charger.assign(0, c, id));
+
+        let c: (f32, f32) = (0.1, 0.2);
+        let id: usize = 2;
+        assert_eq!(charger.assign(0, c, id), false);
+
+        let c: (f32, f32) = (0.4, 0.5);
+        assert!(charger.assign(1, c, id));
+
+        let c: (f32, f32) = (0.7, 0.8);
+        assert!(charger.assign(0, c, id));
     }
     //---------------------------------------------------------------------------
     //

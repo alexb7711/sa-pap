@@ -20,12 +20,12 @@ pub mod packing {
     //
     pub fn run(d: &mut Data, i: usize, j: usize) -> bool {
         if !PsiSigma::run(d, i, j) {
-            // println!("Psi Sigma");
+            println!("Psi Sigma");
             return false;
         }
 
         if !ValidInitDepEndTimes::run(d, i, j) {
-            // println!("Valid Init/Dep/End time");
+            println!("Valid Init/Dep/End time");
             return false;
         }
 

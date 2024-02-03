@@ -45,7 +45,7 @@ pub mod new_visit_quick {
         // Random selection
 
         // Select a random charger queue
-        let q_new = rand_utils::rand_range(0, ch.schedule.len() - 1);
+        let q_new = rand_utils::rand_range(ch.charger_count.0, ch.schedule.len() - 1);
 
         // Select random time slice availability
         let ts_idx = rand_utils::rand_range(0, ch.free_time[q_new].len() - 1);
@@ -59,19 +59,17 @@ pub mod new_visit_quick {
         // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
         // times
         if fits && ch.assign(q_new, ud_new, b) {
-            // Update route data
-            if d.dec.w[i].len() > q_new {
-                // Update queue
-                d.dec.v[i] = q_new;
+            // Update queue
+            d.dec.v[i] = q_new;
 
-                // Update vector representation
-                d.dec.w[i].fill(false);
-                d.dec.w[i][q_new] = true;
+            // Update vector representation
+            d.dec.w[i].fill(false);
+            d.dec.w[i][q_new] = true;
 
-                // Update initial/final charge times
-                d.dec.u[i] = ud_new.0;
-                d.dec.c[i] = ud_new.1;
-            }
+            // Update initial/final charge times
+            d.dec.u[i] = ud_new.0;
+            d.dec.c[i] = ud_new.1;
+
             return true;
         }
 
