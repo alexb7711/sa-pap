@@ -42,17 +42,14 @@ impl SchedulePlot {
         // Variables
         let N = d.param.N;
         let A = d.param.A;
-        let a = &d.param.a;
         let c = &d.dec.c;
         let u = &d.dec.u;
         let v = &d.dec.v;
 
         // Create array buffers
-        let mut aslow: Vec<f32> = Vec::new();
         let mut cslow: Vec<f32> = Vec::new();
         let mut uslow: Vec<f32> = Vec::new();
         let mut vslow: Vec<usize> = Vec::new();
-        let mut afast: Vec<f32> = Vec::new();
         let mut cfast: Vec<f32> = Vec::new();
         let mut ufast: Vec<f32> = Vec::new();
         let mut vfast: Vec<usize> = Vec::new();
@@ -61,12 +58,10 @@ impl SchedulePlot {
         // Loop through each visit
         for i in 0..N {
             if v[i] >= A && v[i] < A + d.param.slow {
-                aslow.push(a[i]);
                 cslow.push(c[i]);
                 uslow.push(u[i]);
                 vslow.push(v[i]);
             } else if v[i] >= A + d.param.slow && v[i] < A + d.param.slow + d.param.fast {
-                afast.push(a[i]);
                 cfast.push(c[i]);
                 ufast.push(u[i]);
                 vfast.push(v[i]);
@@ -84,7 +79,7 @@ impl SchedulePlot {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Create slow arrow vector data
-        for i in 0..aslow.len() {
+        for i in 0..cslow.len() {
             // Append the visit information to vectors
             slow_x.push((cslow[i] + uslow[i]) / 2.0);
             slow_err.push(cslow[i] - uslow[i]);
@@ -93,7 +88,7 @@ impl SchedulePlot {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Create fast arrow vector data
-        for i in 0..afast.len() {
+        for i in 0..cfast.len() {
             // Append the visit information to vectors
             fast_x.push((cfast[i] + ufast[i]) / 2.0);
             fast_err.push(cfast[i] - ufast[i]);
