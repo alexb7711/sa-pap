@@ -34,6 +34,7 @@ impl Constraint for ScalarToVectorQueue {
             println!("w[i][v[i]] = {}", w[i][v[i]]);
             println!("v[i]       = {}", v[i]);
             println!("scalar_to_vector_queue.rs: w[i][v[i]] != v[i].");
+            return false;
         }
 
         // Ensure the visit vector does not have simultaneous assignments
@@ -47,6 +48,7 @@ impl Constraint for ScalarToVectorQueue {
                 }
             }
             println!("scalar_to_vector_queue.rs: sum(w[i]) > 1");
+            return false;
         }
 
         return true;

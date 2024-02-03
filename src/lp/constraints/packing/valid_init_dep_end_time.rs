@@ -43,6 +43,7 @@ impl Constraint for ValidInitDepEndTimes {
             println!("Visit {}", i);
             println!("{} > {}", a[i], u[i]);
             println!("valid_init_dep_end-time.rs: a[i] > u[i]");
+            return false;
         }
 
         // Ensure the detach time is before the departure time
@@ -50,6 +51,7 @@ impl Constraint for ValidInitDepEndTimes {
             println!("Visit {}", i);
             println!("{} > {}", a[i], u[i]);
             println!("valid_init_dep_end-time.rs: d[i] > e[i]");
+            return false;
         }
 
         // Ensure the initial time is early enough such that the service time does not exceed the time horizon
@@ -57,6 +59,7 @@ impl Constraint for ValidInitDepEndTimes {
             println!("Visit {}", i);
             println!("{} > {} - {}", u[i], T, s[i]);
             println!("valid_init_dep_end-time.rs: u[i] > T - s[i]");
+            return false;
         }
 
         return true;

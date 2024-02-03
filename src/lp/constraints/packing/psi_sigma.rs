@@ -45,6 +45,7 @@ impl Constraint for PsiSigma {
             println!("I: i: {}, Gam: {}, v: {}", i, d.param.Gam[i], d.dec.v[i]);
             println!("j: j: {} Gam: {} v: {}", j, d.param.Gam[i], d.dec.v[j]);
             println!("psi_sigma.rs: PSI > 1");
+            return false;
         }
 
         // Check the temporal ordering
@@ -60,6 +61,7 @@ impl Constraint for PsiSigma {
                 j, d.param.Gam[i], d.dec.u[j], d.dec.c[j]
             );
             println!("psi_sigma.rs: SIGMA > 1");
+            return false;
         }
 
         // Check the spatiotemporal ordering
@@ -79,6 +81,7 @@ impl Constraint for PsiSigma {
                 j, d.param.Gam[i], d.dec.v[j], d.dec.u[j], d.dec.c[j]
             );
             println!("psi_sigma.rs: SIGMA+PSI < 1");
+            return false;
         }
 
         return true;
