@@ -163,7 +163,7 @@ impl<'a> SA<'a> {
             // Set the prefix depending on whether a solution has been found or not
             self.update_prefix();
 
-            // Print solution found indicator
+            // Update the status bar
             self.pb.inc(1);
 
             // Iterate though local search
