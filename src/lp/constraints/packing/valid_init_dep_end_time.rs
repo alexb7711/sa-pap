@@ -41,22 +41,22 @@ impl Constraint for ValidInitDepEndTimes {
         // Ensure the arrival time is before the attach time
         if !(a[i] <= u[i]) {
             println!("Visit {}", i);
-            println!("({}, {}): {} <= {}", i, j, a[i], u[i]);
-            return false;
+            println!("{} > {}", a[i], u[i]);
+            panic!("valid_init_dep_end-time.rs: a[i] > u[i]");
         }
 
         // Ensure the detach time is before the departure time
         if !(c[i] <= e[i]) {
             println!("Visit {}", i);
-            println!("2");
-            return false;
+            println!("{} > {}", a[i], u[i]);
+            panic!("valid_init_dep_end-time.rs: d[i] > e[i]");
         }
 
         // Ensure the initial time is early enough such that the service time does not exceed the time horizon
         if !(u[i] <= T - s[i]) {
             println!("Visit {}", i);
-            println!("3");
-            return false;
+            println!("{} > {} - {}", u[i], T, s[i]);
+            panic!("valid_init_dep_end-time.rs: u[i] > T - s[i]");
         }
 
         return true;
@@ -78,7 +78,7 @@ impl ValidInitDepEndTimes {
     /// * NONE
     ///
     fn update_dec_var(data: &mut Data, i: usize, j: usize) {
-        // Update sigma/psi decision variables
+        // Update service time
         ServiceTime::run(data, i, j);
     }
 }
