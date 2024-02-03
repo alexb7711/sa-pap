@@ -168,25 +168,25 @@ impl<'a> SA<'a> {
 
             // Iterate though local search
             for _ in 0..k {
-                // Tweak the schedule
-                self.gtweak.run(&mut self.gsys, &mut self.charger);
+                // If the schedule is successfully modified
+                if self.gtweak.run(&mut self.gsys, &mut self.charger) {
+                    // Extract new data set
+                    sol_new = *self.gsys.get_data();
 
-                // Extract new data set
-                sol_new = *self.gsys.get_data();
+                    // Calculate objective function
+                    (self.sol_found, J1) = StdObj::run(&mut sol_new);
 
-                // Calculate objective function
-                (self.sol_found, J1) = StdObj::run(&mut sol_new);
-
-                // Update data sets
-                self.update_data_sets(
-                    &mut sol_best,
-                    &mut sol_current,
-                    &mut sol_new,
-                    &mut J0,
-                    &mut J1,
-                    &mut JB,
-                    t,
-                );
+                    // Update data sets
+                    self.update_data_sets(
+                        &mut sol_best,
+                        &mut sol_current,
+                        &mut sol_new,
+                        &mut J0,
+                        &mut J1,
+                        &mut JB,
+                        t,
+                    );
+                }
             }
 
             // Plot schedule in real time
