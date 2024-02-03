@@ -88,7 +88,7 @@ impl RouteCSVGenerator {
             let gam = self.data.param.gam[i];
             let mut rt: f32 = 0.0;
             let u = self.data.dec.u[i];
-            let c = self.data.dec.d[i];
+            let d = self.data.dec.d[i];
             let v = self.data.dec.v[i];
 
             // If the BEB has another visit
@@ -106,7 +106,7 @@ impl RouteCSVGenerator {
                 id: Gam,
                 route_time: rt,
                 attach_time: u,
-                detach_time: c,
+                detach_time: d,
                 queue: v as u16,
             };
 
@@ -728,8 +728,8 @@ impl Route for RouteCSVGenerator {
     /// # Output
     /// * NONE
     ///
-    fn set_data(self: &mut RouteCSVGenerator, d: Box<Data>) {
-        self.data = *d;
+    fn set_data(self: &mut RouteCSVGenerator, dat: Box<Data>) {
+        self.data = *dat;
     }
 
     //---------------------------------------------------------------------------

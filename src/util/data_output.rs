@@ -83,18 +83,18 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn charge_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
+    fn charge_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
         let name = file_name.to_owned() + &"-charge";
-        let N = d.param.N;
-        let A = d.param.A;
-        let G = &d.param.Gam;
-        let eta = &d.dec.eta;
-        let u = &d.dec.u;
-        let c = &d.dec.d;
-        let v = &d.dec.v;
-        let r = &d.param.r;
-        let s = &d.dec.s;
+        let N = dat.param.N;
+        let A = dat.param.A;
+        let G = &dat.param.Gam;
+        let eta = &dat.dec.eta;
+        let u = &dat.dec.u;
+        let d = &dat.dec.d;
+        let v = &dat.dec.v;
+        let r = &dat.param.r;
+        let s = &dat.dec.s;
         let mut data: Vec<Vec<f32>> = vec![vec![-1.0; 2 * A]; 2 * N];
 
         // Create top row of CSV file
@@ -121,7 +121,7 @@ pub mod DataOutput {
                     data[t_i][b * 2 + 1] = eta[i];
 
                     // Append the charge on departure
-                    data[t_i + 1][b * 2 + 0] = c[i];
+                    data[t_i + 1][b * 2 + 0] = d[i];
                     data[t_i + 1][b * 2 + 1] = eta[i] + s[i] * r[v[i]];
 
                     // Update the index
@@ -146,16 +146,16 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn usage_out(file_name: &String, d: &Data, char: &Charger, path: &String) {
+    fn usage_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
         // Variables
-        let K: u16 = d.param.K;
-        let N: usize = d.param.N;
-        let T: f32 = d.param.T;
+        let K: u16 = dat.param.K;
+        let N: usize = dat.param.N;
+        let T: f32 = dat.param.T;
         let dt: f32 = T as f32 / K as f32;
-        let u: &Vec<f32> = &d.dec.u;
-        let w: &Vec<Vec<bool>> = &d.dec.w;
-        let v: &Vec<usize> = &d.dec.v;
-        let c: &Vec<f32> = &d.dec.d;
+        let u: &Vec<f32> = &dat.dec.u;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
+        let v: &Vec<usize> = &dat.dec.v;
+        let d: &Vec<f32> = &dat.dec.d;
 
         // Table variables
         let name = file_name.to_owned() + &"-charge-cnt";
@@ -179,7 +179,7 @@ pub mod DataOutput {
             for i in 0..N {
                 // if the time step is between the current visit and the BEB has
                 // assigned
-                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                if u[i] <= t && d[i] >= t && w[i][v[i]] {
                     if v[i] < wait {
                         data[k as usize][1] += 1.0;
                     } else if v[i] >= wait && v[i] < slow {
@@ -207,17 +207,17 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn power_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
+    fn power_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
-        let K: u16 = d.param.K;
-        let N: usize = d.param.N;
-        let T: f32 = d.param.T;
+        let K: u16 = dat.param.K;
+        let N: usize = dat.param.N;
+        let T: f32 = dat.param.T;
         let dt: f32 = T as f32 / K as f32;
-        let u: &Vec<f32> = &d.dec.u;
-        let w: &Vec<Vec<bool>> = &d.dec.w;
-        let v: &Vec<usize> = &d.dec.v;
-        let r: &Vec<f32> = &d.param.r;
-        let c: &Vec<f32> = &d.dec.d;
+        let u: &Vec<f32> = &dat.dec.u;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
+        let v: &Vec<usize> = &dat.dec.v;
+        let r: &Vec<f32> = &dat.param.r;
+        let d: &Vec<f32> = &dat.dec.d;
 
         // Table variables
         let name = file_name.to_owned() + &"-power-usage";
@@ -234,7 +234,7 @@ pub mod DataOutput {
             for i in 0..N {
                 // if the time step is between the current visit and the BEB has
                 // assigned
-                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                if u[i] <= t && d[i] >= t && w[i][v[i]] {
                     data[k as usize][1] += r[v[i]];
                 }
             }
@@ -256,17 +256,17 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn acc_energy_out(file_name: &String, d: &Data, _char: &Charger, path: &String) {
+    fn acc_energy_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
-        let K: usize = d.param.K as usize;
-        let N: usize = d.param.N;
-        let T: f32 = d.param.T;
+        let K: usize = dat.param.K as usize;
+        let N: usize = dat.param.N;
+        let T: f32 = dat.param.T;
         let dt: f32 = T as f32 / K as f32;
-        let u: &Vec<f32> = &d.dec.u;
-        let w: &Vec<Vec<bool>> = &d.dec.w;
-        let v: &Vec<usize> = &d.dec.v;
-        let r: &Vec<f32> = &d.param.r;
-        let c: &Vec<f32> = &d.dec.d;
+        let u: &Vec<f32> = &dat.dec.u;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
+        let v: &Vec<usize> = &dat.dec.v;
+        let r: &Vec<f32> = &dat.param.r;
+        let d: &Vec<f32> = &dat.dec.d;
 
         // Table variables
         let name = file_name.to_owned() + &"-acc-energy-usage";
@@ -289,7 +289,7 @@ pub mod DataOutput {
             for i in 0..N {
                 // if the time step is between the current visit and the BEB has
                 // assigned
-                if u[i] <= t && c[i] >= t && w[i][v[i]] {
+                if u[i] <= t && d[i] >= t && w[i][v[i]] {
                     data[k as usize][1] += r[v[i]];
                 }
             }
@@ -311,15 +311,15 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn schedule_out(file_name: &String, d: &Data, _c: &Charger, path: &String) {
+    fn schedule_out(file_name: &String, dat: &Data, _c: &Charger, path: &String) {
         // Variables
-        let A: usize = d.param.A;
-        let N: usize = d.param.N;
-        let G: &Vec<u16> = &d.param.Gam;
-        let u: &Vec<f32> = &d.dec.u;
-        let v: &Vec<usize> = &d.dec.v;
-        let s: &Vec<f32> = &d.dec.s;
-        let w: &Vec<Vec<bool>> = &d.dec.w;
+        let A: usize = dat.param.A;
+        let N: usize = dat.param.N;
+        let G: &Vec<u16> = &dat.param.Gam;
+        let u: &Vec<f32> = &dat.dec.u;
+        let v: &Vec<usize> = &dat.dec.v;
+        let s: &Vec<f32> = &dat.dec.s;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
 
         // Table variables
         let name = file_name.to_owned() + &"-schedule";
