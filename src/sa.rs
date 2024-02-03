@@ -139,6 +139,7 @@ impl<'a> SA<'a> {
         // Create objective function variables
         let mut J0: f64;
         let mut J1: f64;
+        let mut JB: f64;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
@@ -153,7 +154,8 @@ impl<'a> SA<'a> {
         // Calculate objective function
         (self.sol_found, J0) = StdObj::run(&mut sol_new);
 
-        // Initialize the current solution to the initially generated solution
+        // Initialize the current and best solution to the initially generated solution
+        JB = J0;
         self.update_current_values(&mut sol_current, &mut sol_new);
 
         // While the temperature function is cooling down
@@ -182,6 +184,7 @@ impl<'a> SA<'a> {
                     &mut sol_new,
                     &mut J0,
                     &mut J1,
+                    &mut JB,
                     t,
                 );
             }
@@ -262,6 +265,7 @@ impl<'a> SA<'a> {
         sol_new: &mut Data,
         j0: &mut f64,
         j1: &mut f64,
+        jb: &mut f64,
         t: f32,
     ) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -278,10 +282,9 @@ impl<'a> SA<'a> {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Compare current data with best data
-        let (_, jbest) = StdObj::run(sol_best);
 
         // If the current solution is strictly better than the current best
-        if jbest == 0.0 || jbest - *j0 > 0.0 {
+        if *jb - *j0 > 0.0 {
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }
