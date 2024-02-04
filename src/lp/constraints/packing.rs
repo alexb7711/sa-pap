@@ -14,16 +14,17 @@ pub mod packing {
     use crate::lp::constraints::packing::psi_sigma::PsiSigma;
     use crate::lp::constraints::packing::valid_init_dep_end_time::ValidInitDepEndTimes;
     use crate::lp::constraints::Constraint;
+    use crate::sa::charger::Charger;
     use crate::sa::data::Data;
 
     //--------------------------------------------------------------------------
     //
-    pub fn run(d: &mut Data, i: usize, j: usize) -> bool {
-        if !PsiSigma::run(d, i, j) {
+    pub fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
+        if !PsiSigma::run(dat, ch, i, j) {
             return false;
         }
 
-        if !ValidInitDepEndTimes::run(d, i, j) {
+        if !ValidInitDepEndTimes::run(dat, ch, i, j) {
             return false;
         }
 

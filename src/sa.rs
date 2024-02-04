@@ -152,7 +152,7 @@ impl<'a> SA<'a> {
         sol_best = *self.gsys.get_data();
 
         // Calculate objective function
-        (self.sol_found, J0) = StdObj::run(&mut sol_new);
+        (self.sol_found, J0) = StdObj::run(&mut sol_new, &mut self.charger);
 
         // Initialize the current and best solution to the initially generated solution
         JB = J0;
@@ -174,7 +174,7 @@ impl<'a> SA<'a> {
                     sol_new = *self.gsys.get_data();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new);
+                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger);
 
                     // Update data sets
                     self.update_data_sets(
@@ -201,7 +201,7 @@ impl<'a> SA<'a> {
         // Check if the data has been changed
         let result: Option<Results>;
         if sol_orig.dec != sol_best.dec {
-            let (_, J) = StdObj::run(&mut sol_best.clone());
+            let (_, J) = StdObj::run(&mut sol_best.clone(), &mut self.charger);
 
             // Create result object
             result = Some(Results {

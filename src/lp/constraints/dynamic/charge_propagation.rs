@@ -2,6 +2,7 @@
 // Import developed modules
 use crate::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
 use crate::lp::constraints::Constraint;
+use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
@@ -22,22 +23,22 @@ pub struct ChargePropagate {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ChargePropagate {
-    fn run(d: &mut Data, i: usize, j: usize) -> bool {
+    fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
         // Update parameters
-        ChargePropagate::update_dec_var(d, i, j);
+        ChargePropagate::update_dec_var(dat, ch, i, j);
 
         // Extract parameters
-        let Q = d.param.Q;
-        let Gam = &d.param.Gam;
-        let gam = &d.param.gam;
-        let r = &d.param.r;
-        let kappa = &d.param.k;
-        let l = &d.param.l;
+        let Q = dat.param.Q;
+        let Gam = &dat.param.Gam;
+        let gam = &dat.param.gam;
+        let r = &dat.param.r;
+        let kappa = &dat.param.k;
+        let l = &dat.param.l;
 
         // Extract decision variables
-        let eta = &mut d.dec.eta;
-        let w = &d.dec.w;
-        let s = &mut d.dec.s;
+        let eta = &mut dat.dec.eta;
+        let w = &dat.dec.w;
+        let s = &mut dat.dec.s;
 
         // Constraint
 
@@ -88,8 +89,8 @@ impl ChargePropagate {
     /// # Output
     /// * NONE
     ///
-    fn update_dec_var(data: &mut Data, i: usize, j: usize) {
+    fn update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
         // Update the initial charge time
-        InitFinalCharge::run(data, i, j);
+        InitFinalCharge::run(data, ch, i, j);
     }
 }

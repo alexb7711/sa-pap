@@ -8,6 +8,7 @@ extern crate sa_pap;
 mod test_packing_constraints {
     //---------------------------------------------------------------------------
     // Import modules
+    use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
     use super::sa_pap::sa::route::Route;
     use sa_pap::lp::constraints::packing::psi_sigma::PsiSigma;
@@ -33,6 +34,7 @@ mod test_packing_constraints {
     #[test]
     fn test_space_time_big_o_psi() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -49,7 +51,7 @@ mod test_packing_constraints {
         // Run the `psi_sigma` constraint
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
-                SpaceTimeBigO::run(&mut rg.data, i, j);
+                SpaceTimeBigO::run(&mut rg.data, &mut charger, i, j);
             }
         }
         {
@@ -76,6 +78,7 @@ mod test_packing_constraints {
     #[test]
     fn test_space_time_big_o_sigma() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -92,7 +95,7 @@ mod test_packing_constraints {
         // Run the `psi_sigma` constraint
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
-                SpaceTimeBigO::run(&mut rg.data, i, j);
+                SpaceTimeBigO::run(&mut rg.data, &mut charger, i, j);
             }
         }
         {
@@ -119,6 +122,7 @@ mod test_packing_constraints {
     #[test]
     fn test_service_time() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -140,7 +144,7 @@ mod test_packing_constraints {
         // Run constraint
         for i in 0..n {
             for j in 0..n {
-                ServiceTime::run(&mut rg.data, i, j);
+                ServiceTime::run(&mut rg.data, &mut charger, i, j);
             }
         }
 
@@ -160,6 +164,7 @@ mod test_packing_constraints {
     fn test_psi_sigma() {
         // Test 0 - Obvious case
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -182,7 +187,7 @@ mod test_packing_constraints {
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
                 assert!(
-                    PsiSigma::run(&mut rg.data, i, j),
+                    PsiSigma::run(&mut rg.data, &mut charger, i, j),
                     "Failing the obvious case `test_psi_sigma`"
                 );
             }
@@ -209,7 +214,7 @@ mod test_packing_constraints {
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
                 assert!(
-                    PsiSigma::run(&mut rg.data, i, j),
+                    PsiSigma::run(&mut rg.data, &mut charger, i, j),
                     "Failing the 'all time' case `test_psi_sigma`"
                 );
             }
@@ -241,7 +246,7 @@ mod test_packing_constraints {
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
                 assert!(
-                    PsiSigma::run(&mut rg.data, i, j),
+                    PsiSigma::run(&mut rg.data, &mut charger, i, j),
                     "Failing the 'all queue' case `test_psi_sigma`"
                 );
             }
@@ -253,6 +258,7 @@ mod test_packing_constraints {
     #[test]
     fn test_valid_init_dep_end_time() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -281,7 +287,7 @@ mod test_packing_constraints {
         for i in 0..n {
             for j in 0..n {
                 assert!(
-                    ValidInitDepEndTimes::run(&mut rg.data, i, j),
+                    ValidInitDepEndTimes::run(&mut rg.data, &mut charger, i, j),
                     "BEB time constraints did not pass."
                 );
             }
@@ -295,6 +301,7 @@ mod test_packing_constraints {
 mod test_dynamic_constraints {
     //---------------------------------------------------------------------------
     // Import modules
+    use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
     use super::sa_pap::sa::route::Route;
     use sa_pap::lp::constraints::dynamic::charge_propagation::ChargePropagate;
@@ -320,6 +327,7 @@ mod test_dynamic_constraints {
     #[test]
     fn test_charge_propagation() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -341,9 +349,9 @@ mod test_dynamic_constraints {
         // Run constraint
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
-                ValidInitDepEndTimes::run(&mut rg.data, i, j);
+                ValidInitDepEndTimes::run(&mut rg.data, &mut charger, i, j);
                 assert!(
-                    ChargePropagate::run(&mut rg.data, i, j),
+                    ChargePropagate::run(&mut rg.data, &mut charger, i, j),
                     "Charge did not propagate appropriately."
                 );
             }
@@ -355,6 +363,7 @@ mod test_dynamic_constraints {
     #[test]
     fn test_init_final_charge_propagation() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -366,7 +375,7 @@ mod test_dynamic_constraints {
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
                 // Ensure initial times are updated correctly
-                InitFinalCharge::run(&mut rg.data, i, j);
+                InitFinalCharge::run(&mut rg.data, &mut charger, i, j);
             }
         }
 
@@ -398,7 +407,7 @@ mod test_dynamic_constraints {
             for j in 0..rg.data.param.N {
                 // Ensure final times are updated correctly
                 assert!(
-                    InitFinalCharge::run(&mut rg.data, i, j),
+                    InitFinalCharge::run(&mut rg.data, &mut charger, i, j),
                     "Charges did not initialize/finalize correctly."
                 );
             }
@@ -410,6 +419,7 @@ mod test_dynamic_constraints {
     #[test]
     fn test_init_charge_propagation() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -421,7 +431,7 @@ mod test_dynamic_constraints {
         for i in 0..rg.data.param.N {
             for j in 0..rg.data.param.N {
                 // Ensure initial times are updated correctly
-                InitFinalCharge::run(&mut rg.data, i, j);
+                InitFinalCharge::run(&mut rg.data, &mut charger, i, j);
             }
         }
 
@@ -443,6 +453,7 @@ mod test_dynamic_constraints {
     #[should_panic]
     fn test_final_charge_insufficient_charge() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -467,7 +478,7 @@ mod test_dynamic_constraints {
             for j in 0..rg.data.param.N {
                 // Ensure initial/final times are updated correctly
                 assert!(
-                    InitFinalCharge::run(&mut rg.data, i, j),
+                    InitFinalCharge::run(&mut rg.data, &mut charger, i, j),
                     "Final charge should have panicked."
                 );
             }
@@ -479,6 +490,7 @@ mod test_dynamic_constraints {
     #[test]
     fn test_scalar_to_vector_queue_propagation() {
         let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
         rg.run();
@@ -501,7 +513,7 @@ mod test_dynamic_constraints {
             for j in 0..rg.data.param.N {
                 // Ensure initial/final times are updated correctly
                 assert!(
-                    ScalarToVectorQueue::run(&mut rg.data, i, j),
+                    ScalarToVectorQueue::run(&mut rg.data, &mut charger, i, j),
                     "w[i][j].sum() > 1."
                 );
             }

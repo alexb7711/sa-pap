@@ -9,6 +9,7 @@ mod test_constraints {
     // Import modules
     use super::sa_pap::lp::objectives::std_obj::StdObj;
     use super::sa_pap::lp::objectives::Objective;
+    use super::sa_pap::sa::charger::Charger;
     use super::sa_pap::sa::data::Data;
     use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
     use super::sa_pap::sa::route::Route;
@@ -42,6 +43,7 @@ mod test_constraints {
     fn test_std_obj() {
         // Create objective and data object
         let mut d: Data = get_data();
+        let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Set some dummy values
 
@@ -56,25 +58,25 @@ mod test_constraints {
         // Test 0
         d.dec.w[0][0] = true;
         d.dec.w[1][0] = true;
-        let (_, j0) = StdObj::run(&mut d);
+        let (_, j0) = StdObj::run(&mut d, &mut charger);
 
         // Test 1
         d.dec.w[0][35] = true;
-        let (_, j1) = StdObj::run(&mut d);
+        let (_, j1) = StdObj::run(&mut d, &mut charger);
         assert!(j1 > j0);
 
         // Test 2
         d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
         d.dec.w[0][35] = true;
         d.dec.w[3][38] = true;
-        let (_, j2) = StdObj::run(&mut d);
+        let (_, j2) = StdObj::run(&mut d, &mut charger);
         assert!(j2 > j1);
 
         // Test 3
         d.dec.w[2][35] = true;
         d.dec.w[1][42] = true;
         d.dec.w[5][37] = true;
-        let (_, j3) = StdObj::run(&mut d);
+        let (_, j3) = StdObj::run(&mut d, &mut charger);
         assert!(j3 > j2);
 
         // Reset w terms
@@ -85,12 +87,12 @@ mod test_constraints {
         // Test 4
         d.dec.s[0] = 1.0;
         d.dec.w[0][35] = true;
-        let (_, j0) = StdObj::run(&mut d);
+        let (_, j0) = StdObj::run(&mut d, &mut charger);
 
         // Test 5
         d.dec.w[3][36] = true;
         d.dec.s[3] = 3.0;
-        let (_, j1) = StdObj::run(&mut d);
+        let (_, j1) = StdObj::run(&mut d, &mut charger);
         assert!(j1 > j0);
 
         // Test 6
@@ -98,7 +100,7 @@ mod test_constraints {
         d.dec.s[5] = 9.0;
         d.dec.w[1][35] = true;
         d.dec.s[1] = 1.0;
-        let (_, j2) = StdObj::run(&mut d);
+        let (_, j2) = StdObj::run(&mut d, &mut charger);
         assert!(j2 > j1);
     }
 }
