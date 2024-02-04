@@ -2,6 +2,7 @@
 // Import developed modules
 use crate::lp::constraints::constraints;
 use crate::lp::objectives::Objective;
+use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
@@ -27,17 +28,17 @@ impl StdObj {
     /// # Output
     /// * AC: Assignment cost for the provided schedule
     ///
-    fn AC(d: &mut Data, i: usize, q: usize) -> f64 {
+    fn AC(dat: &mut Data, i: usize, q: usize) -> f64 {
         // Extract input parameters
-        let G = &d.param.Gam;
-        let ep = &d.param.ep;
-        let nu = d.param.nu;
-        let k = &d.param.k;
+        let G = &dat.param.Gam;
+        let ep = &dat.param.ep;
+        let nu = dat.param.nu;
+        let k = &dat.param.k;
 
         // Extract decision variables
-        let w = &d.dec.w;
+        let w = &dat.dec.w;
         let wiq = f64::from(w[i][q]);
-        let eta = &d.dec.eta;
+        let eta = &dat.dec.eta;
 
         // Calculate the penalty
         let mut phi: f64 = 0.0;
@@ -66,7 +67,7 @@ impl StdObj {
     /// # Output
     /// * UC: Assignment cost for the provided schedule
     ///
-    fn UC(_d: &mut Data, _i: usize, _q: usize) -> f64 {
+    fn UC(_dat: &mut Data, _i: usize, _q: usize) -> f64 {
         // Extract input parameters
 
         // Extract decision variables
@@ -90,22 +91,22 @@ impl Objective for StdObj {
     /// # Output
     /// * J: Objective function cost
     ///
-    fn run(d: &mut Data) -> (bool, f64) {
+    fn run(dat: &mut Data, ch: &mut Charger) -> (bool, f64) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Variables
-        let val_sched = constraints::run(d);
+        let val_sched = constraints::run(dat, ch);
         let mut J: f64 = 0.0;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Extract input parameters
-        let N = d.param.N;
-        let Q = d.param.Q;
+        let N = dat.param.N;
+        let Q = dat.param.Q;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Calculate the objective function
         for i in 0..N {
             for q in 0..Q {
-                J += StdObj::AC(d, i, q) + StdObj::UC(d, i, q);
+                J += StdObj::AC(dat, i, q) + StdObj::UC(dat, i, q);
             }
         }
         return (val_sched, J);

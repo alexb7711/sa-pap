@@ -132,6 +132,9 @@ impl<'a> SA<'a> {
         let mut sol_best;
         let mut sol_new;
 
+        // Create buffers for schedules
+        let mut qsched_new: Charger;
+
         // Set local search iteration count
         let config: Yaml = yaml_loader::load_yaml(self.config_path);
         let k = config["time"]["K"].clone().into_i64().unwrap();
@@ -149,10 +152,11 @@ impl<'a> SA<'a> {
 
         // Extract new data set and initialize new solution as best solution
         sol_new = *self.gsys.get_data();
+        qsched_new = *self.charger.clone();
         sol_best = *self.gsys.get_data();
 
         // Calculate objective function
-        (self.sol_found, J0) = StdObj::run(&mut sol_new);
+        (self.sol_found, J0) = StdObj::run(&mut sol_new, &mut qsched_new);
 
         // Initialize the current and best solution to the initially generated solution
         JB = J0;
@@ -172,9 +176,10 @@ impl<'a> SA<'a> {
                 if self.gtweak.run(&mut self.gsys, &mut self.charger) {
                     // Extract new data set
                     sol_new = *self.gsys.get_data();
+                    qsched_new = *self.charger.clone();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new);
+                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut qsched_new);
 
                     // Update data sets
                     self.update_data_sets(
@@ -201,7 +206,7 @@ impl<'a> SA<'a> {
         // Check if the data has been changed
         let result: Option<Results>;
         if sol_orig.dec != sol_best.dec {
-            let (_, J) = StdObj::run(&mut sol_best.clone());
+            let (_, J) = StdObj::run(&mut sol_best.clone(), &mut self.charger);
 
             // Create result object
             result = Some(Results {

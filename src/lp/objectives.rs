@@ -1,5 +1,6 @@
 //=========================================================================
 // Import modules
+use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
@@ -10,5 +11,5 @@ pub mod std_obj;
 /// Trait to define `objective` interfaces
 //
 pub trait Objective {
-    fn run(d: &mut Data) -> (bool, f64);
+    fn run(dat: &mut Data, ch: &mut Charger) -> (bool, f64);
 }

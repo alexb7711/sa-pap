@@ -3,6 +3,7 @@
 use crate::lp::constraints::packing::service_time::ServiceTime;
 use crate::lp::constraints::packing::space_time_big_o::SpaceTimeBigO;
 use crate::lp::constraints::Constraint;
+use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //==============================================================================
@@ -23,9 +24,9 @@ pub struct PsiSigma {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for PsiSigma {
-    fn run(dat: &mut Data, i: usize, j: usize) -> bool {
+    fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
         // Update decision variables
-        PsiSigma::update_dec_var(dat, i, j);
+        PsiSigma::update_dec_var(dat, ch, i, j);
 
         // Extract decision variables
         let psi = &dat.dec.psi;
@@ -40,27 +41,27 @@ impl Constraint for PsiSigma {
 
         // Check the spatial ordering
         if !(psi[i][j] as usize + psi[j][i] as usize <= 1) {
-            println!("Visit {}", i);
+            println!("Schedule: {:?}", ch.schedule[dat.dec.v[i]]);
             println!("{} + {} > 1", psi[i][j], psi[j][i]);
             println!(
                 "I: i: {}, Gam: {}, v: {}",
                 i, dat.param.Gam[i], dat.dec.v[i]
             );
-            println!("j: j: {} Gam: {} v: {}", j, dat.param.Gam[i], dat.dec.v[j]);
+            println!("J: j: {} Gam: {} v: {}", j, dat.param.Gam[i], dat.dec.v[j]);
             println!("psi_sigma.rs: PSI > 1");
             return false;
         }
 
         // Check the temporal ordering
         if !(sig[i][j] as usize + sig[j][i] as usize <= 1) {
-            println!("Visit {}", i);
+            println!("Schedule: {:?}", ch.schedule[dat.dec.v[i]]);
             println!("{} + {} > 1", sig[i][j], sig[j][i]);
             println!(
                 "I: i: {}, Gam: {},  u: {}, d: {}",
                 i, dat.param.Gam[i], dat.dec.u[i], dat.dec.d[i]
             );
             println!(
-                "j: j: {} Gam: {} u: {}, d: {}",
+                "J: j: {} Gam: {} u: {}, d: {}",
                 j, dat.param.Gam[i], dat.dec.u[j], dat.dec.d[j]
             );
             println!("psi_sigma.rs: SIGMA > 1");
@@ -71,6 +72,7 @@ impl Constraint for PsiSigma {
         if !(psi[i][j] as usize + psi[j][i] as usize + sig[i][j] as usize + sig[j][i] as usize >= 1)
         {
             println!("Visit {}", i);
+            println!("Schedule: {:?}", ch.schedule[dat.dec.v[i]]);
             println!(
                 "{} + {} + {} + {} <= 1",
                 psi[i][j], psi[j][i], sig[i][j], sig[j][i]
@@ -80,7 +82,7 @@ impl Constraint for PsiSigma {
                 i, dat.param.Gam[i], dat.dec.v[i], dat.dec.u[i], dat.dec.d[i]
             );
             println!(
-                "j: j: {} Gam: {} v: {}, u: {}, d: {}",
+                "J: j: {} Gam: {} v: {}, u: {}, d: {}",
                 j, dat.param.Gam[i], dat.dec.v[j], dat.dec.u[j], dat.dec.d[j]
             );
             println!("psi_sigma.rs: SIGMA+PSI < 1");
@@ -105,12 +107,12 @@ impl PsiSigma {
     /// # Output
     /// * NONE
     ///
-    fn update_dec_var(data: &mut Data, i: usize, j: usize) {
+    fn update_dec_var(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) {
         // Update the service time
-        ServiceTime::run(data, i, j);
+        ServiceTime::run(dat, ch, i, j);
 
         // Update sigma/psi decision variables
-        SpaceTimeBigO::run(data, i, j);
-        SpaceTimeBigO::run(data, j, i);
+        SpaceTimeBigO::run(dat, ch, i, j);
+        SpaceTimeBigO::run(dat, ch, j, i);
     }
 }
