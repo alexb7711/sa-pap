@@ -70,6 +70,7 @@ pub mod new_visit {
                     // Update initial/final charge times
                     d.dec.u[i] = ud.0;
                     d.dec.d[i] = ud.1;
+                    d.dec.s[i] = ud.1 - ud.0;
 
                     // Indicate success
                     return true;

@@ -27,8 +27,8 @@ use crate::sa::data::Data;
 use crate::sa::generators::Generator;
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
+use std::time::{Duration, Instant};
 
-use std::time::Instant;
 //==============================================================================
 /// Results from simulated annealing
 //
@@ -163,12 +163,6 @@ impl<'a> SA<'a> {
         for t in self.tf.get_temp_vec().unwrap() {
             let start = Instant::now();
 
-            // Set the prefix depending on whether a solution has been found or not
-            self.update_prefix();
-
-            // Update the status bar
-            self.pb.inc(1);
-
             // Iterate though local search
             for _ in 0..k {
                 // If the schedule is successfully modified
@@ -200,8 +194,11 @@ impl<'a> SA<'a> {
                 &mut fg_fast,
             );
 
-            let duration = start.elapsed();
-            println!("Time elapsed: {:?}", duration);
+            // Set the prefix depending on whether a solution has been found or not
+            self.update_prefix(start.elapsed());
+
+            // Update the status bar
+            self.pb.inc(1);
         }
 
         // Check if the data has been changed
@@ -228,17 +225,13 @@ impl<'a> SA<'a> {
     /// Update the visual indicator next to the progress bar.
     ///
     /// # Input
-    /// * None
+    /// * te: Time elapsed for SA
     ///
     /// # Output
     /// * None
     ///
-    fn update_prefix(self: &SA<'a>) {
-        if self.sol_found {
-            self.pb.set_prefix(format!("✓"));
-        } else {
-            self.pb.set_prefix(format!("×"));
-        }
+    fn update_prefix(self: &SA<'a>, te: Duration) {
+        self.pb.set_prefix(format!("{:.3}s", te.as_secs_f64()));
     }
 
     //--------------------------------------------------------------------------
