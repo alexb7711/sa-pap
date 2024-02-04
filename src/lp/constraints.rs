@@ -33,10 +33,13 @@ pub mod constraints {
     use crate::lp::constraints::packing::packing;
     use crate::sa::charger::Charger;
     use crate::sa::data::Data;
+    use std::time::Instant;
 
     //--------------------------------------------------------------------------
     //
     pub fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
+        let start = Instant::now();
+
         // If packing constraints fail
         if !packing::run(dat, ch, i, j) {
             println!("Packing");
@@ -48,6 +51,9 @@ pub mod constraints {
             println!("Dynamic");
             return false;
         }
+
+        let duration = start.elapsed();
+        println!("Time elapsed: {:?}", duration);
 
         // Success
         return true;

@@ -23,10 +23,7 @@ pub struct ValidInitDepEndTimes {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ValidInitDepEndTimes {
-    fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
-        // Update decision variables
-        ValidInitDepEndTimes::update_dec_var(dat, ch, i, j);
-
+    fn run(dat: &mut Data, _ch: &mut Charger, i: usize, _j: usize) -> bool {
         // Extract parameters
         let T = dat.param.T;
         let a = &dat.param.a;
@@ -81,7 +78,7 @@ impl ValidInitDepEndTimes {
     /// # Output
     /// * NONE
     ///
-    fn update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
+    fn _update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
         // Update service time
         ServiceTime::run(data, ch, i, j);
     }

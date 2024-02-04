@@ -1,8 +1,8 @@
 # Number of processes to input values
-cores: 4
+cores: 1
 
 # 1: True; 0: False
-plot: 0
+plot: 1
 
 # Real Time Plot - 1: True; 0: False
 # NOTE: If this is set to 1, it is recommended to change "cores" to 1.

@@ -290,6 +290,9 @@ impl<'a> SA<'a> {
 
         // If the current solution is strictly better than the current best
         if *jb - *j0 > 0.0 {
+            // Update the objective cost
+            *jb = *j0;
+
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }

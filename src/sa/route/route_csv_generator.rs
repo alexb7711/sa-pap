@@ -554,7 +554,7 @@ impl RouteCSVGenerator {
         // Loop through each BEB
         for a in 0..self.data.param.A {
             // Assign the initial charge for BEB `a`
-            self.data.param.alpha[first(Gam, a as u16).unwrap()] = init_charge;
+            self.data.dec.eta[first(Gam, a as u16).unwrap()] = init_charge;
         }
     }
 
