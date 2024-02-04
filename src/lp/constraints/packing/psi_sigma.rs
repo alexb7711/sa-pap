@@ -41,7 +41,7 @@ impl Constraint for PsiSigma {
 
         // Check the spatial ordering
         if !(psi[i][j] as usize + psi[j][i] as usize <= 1) {
-            println!("Visit {}", i);
+            println!("Schedule: {:?}", ch.schedule[dat.dec.v[i]]);
             println!("{} + {} > 1", psi[i][j], psi[j][i]);
             println!(
                 "I: i: {}, Gam: {}, v: {}",
@@ -54,7 +54,7 @@ impl Constraint for PsiSigma {
 
         // Check the temporal ordering
         if !(sig[i][j] as usize + sig[j][i] as usize <= 1) {
-            println!("Visit {}", i);
+            println!("Schedule: {:?}", ch.schedule[dat.dec.v[i]]);
             println!("{} + {} > 1", sig[i][j], sig[j][i]);
             println!(
                 "I: i: {}, Gam: {},  u: {}, d: {}",
@@ -72,6 +72,7 @@ impl Constraint for PsiSigma {
         if !(psi[i][j] as usize + psi[j][i] as usize + sig[i][j] as usize + sig[j][i] as usize >= 1)
         {
             println!("Visit {}", i);
+            println!("Schedule: {:?}", ch.schedule[dat.dec.v[i]]);
             println!(
                 "{} + {} + {} + {} <= 1",
                 psi[i][j], psi[j][i], sig[i][j], sig[j][i]

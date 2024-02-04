@@ -2,13 +2,97 @@
 // Import developed modules
 use crate::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
 use crate::lp::constraints::Constraint;
+use crate::plotter::charge_plot::ChargePlot;
 use crate::sa::charger::Charger;
 use crate::sa::data::Data;
+use crate::sa::generators::primitives::EPSILON;
 
 //===============================================================================
 /// Structure defining the information to calculate service time
 //
 pub struct ChargePropagate {}
+
+//===============================================================================
+/// Implementation of `Constraint` for `ChargePropogation` structure.
+///
+impl ChargePropagate {
+    #[allow(non_snake_case)]
+    fn update_charge(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
+        // Extract parameters
+        let Gam = &dat.param.Gam;
+        let r = &dat.param.r;
+        let kappa = &dat.param.k;
+
+        // Extract decision variables
+        let eta = &mut dat.dec.eta;
+        let v = &dat.dec.v;
+        let s = &mut dat.dec.s;
+        let u = &mut dat.dec.u;
+        let d = &mut dat.dec.d;
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Remove the current visit
+        if !ch.remove(v[i], (u[i], d[i])) {
+            println!("u: {}", u[i]);
+            println!("d: {}", d[i]);
+            println!("s_old: {}", s[i]);
+            println!("v: {}", v[i]);
+            println!("schedule before: {:?}", ch.schedule[v[i]]);
+            panic!("charge_propagation: Never removed!");
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Adjust charge times
+
+        // Retrieve the charger speed
+        // let charge_rate: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q]).sum();
+        let charge_rate: f32 = r[v[i]];
+
+        // Store the original charge duration
+        let l_s = s[i];
+
+        // Adjust the charge time such that the BEB is at maximum charge
+        // and the schedule does not fail
+        //
+        // Units: Kwh * (hr / Kwh) = hr
+        s[i] = (kappa[Gam[i] as usize] - eta[i]) / charge_rate;
+
+        // Ensure charge time is non-zero
+        if s[i] == 0.0 {
+            s[i] = EPSILON;
+        }
+        // Update initial and final charge times. Choose to move u and d
+        // closer together by (s_old - s_new) / 2
+        let s_diff = (l_s - s[i]) / 2.0;
+        u[i] += s_diff;
+        d[i] -= s_diff;
+
+        // If the update causes the time ordering to flip
+        if u[i] > d[i] {
+            // Update so that the assignment is valid
+            let utmp = u[i].clone();
+            u[i] = d[i];
+            d[i] = utmp;
+        } else if u[i] == d[i] {
+            d[i] += EPSILON;
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Add the charger back in the queue
+        if !ch.assign(v[i], (u[i], d[i]), Gam[i] as usize) {
+            println!("s_old - s_new: {}", s_diff);
+            println!("u_new: {}", u[i]);
+            println!("d_new: {}", d[i]);
+            println!("s_new: {}", s[i]);
+            println!("v: {}", v[i]);
+            println!("schedule aft: {:?}", ch.schedule[v[i]]);
+            panic!("charge_propagation: Never added back!")
+        }
+
+        // Update the charge
+        return r[v[i]] * s[i];
+    }
+}
 
 //===============================================================================
 /// Implementation of `Constraint` for `ChargePropogation` structure.
@@ -24,62 +108,37 @@ pub struct ChargePropagate {}
 #[allow(non_snake_case)]
 impl Constraint for ChargePropagate {
     fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Update parameters
         ChargePropagate::update_dec_var(dat, ch, i, j);
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Constraint
+
         // Extract parameters
-        let Q = dat.param.Q;
         let Gam = &dat.param.Gam;
-        let gam = &dat.param.gam;
-        let r = &dat.param.r;
         let kappa = &dat.param.k;
+        let r = &dat.param.r;
+        let s = &dat.dec.s;
+
+        // Calculate charge amount
+        // let mut charge: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q] * s[i]).sum();
+        let mut charge: f32 = r[dat.dec.v[i]] * s[i];
+
+        // Ensure the charge does not exceed the battery limit
+        if !(dat.dec.eta[i] + charge <= kappa[Gam[i] as usize]) {
+            charge = ChargePropagate::update_charge(dat, ch, i);
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Constraint
+
+        // Extract parameters
+        let gam = &dat.param.gam;
         let l = &dat.param.l;
 
         // Extract decision variables
         let eta = &mut dat.dec.eta;
-        let w = &dat.dec.w;
-        let s = &mut dat.dec.s;
-        let u = &mut dat.dec.u;
-        let d = &mut dat.dec.d;
-
-        // Constraint
-
-        // Calculate charge amount
-        let mut charge: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q] * s[i]).sum();
-
-        // Ensure the charge does not exceed the battery limit
-        if !(eta[i] + charge <= kappa[Gam[i] as usize]) {
-            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // Adjust charge times
-
-            // Retrieve the charger speed
-            let charge_rate: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q]).sum();
-
-            // Store the original charge duration
-            let l_s = s[i];
-
-            // Adjust the charge time such that the BEB is at maximum charge
-            // and the schedule does not fail
-            //
-            // Units: Kwh * (hr / Kwh) = hr
-            //
-            s[i] = (kappa[Gam[i] as usize] - eta[i]) / charge_rate;
-
-            // Remove the current visit
-            ch.remove(dat.dec.v[i], (u[i], d[i]));
-
-            // Update initial and final charge times. Choose to move u and d
-            // closer together by (s_old - s_new) / 2
-            let s_diff = (l_s - s[i]) / 2.0;
-            u[i] = u[i] + s_diff;
-            d[i] = d[i] - s_diff;
-
-            // Add the charger back in the queue
-            ch.assign(dat.dec.v[i], (u[i], d[i]), Gam[i] as usize);
-
-            // Update the charge
-            charge = (0..Q).map(|q| f32::from(w[i][q]) * r[q] * s[i]).sum();
-        }
 
         // If the BEB has another visit
         if gam[i] >= 0 {

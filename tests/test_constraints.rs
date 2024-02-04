@@ -334,15 +334,16 @@ mod test_dynamic_constraints {
 
         // Update initial and final charge times
         {
+            let a = &mut rg.data.param.a;
+            let e = &mut rg.data.param.e;
             let d = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
             let v = &mut rg.data.dec.v;
 
             for i in 0..rg.data.param.N {
-                let idx = i % rg.data.param.Q;
-                u[i] = 0.0;
-                d[i] = 2.0;
-                v[i] = idx;
+                u[i] = a[i] + 0.001;
+                d[i] = e[i] - 0.001;
+                v[i] = rg.data.param.Gam[i] as usize;
             }
         }
 

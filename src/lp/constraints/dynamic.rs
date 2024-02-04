@@ -29,11 +29,11 @@ pub mod dynamic {
     /// * bool: Constraints successfully/unsuccessfully applied
     ///
     pub fn run(d: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
-        if !ChargePropagate::run(d, ch, i, j) {
+        if !ScalarToVectorQueue::run(d, ch, i, j) {
             return false;
         }
 
-        if !ScalarToVectorQueue::run(d, ch, i, j) {
+        if !ChargePropagate::run(d, ch, i, j) {
             return false;
         }
 

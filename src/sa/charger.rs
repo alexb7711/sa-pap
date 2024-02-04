@@ -144,10 +144,10 @@ impl Charger {
 
             // Indicate that the assignment was successful
             assigned = true;
-        }
 
-        // Update the free time for the qth charger
-        self.update_free_time(q);
+            // Update the free time for the qth charger
+            self.update_free_time(q);
+        }
 
         return assigned;
     }

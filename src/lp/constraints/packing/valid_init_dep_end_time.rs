@@ -50,7 +50,7 @@ impl Constraint for ValidInitDepEndTimes {
         // Ensure the detach time is before the departure time
         if !(d[i] <= e[i]) {
             println!("Visit {}", i);
-            println!("{} > {}", a[i], u[i]);
+            println!("{} > {}", d[i], e[i]);
             println!("valid_init_dep_end-time.rs: d[i] > e[i]");
             return false;
         }
