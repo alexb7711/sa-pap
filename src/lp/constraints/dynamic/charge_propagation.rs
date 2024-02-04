@@ -2,7 +2,6 @@
 // Import developed modules
 use crate::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
 use crate::lp::constraints::Constraint;
-use crate::plotter::charge_plot::ChargePlot;
 use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 use crate::sa::generators::primitives::EPSILON;
