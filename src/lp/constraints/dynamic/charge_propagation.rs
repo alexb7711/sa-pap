@@ -16,7 +16,7 @@ pub struct ChargePropagate {}
 ///
 impl ChargePropagate {
     #[allow(non_snake_case)]
-    fn update_charge(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
+    fn update_charge(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
         // Extract parameters
         let Gam = &dat.param.Gam;
         let r = &dat.param.r;
