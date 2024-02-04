@@ -28,16 +28,16 @@ impl StdObj {
     /// # Output
     /// * AC: Assignment cost for the provided schedule
     ///
-    fn AC(dat: &mut Data, i: usize, q: usize) -> f64 {
+    fn AC(dat: &mut Data, i: usize) -> f64 {
         // Extract input parameters
         let G = &dat.param.Gam;
         let ep = &dat.param.ep;
+        let r = &dat.param.r;
         let nu = dat.param.nu;
         let k = &dat.param.k;
 
         // Extract decision variables
-        let w = &dat.dec.w;
-        let wiq = f64::from(w[i][q]);
+        let v = dat.dec.v[i];
         let eta = &dat.dec.eta;
 
         // Calculate the penalty
@@ -53,7 +53,7 @@ impl StdObj {
         }
 
         // Calculate the assignment cost
-        return wiq as f64 * ep[q] as f64 + phi;
+        return (ep[v] * r[v]) as f64 + phi;
     }
 
     //--------------------------------------------------------------------------
@@ -67,7 +67,7 @@ impl StdObj {
     /// # Output
     /// * UC: Assignment cost for the provided schedule
     ///
-    fn UC(_dat: &mut Data, _i: usize, _q: usize) -> f64 {
+    fn UC(_dat: &mut Data, _i: usize) -> f64 {
         // Extract input parameters
 
         // Extract decision variables
@@ -91,23 +91,25 @@ impl Objective for StdObj {
     /// # Output
     /// * J: Objective function cost
     ///
-    fn run(dat: &mut Data, ch: &mut Charger) -> (bool, f64) {
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Variables
-        let val_sched = constraints::run(dat, ch);
-        let mut J: f64 = 0.0;
-
+    fn run(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Extract input parameters
         let N = dat.param.N;
-        let Q = dat.param.Q;
+        let mut J: f64 = 0.0;
+        let mut val_sched: bool = false;
 
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Calculate the objective function
         for i in 0..N {
-            for q in 0..Q {
-                J += StdObj::AC(dat, i, q) + StdObj::UC(dat, i, q);
+            if run_constr {
+                for j in 0..N {
+                    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    // Calculate constraints
+                    val_sched = constraints::run(dat, ch, i, j);
+                }
             }
+
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Calculate the objective function
+            J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
         }
         return (val_sched, J);
     }

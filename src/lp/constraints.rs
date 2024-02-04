@@ -36,20 +36,19 @@ pub mod constraints {
 
     //--------------------------------------------------------------------------
     //
-    pub fn run(dat: &mut Data, ch: &mut Charger) -> bool {
-        for i in 0..dat.param.N {
-            for j in 0..dat.param.N {
-                // If packing constraints fail
-                if !packing::run(dat, ch, i, j) {
-                    return false;
-                }
-
-                // If dynamic constraints fail
-                if !dynamic::run(dat, ch, i, j) {
-                    return false;
-                }
-            }
+    pub fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
+        // If packing constraints fail
+        if !packing::run(dat, ch, i, j) {
+            println!("Packing");
+            return false;
         }
+
+        // If dynamic constraints fail
+        if !dynamic::run(dat, ch, i, j) {
+            println!("Dynamic");
+            return false;
+        }
+
         // Success
         return true;
     }
