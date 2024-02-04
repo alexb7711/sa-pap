@@ -30,17 +30,6 @@ impl ChargePropagate {
         let d = &mut dat.dec.d;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Remove the current visit
-        if !ch.remove(v[i], (u[i], d[i])) {
-            println!("u: {}", u[i]);
-            println!("d: {}", d[i]);
-            println!("s_old: {}", s[i]);
-            println!("v: {}", v[i]);
-            println!("schedule before: {:?}", ch.schedule[v[i]]);
-            panic!("charge_propagation: Never removed!");
-        }
-
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Adjust charge times
 
         // Retrieve the charger speed
@@ -74,18 +63,6 @@ impl ChargePropagate {
             d[i] = utmp;
         } else if u[i] == d[i] {
             d[i] += EPSILON;
-        }
-
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Add the charger back in the queue
-        if !ch.assign(v[i], (u[i], d[i]), Gam[i] as usize) {
-            println!("s_old - s_new: {}", s_diff);
-            println!("u_new: {}", u[i]);
-            println!("d_new: {}", d[i]);
-            println!("s_new: {}", s[i]);
-            println!("v: {}", v[i]);
-            println!("schedule aft: {:?}", ch.schedule[v[i]]);
-            panic!("charge_propagation: Never added back!")
         }
 
         // Update the charge
