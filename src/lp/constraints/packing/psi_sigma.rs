@@ -47,7 +47,7 @@ impl Constraint for PsiSigma {
                 "I: i: {}, Gam: {}, v: {}",
                 i, dat.param.Gam[i], dat.dec.v[i]
             );
-            println!("j: j: {} Gam: {} v: {}", j, dat.param.Gam[i], dat.dec.v[j]);
+            println!("J: j: {} Gam: {} v: {}", j, dat.param.Gam[i], dat.dec.v[j]);
             println!("psi_sigma.rs: PSI > 1");
             return false;
         }
@@ -61,7 +61,7 @@ impl Constraint for PsiSigma {
                 i, dat.param.Gam[i], dat.dec.u[i], dat.dec.d[i]
             );
             println!(
-                "j: j: {} Gam: {} u: {}, d: {}",
+                "J: j: {} Gam: {} u: {}, d: {}",
                 j, dat.param.Gam[i], dat.dec.u[j], dat.dec.d[j]
             );
             println!("psi_sigma.rs: SIGMA > 1");
@@ -81,7 +81,7 @@ impl Constraint for PsiSigma {
                 i, dat.param.Gam[i], dat.dec.v[i], dat.dec.u[i], dat.dec.d[i]
             );
             println!(
-                "j: j: {} Gam: {} v: {}, u: {}, d: {}",
+                "J: j: {} Gam: {} v: {}, u: {}, d: {}",
                 j, dat.param.Gam[i], dat.dec.v[j], dat.dec.u[j], dat.dec.d[j]
             );
             println!("psi_sigma.rs: SIGMA+PSI < 1");
