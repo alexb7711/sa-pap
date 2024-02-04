@@ -256,7 +256,7 @@ mod test_route_csv_generator {
             assert_ne!(re[0].arrival_time, milp.param.a[0]);
             assert_ne!(re[30].id, milp.param.Gam[30]);
             assert_ne!(re[8].departure_time, milp.param.e[8]);
-            assert_ne!(re[5].detach_time, milp.dec.c[5]);
+            assert_ne!(re[5].detach_time, milp.dec.d[5]);
             assert_ne!(re[16].attach_time, milp.dec.u[16]);
 
             // Assert that that the data was changed to what was expected
@@ -280,7 +280,7 @@ mod test_route_csv_generator {
             assert_eq!(re[i].arrival_time, milp.param.a[i]);
             assert_eq!(re[i].departure_time, milp.param.e[i]);
             assert_eq!(re[i].attach_time, milp.dec.u[i]);
-            assert_eq!(re[i].detach_time, milp.dec.c[i]);
+            assert_eq!(re[i].detach_time, milp.dec.d[i]);
         }
 
         // Assert that the data has changed

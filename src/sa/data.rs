@@ -58,7 +58,7 @@ pub struct Parameter {
 ///
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct DecisionVar {
-    pub c: Vec<f32>,           //  Detach time for visit i                [hr]
+    pub d: Vec<f32>,           //  Detach time for visit i                [hr]
     pub g: Vec<Vec<f32>>,      //  Detach time for visit i                [hr]
     pub psi: Vec<Vec<bool>>,   //  Determines if i is "fully left" of j
     pub eta: Vec<f32>,         //  Initial charge for bus visit i         [MJ]

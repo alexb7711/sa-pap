@@ -88,7 +88,7 @@ impl RouteCSVGenerator {
             let gam = self.data.param.gam[i];
             let mut rt: f32 = 0.0;
             let u = self.data.dec.u[i];
-            let c = self.data.dec.c[i];
+            let d = self.data.dec.d[i];
             let v = self.data.dec.v[i];
 
             // If the BEB has another visit
@@ -106,7 +106,7 @@ impl RouteCSVGenerator {
                 id: Gam,
                 route_time: rt,
                 attach_time: u,
-                detach_time: c,
+                detach_time: d,
                 queue: v as u16,
             };
 
@@ -212,7 +212,7 @@ impl RouteCSVGenerator {
         // Generate decision variable buffers
         self.data.dec.u = vec![0.0; N];
         self.data.dec.v = vec![0; N];
-        self.data.dec.c = vec![0.0; N];
+        self.data.dec.d = vec![0.0; N];
         self.data.dec.s = vec![0.0; N];
         self.data.dec.g = vec![vec![0.0; N]; Q];
         self.data.dec.eta = vec![0.0; N];
@@ -639,7 +639,7 @@ impl RouteCSVGenerator {
     fn update_milp_dec_var(self: &mut RouteCSVGenerator) {
         for i in 0..self.data.param.N {
             self.data.dec.u[i] = self.route[i].attach_time;
-            self.data.dec.c[i] = self.route[i].detach_time;
+            self.data.dec.d[i] = self.route[i].detach_time;
             self.data.dec.v[i] = self.route[i].queue as usize;
         }
     }
@@ -728,8 +728,8 @@ impl Route for RouteCSVGenerator {
     /// # Output
     /// * NONE
     ///
-    fn set_data(self: &mut RouteCSVGenerator, d: Box<Data>) {
-        self.data = *d;
+    fn set_data(self: &mut RouteCSVGenerator, dat: Box<Data>) {
+        self.data = *dat;
     }
 
     //---------------------------------------------------------------------------
@@ -1137,7 +1137,7 @@ mod priv_test_route_gen {
             assert_eq!(rg.route[i].arrival_time, rg.data.param.a[i]);
             assert_eq!(rg.route[i].departure_time, rg.data.param.e[i]);
             assert_eq!(rg.route[i].attach_time, rg.data.dec.u[i]);
-            assert_eq!(rg.route[i].detach_time, rg.data.dec.c[i]);
+            assert_eq!(rg.route[i].detach_time, rg.data.dec.d[i]);
         }
     }
 }

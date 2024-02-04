@@ -128,7 +128,7 @@ mod test_packing_constraints {
 
         // Update initial and final charge times
         {
-            let c = &mut rg.data.dec.c;
+            let c = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..n {
@@ -145,12 +145,12 @@ mod test_packing_constraints {
         }
 
         // Check constraints
-        let c = &mut rg.data.dec.c;
+        let d = &mut rg.data.dec.d;
         let u = &mut rg.data.dec.u;
         let s = &mut rg.data.dec.s;
 
         for i in 0..n {
-            assert_eq!(s[i], c[i] - u[i]);
+            assert_eq!(s[i], d[i] - u[i]);
         }
     }
 
@@ -166,14 +166,14 @@ mod test_packing_constraints {
 
         // Set some visit queues
         {
-            let c = &mut rg.data.dec.c;
+            let d = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
             let v = &mut rg.data.dec.v;
 
             for i in 0..rg.data.param.N {
                 let idx = i % rg.data.param.Q;
                 u[i] = i as f32;
-                c[i] = 0.01 + i as f32;
+                d[i] = 0.01 + i as f32;
                 v[i] = idx;
             }
         }
@@ -196,12 +196,12 @@ mod test_packing_constraints {
 
         // Set some visit queues
         {
-            let c = &mut rg.data.dec.c;
+            let d = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..rg.data.param.N {
                 u[i] = i as f32;
-                c[i] = 0.01 + i as f32;
+                d[i] = 0.01 + i as f32;
             }
         }
 
@@ -224,13 +224,13 @@ mod test_packing_constraints {
         // Set some visit queues
         {
             let v = &mut rg.data.dec.v;
-            let c = &mut rg.data.dec.c;
+            let d = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..rg.data.param.N {
                 // Set some queue time
                 u[i] = 0.0;
-                c[i] = 0.1;
+                d[i] = 0.1;
 
                 // All BEBs get a unique charger
                 v[i] = i;
@@ -268,12 +268,12 @@ mod test_packing_constraints {
             let a = &mut rg.data.param.a;
             let e = &mut rg.data.param.e;
 
-            let c = &mut rg.data.dec.c;
+            let d = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
 
             for i in 0..n {
                 u[i] = a[i];
-                c[i] = e[i];
+                d[i] = e[i];
             }
         }
 
@@ -326,14 +326,14 @@ mod test_dynamic_constraints {
 
         // Update initial and final charge times
         {
-            let c = &mut rg.data.dec.c;
+            let d = &mut rg.data.dec.d;
             let u = &mut rg.data.dec.u;
             let v = &mut rg.data.dec.v;
 
             for i in 0..rg.data.param.N {
                 let idx = i % rg.data.param.Q;
                 u[i] = 0.0;
-                c[i] = 2.0;
+                d[i] = 2.0;
                 v[i] = idx;
             }
         }

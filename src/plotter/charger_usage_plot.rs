@@ -27,15 +27,15 @@ pub struct ChargerUsagePlot {}
 /// * Charge usage plot
 ///
 impl Plotter for ChargerUsagePlot {
-    fn plot(display_plot: bool, d: &mut Box<Data>) {
+    fn plot(display_plot: bool, dat: &mut Box<Data>) {
         // Variables
-        let A = d.param.A;
-        let N = d.param.N;
-        let T = d.param.T;
-        let K = d.param.K;
-        let v = &d.dec.v;
-        let u = &d.dec.u;
-        let c = &d.dec.c;
+        let A = dat.param.A;
+        let N = dat.param.N;
+        let T = dat.param.T;
+        let K = dat.param.K;
+        let v = &dat.dec.v;
+        let u = &dat.dec.u;
+        let d = &dat.dec.d;
         let delta = T / K as f32;
 
         let mut slow: Vec<usize> = vec![0; K as usize];
@@ -57,12 +57,14 @@ impl Plotter for ChargerUsagePlot {
             // For each visit
             for i in 0..N {
                 // Check if the visit is in within the current discrete step
-                if u[i] <= dt && c[i] >= dt {
+                if u[i] <= dt && d[i] >= dt {
                     // Check if the BEB is assigned to a slow charger
-                    if v[i] >= A && v[i] < A + d.param.slow {
+                    if v[i] >= A && v[i] < A + dat.param.slow {
                         slow[k as usize] += 1;
                     // Check if the BEB is assigned to a fast charger
-                    } else if v[i] >= A + d.param.slow && v[i] < A + d.param.slow + d.param.fast {
+                    } else if v[i] >= A + dat.param.slow
+                        && v[i] < A + dat.param.slow + dat.param.fast
+                    {
                         fast[k as usize] += 1;
                     }
                 }

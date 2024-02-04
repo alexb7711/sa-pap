@@ -28,15 +28,15 @@ pub struct AccumulatedEnergyUsagePlot {}
 ///
 ///
 impl Plotter for AccumulatedEnergyUsagePlot {
-    fn plot(display_plot: bool, d: &mut Box<Data>) {
+    fn plot(display_plot: bool, dat: &mut Box<Data>) {
         // Variables
-        let K = d.param.K as usize;
-        let N = d.param.N;
-        let T = d.param.T;
-        let c = &d.dec.c;
-        let r = &d.param.r;
-        let u = &d.dec.u;
-        let v = &d.dec.v;
+        let K = dat.param.K as usize;
+        let N = dat.param.N;
+        let T = dat.param.T;
+        let d = &dat.dec.d;
+        let r = &dat.param.r;
+        let u = &dat.dec.u;
+        let v = &dat.dec.v;
         let delta = T / K as f32;
 
         // Configure plot
@@ -59,7 +59,7 @@ impl Plotter for AccumulatedEnergyUsagePlot {
             // For each visit
             for i in 0..N {
                 // If the discrete time is within the active time for visit i
-                if u[i] <= dt && c[i] >= dt {
+                if u[i] <= dt && d[i] >= dt {
                     usage[k] += r[v[i]] * delta;
                 }
             }

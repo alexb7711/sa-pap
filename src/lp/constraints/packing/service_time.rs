@@ -21,15 +21,15 @@ pub struct ServiceTime {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ServiceTime {
-    fn run(d: &mut Data, i: usize, _: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, _: usize) -> bool {
         // Extract decision variables
-        let c = &d.dec.c;
-        let u = &d.dec.u;
-        let s = &mut d.dec.s;
+        let d = &dat.dec.d;
+        let u = &dat.dec.u;
+        let s = &mut dat.dec.s;
 
         // Constraint
 
-        s[i] = c[i] - u[i];
+        s[i] = d[i] - u[i];
 
         return true;
     }

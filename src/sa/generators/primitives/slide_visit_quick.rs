@@ -51,7 +51,7 @@ pub mod slide_visit_quick {
         if fits && ch.assign(q, ud_new, b) {
             // Update initial/final charge times
             d.dec.u[i] = ud_new.0;
-            d.dec.c[i] = ud_new.1;
+            d.dec.d[i] = ud_new.1;
 
             return true;
         }

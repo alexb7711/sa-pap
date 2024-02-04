@@ -61,7 +61,7 @@ pub mod slide_visit {
                 // Update route data
                 if d.param.N > 0 {
                     d.dec.u[i] = ud.0; // Update attach time
-                    d.dec.c[i] = ud.1; // Update detach time
+                    d.dec.d[i] = ud.1; // Update detach time
                 }
 
                 return true;

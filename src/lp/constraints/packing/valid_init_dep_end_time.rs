@@ -22,19 +22,19 @@ pub struct ValidInitDepEndTimes {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ValidInitDepEndTimes {
-    fn run(d: &mut Data, i: usize, j: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, j: usize) -> bool {
         // Update decision variables
-        ValidInitDepEndTimes::update_dec_var(d, i, j);
+        ValidInitDepEndTimes::update_dec_var(dat, i, j);
 
         // Extract parameters
-        let T = d.param.T;
-        let a = &d.param.a;
-        let e = &d.param.e;
+        let T = dat.param.T;
+        let a = &dat.param.a;
+        let e = &dat.param.e;
 
         // Extract decision variables
-        let c = &d.dec.c;
-        let u = &d.dec.u;
-        let s = &d.dec.s;
+        let d = &dat.dec.d;
+        let u = &dat.dec.u;
+        let s = &dat.dec.s;
 
         // Constraint
 
@@ -47,7 +47,7 @@ impl Constraint for ValidInitDepEndTimes {
         }
 
         // Ensure the detach time is before the departure time
-        if !(c[i] <= e[i]) {
+        if !(d[i] <= e[i]) {
             println!("Visit {}", i);
             println!("{} > {}", a[i], u[i]);
             println!("valid_init_dep_end-time.rs: d[i] > e[i]");
