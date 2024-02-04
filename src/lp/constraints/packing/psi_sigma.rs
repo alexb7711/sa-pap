@@ -3,7 +3,6 @@
 use crate::lp::constraints::packing::service_time::ServiceTime;
 use crate::lp::constraints::packing::space_time_big_o::SpaceTimeBigO;
 use crate::lp::constraints::Constraint;
-use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //==============================================================================
@@ -24,14 +23,14 @@ pub struct PsiSigma {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for PsiSigma {
-    fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, j: usize) -> bool {
         // Update decision variables
         // PsiSigma::update_dec_var(dat, ch, i, j);
-        ServiceTime::run(dat, ch, i, j);
+        ServiceTime::run(dat, i, j);
 
         // Update sigma/psi decision variables
-        SpaceTimeBigO::run(dat, ch, i, j);
-        SpaceTimeBigO::run(dat, ch, j, i);
+        SpaceTimeBigO::run(dat, i, j);
+        SpaceTimeBigO::run(dat, j, i);
 
         // // Extract decision variables
         // let psi = &dat.dec.psi;
@@ -112,12 +111,12 @@ impl PsiSigma {
     /// # Output
     /// * NONE
     ///
-    fn _update_dec_var(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) {
+    fn _update_dec_var(dat: &mut Data, i: usize, j: usize) {
         // Update the service time
-        ServiceTime::run(dat, ch, i, j);
+        ServiceTime::run(dat, i, j);
 
         // Update sigma/psi decision variables
-        SpaceTimeBigO::run(dat, ch, i, j);
-        SpaceTimeBigO::run(dat, ch, j, i);
+        SpaceTimeBigO::run(dat, i, j);
+        SpaceTimeBigO::run(dat, j, i);
     }
 }

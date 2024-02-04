@@ -2,7 +2,6 @@
 // Import developed modules
 use crate::lp::constraints::dynamic::init_final_charge::InitFinalCharge;
 use crate::lp::constraints::Constraint;
-use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 use crate::sa::generators::primitives::EPSILON;
 
@@ -16,7 +15,7 @@ pub struct ChargePropagate {}
 ///
 impl ChargePropagate {
     #[allow(non_snake_case)]
-    fn update_charge(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
+    fn update_charge(dat: &mut Data, i: usize) -> f32 {
         // Extract parameters
         let Gam = &dat.param.Gam;
         let r = &dat.param.r;
@@ -83,7 +82,7 @@ impl ChargePropagate {
 ///
 #[allow(non_snake_case)]
 impl Constraint for ChargePropagate {
-    fn run(dat: &mut Data, ch: &mut Charger, i: usize, _: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, _: usize) -> bool {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Constraint
 
@@ -98,7 +97,7 @@ impl Constraint for ChargePropagate {
 
         // Ensure the charge does not exceed the battery limit
         if !(dat.dec.eta[i] + charge <= kappa[Gam[i] as usize]) {
-            charge = ChargePropagate::update_charge(dat, ch, i);
+            charge = ChargePropagate::update_charge(dat, i);
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -137,8 +136,8 @@ impl ChargePropagate {
     /// # Output
     /// * NONE
     ///
-    fn _update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
+    fn _update_dec_var(data: &mut Data, i: usize, j: usize) {
         // Update the initial charge time
-        InitFinalCharge::run(data, ch, i, j);
+        InitFinalCharge::run(data, i, j);
     }
 }

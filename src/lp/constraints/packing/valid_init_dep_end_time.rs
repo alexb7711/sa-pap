@@ -2,7 +2,6 @@
 // Import developed modules
 use crate::lp::constraints::packing::service_time::ServiceTime;
 use crate::lp::constraints::Constraint;
-use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
@@ -23,7 +22,7 @@ pub struct ValidInitDepEndTimes {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ValidInitDepEndTimes {
-    fn run(dat: &mut Data, _ch: &mut Charger, i: usize, _j: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, _j: usize) -> bool {
         // Extract parameters
         let T = dat.param.T;
         let a = &dat.param.a;
@@ -78,8 +77,8 @@ impl ValidInitDepEndTimes {
     /// # Output
     /// * NONE
     ///
-    fn _update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
+    fn _update_dec_var(data: &mut Data, i: usize, j: usize) {
         // Update service time
-        ServiceTime::run(data, ch, i, j);
+        ServiceTime::run(data, i, j);
     }
 }

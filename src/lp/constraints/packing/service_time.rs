@@ -1,7 +1,6 @@
 //===============================================================================
 // Import developed modules
 use crate::lp::constraints::Constraint;
-use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
@@ -22,7 +21,7 @@ pub struct ServiceTime {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for ServiceTime {
-    fn run(dat: &mut Data, _ch: &mut Charger, i: usize, _: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, _: usize) -> bool {
         // Extract decision variables
         let d = &dat.dec.d;
         let u = &dat.dec.u;

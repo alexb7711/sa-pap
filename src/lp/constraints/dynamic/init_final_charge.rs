@@ -1,7 +1,6 @@
 //===============================================================================
 // Import developed modules
 use crate::lp::constraints::Constraint;
-use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
@@ -22,7 +21,7 @@ pub struct InitFinalCharge {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for InitFinalCharge {
-    fn run(dat: &mut Data, _ch: &mut Charger, i: usize, _: usize) -> bool {
+    fn run(dat: &mut Data, i: usize, _: usize) -> bool {
         // Extract parameters
         let Gam = &dat.param.Gam;
         let alpha = &dat.param.alpha;

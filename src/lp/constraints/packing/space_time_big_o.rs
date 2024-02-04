@@ -1,7 +1,6 @@
 //===============================================================================
 // Import developed modules
 use crate::lp::constraints::Constraint;
-use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
@@ -22,7 +21,7 @@ pub struct SpaceTimeBigO {}
 ///
 #[allow(non_snake_case)]
 impl Constraint for SpaceTimeBigO {
-    fn run(d: &mut Data, _ch: &mut Charger, i: usize, j: usize) -> bool {
+    fn run(d: &mut Data, i: usize, j: usize) -> bool {
         // Extract decision variables
         let psi = &mut d.dec.psi;
         let sig = &mut d.dec.sigma;

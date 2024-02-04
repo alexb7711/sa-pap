@@ -5,7 +5,6 @@ pub mod packing;
 
 //==============================================================================
 // Import modules
-use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //==============================================================================
@@ -20,7 +19,7 @@ use crate::sa::data::Data;
 /// * bool: Constraint successfully applied and is true
 ///
 pub trait Constraint {
-    fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool;
+    fn run(dat: &mut Data, i: usize, j: usize) -> bool;
 }
 
 //==============================================================================
@@ -31,29 +30,22 @@ pub mod constraints {
     // Import modules
     use crate::lp::constraints::dynamic::dynamic;
     use crate::lp::constraints::packing::packing;
-    use crate::sa::charger::Charger;
     use crate::sa::data::Data;
-    use std::time::Instant;
 
     //--------------------------------------------------------------------------
     //
-    pub fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
-        let start = Instant::now();
-
+    pub fn run(dat: &mut Data, i: usize, j: usize) -> bool {
         // If packing constraints fail
-        if !packing::run(dat, ch, i, j) {
+        if !packing::run(dat, i, j) {
             println!("Packing");
             return false;
         }
 
         // If dynamic constraints fail
-        if !dynamic::run(dat, ch, i, j) {
+        if !dynamic::run(dat, i, j) {
             println!("Dynamic");
             return false;
         }
-
-        let duration = start.elapsed();
-        println!("Time elapsed: {:?}", duration);
 
         // Success
         return true;

@@ -13,7 +13,6 @@ pub mod dynamic {
     use crate::lp::constraints::dynamic::charge_propagation::ChargePropagate;
     // use crate::lp::constraints::dynamic::scalar_to_vector_queue::ScalarToVectorQueue;
     use crate::lp::constraints::Constraint;
-    use crate::sa::charger::Charger;
     use crate::sa::data::Data;
 
     //--------------------------------------------------------------------------
@@ -28,12 +27,12 @@ pub mod dynamic {
     /// # Output
     /// * bool: Constraints successfully/unsuccessfully applied
     ///
-    pub fn run(d: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
-        // if !ScalarToVectorQueue::run(d, ch, i, j) {
+    pub fn run(d: &mut Data, i: usize, j: usize) -> bool {
+        // if !ScalarToVectorQueue::run(d, i, j) {
         //     return false;
         // }
 
-        if !ChargePropagate::run(d, ch, i, j) {
+        if !ChargePropagate::run(d, i, j) {
             return false;
         }
 

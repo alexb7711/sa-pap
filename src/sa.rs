@@ -28,6 +28,7 @@ use crate::sa::generators::Generator;
 use crate::sa::route::Route;
 use crate::util::fileio::yaml_loader;
 
+use std::time::Instant;
 //==============================================================================
 /// Results from simulated annealing
 //
@@ -132,9 +133,6 @@ impl<'a> SA<'a> {
         let mut sol_best;
         let mut sol_new;
 
-        // Create buffers for schedules
-        let mut qsched_new: Charger;
-
         // Set local search iteration count
         let config: Yaml = yaml_loader::load_yaml(self.config_path);
         let k = config["time"]["K"].clone().into_i64().unwrap();
@@ -152,11 +150,10 @@ impl<'a> SA<'a> {
 
         // Extract new data set and initialize new solution as best solution
         sol_new = *self.gsys.get_data();
-        qsched_new = *self.charger.clone();
         sol_best = *self.gsys.get_data();
 
         // Calculate objective function
-        (self.sol_found, J0) = StdObj::run(&mut sol_new, &mut qsched_new, true);
+        (self.sol_found, J0) = StdObj::run(&mut sol_new, true);
 
         // Initialize the current and best solution to the initially generated solution
         JB = J0;
@@ -164,6 +161,8 @@ impl<'a> SA<'a> {
 
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
+            let start = Instant::now();
+
             // Set the prefix depending on whether a solution has been found or not
             self.update_prefix();
 
@@ -176,10 +175,9 @@ impl<'a> SA<'a> {
                 if self.gtweak.run(&mut self.gsys, &mut self.charger) {
                     // Extract new data set
                     sol_new = *self.gsys.get_data();
-                    qsched_new = *self.charger.clone();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut qsched_new, true);
+                    (self.sol_found, J1) = StdObj::run(&mut sol_new, true);
 
                     // Update data sets
                     self.update_data_sets(
@@ -201,16 +199,17 @@ impl<'a> SA<'a> {
                 &mut fg_slow,
                 &mut fg_fast,
             );
+
+            let duration = start.elapsed();
+            println!("Time elapsed: {:?}", duration);
         }
 
         // Check if the data has been changed
         let result: Option<Results>;
         if sol_orig.dec != sol_best.dec {
-            let (_, J) = StdObj::run(&mut sol_best.clone(), &mut self.charger, true);
-
             // Create result object
             result = Some(Results {
-                score: J,
+                score: JB,
                 data: Box::new(sol_best.clone()),
                 charger: self.charger.clone(),
             });
