@@ -82,7 +82,7 @@ impl SchedulePlot {
         for i in 0..cslow.len() {
             // Append the visit information to vectors
             slow_x.push((cslow[i] + uslow[i]) / 2.0);
-            slow_err.push(cslow[i] - uslow[i]);
+            slow_err.push((cslow[i] - uslow[i]) / 2.0);
             slow_y.push(vslow[i]);
         }
 
@@ -91,7 +91,7 @@ impl SchedulePlot {
         for i in 0..cfast.len() {
             // Append the visit information to vectors
             fast_x.push((cfast[i] + ufast[i]) / 2.0);
-            fast_err.push(cfast[i] - ufast[i]);
+            fast_err.push((cfast[i] - ufast[i]) / 2.0);
             fast_y.push(vfast[i]);
         }
 
