@@ -39,6 +39,8 @@ impl Constraint for ChargePropagate {
         let eta = &mut dat.dec.eta;
         let w = &dat.dec.w;
         let s = &mut dat.dec.s;
+        let u = &mut dat.dec.u;
+        let d = &mut dat.dec.d;
 
         // Constraint
 
@@ -47,10 +49,14 @@ impl Constraint for ChargePropagate {
 
         // Ensure the charge does not exceed the battery limit
         if !(eta[i] + charge <= kappa[Gam[i] as usize]) {
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Adjust charge times
 
             // Retrieve the charger speed
             let charge_rate: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q]).sum();
+
+            // Store the original charge duration
+            let l_s = s[i];
 
             // Adjust the charge time such that the BEB is at maximum charge
             // and the schedule does not fail
@@ -58,6 +64,18 @@ impl Constraint for ChargePropagate {
             // Units: Kwh * (hr / Kwh) = hr
             //
             s[i] = (kappa[Gam[i] as usize] - eta[i]) / charge_rate;
+
+            // Remove the current visit
+            ch.remove(dat.dec.v[i], (u[i], d[i]));
+
+            // Update initial and final charge times. Choose to move u and d
+            // closer together by (s_old - s_new) / 2
+            let s_diff = (l_s - s[i]) / 2.0;
+            u[i] = u[i] + s_diff;
+            d[i] = d[i] - s_diff;
+
+            // Add the charger back in the queue
+            ch.assign(dat.dec.v[i], (u[i], d[i]), Gam[i] as usize);
 
             // Update the charge
             charge = (0..Q).map(|q| f32::from(w[i][q]) * r[q] * s[i]).sum();
