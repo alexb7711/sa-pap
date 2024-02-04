@@ -13,6 +13,7 @@ pub mod temp_func; // Temperature functions
 use gnuplot::Figure;
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::{thread_rng, Rng};
+use std::time::{Duration, Instant};
 use yaml_rust::Yaml;
 
 //==============================================================================
@@ -164,11 +165,8 @@ impl<'a> SA<'a> {
 
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
-            // Set the prefix depending on whether a solution has been found or not
-            self.update_prefix();
-
-            // Update the status bar
-            self.pb.inc(1);
+            // Get starting time
+            let start = Instant::now();
 
             // Iterate though local search
             for _ in 0..k {
@@ -201,6 +199,12 @@ impl<'a> SA<'a> {
                 &mut fg_slow,
                 &mut fg_fast,
             );
+
+            // Set the prefix depending on whether a solution has been found or not
+            self.update_prefix(start.elapsed());
+
+            // Update the status bar
+            self.pb.inc(1);
         }
 
         // Check if the data has been changed
@@ -229,17 +233,13 @@ impl<'a> SA<'a> {
     /// Update the visual indicator next to the progress bar.
     ///
     /// # Input
-    /// * None
+    /// * te: Time elapsed for SA
     ///
     /// # Output
     /// * None
     ///
-    fn update_prefix(self: &SA<'a>) {
-        if self.sol_found {
-            self.pb.set_prefix(format!("✓"));
-        } else {
-            self.pb.set_prefix(format!("×"));
-        }
+    fn update_prefix(self: &SA<'a>, te: Duration) {
+        self.pb.set_prefix(format!("{:.3}s", te.as_secs_f64()));
     }
 
     //--------------------------------------------------------------------------
