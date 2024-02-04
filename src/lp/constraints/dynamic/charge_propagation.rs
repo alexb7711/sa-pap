@@ -47,7 +47,15 @@ impl Constraint for ChargePropagate {
         // Ensure the charge does not exceed the battery limit
         if !(eta[i] + charge <= kappa[Gam[i] as usize]) {
             // Adjust charge times
+
+            // Retrieve the charger speed
             let charge_rate: f32 = (0..Q).map(|q| f32::from(w[i][q]) * r[q]).sum();
+
+            // Adjust the charge time such that the BEB is at maximum charge
+            // and the schedule does not fail
+            //
+            // Units: Kwh * (hr / Kwh) = hr
+            //
             s[i] = (kappa[Gam[i] as usize] - eta[i]) / charge_rate;
 
             // Update the charge
