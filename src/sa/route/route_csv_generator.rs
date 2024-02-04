@@ -170,9 +170,6 @@ impl RouteCSVGenerator {
         // Create charge rate vector
         self.data.param.r = vec![wait_c.clone(), slow_c.clone(), fast_c.clone()].concat();
 
-        // Create usage cost vector
-        self.data.param.ep = self.data.param.r.clone();
-
         let T = self.data.param.T;
         let K = self.data.param.K;
         self.data.param.dt = T / K as f32;
@@ -181,9 +178,11 @@ impl RouteCSVGenerator {
             [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(N);
 
         let Q = self.data.param.Q;
-        self.data.param.m = vec![0; A];
-        let mut charge_queue: Vec<usize> = (0..(Q - A)).map(|x| 1000 * (x + 1)).collect();
-        self.data.param.m.append(&mut charge_queue);
+
+        // Create assignment cost
+        self.data.param.ep = vec![0.0; A];
+        let mut charge_queue: Vec<f32> = (0..(Q - A)).map(|x| 1000.0 * (x as f32 + 1.0)).collect();
+        self.data.param.ep.append(&mut charge_queue);
 
         self.data.param.nu = self.config["buses"]["min_charge"].as_f64().unwrap() as f32;
         self.data.param.D = [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);

@@ -192,15 +192,15 @@ mod test_route_csv_generator {
         rg.run();
 
         // Ensure the arrival times are increasing
-        for i in 0..rg.data.param.m.len() {
-            let m: usize;
+        for i in 0..rg.data.param.ep.len() {
+            let ep: f32;
             if i < 35 {
-                m = 0;
+                ep = 0.0;
             } else {
-                m = 1000 * (i - 34);
+                ep = 1000.0 * (i as f32 - 34.0);
             }
 
-            assert_eq!(rg.data.param.m[i], m);
+            assert_eq!(rg.data.param.ep[i], ep);
         }
     }
 
