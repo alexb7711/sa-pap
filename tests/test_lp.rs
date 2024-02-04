@@ -58,49 +58,65 @@ mod test_constraints {
         // Test 0
         d.dec.w[0][0] = true;
         d.dec.w[1][0] = true;
-        let (_, j0) = StdObj::run(&mut d, &mut charger);
+        d.dec.v[1] = 0;
+        d.dec.v[0] = 0;
+        let (_, j0) = StdObj::run(&mut d, &mut charger, false);
+        assert!(j0 > 0.0);
 
         // Test 1
         d.dec.w[0][35] = true;
-        let (_, j1) = StdObj::run(&mut d, &mut charger);
+        d.dec.v[0] = 35;
+        let (_, j1) = StdObj::run(&mut d, &mut charger, false);
         assert!(j1 > j0);
 
         // Test 2
         d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
         d.dec.w[0][35] = true;
         d.dec.w[3][38] = true;
-        let (_, j2) = StdObj::run(&mut d, &mut charger);
+        d.dec.v[0] = 35;
+        d.dec.v[3] = 38;
+        let (_, j2) = StdObj::run(&mut d, &mut charger, false);
         assert!(j2 > j1);
 
         // Test 3
         d.dec.w[2][35] = true;
         d.dec.w[1][42] = true;
         d.dec.w[5][37] = true;
-        let (_, j3) = StdObj::run(&mut d, &mut charger);
+        d.dec.v[2] = 35;
+        d.dec.v[1] = 42;
+        d.dec.v[5] = 37;
+        let (_, j3) = StdObj::run(&mut d, &mut charger, false);
         assert!(j3 > j2);
 
         // Reset w terms
         d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
+        d.dec.v = vec![0; d.param.N];
 
         // Test both terms
 
         // Test 4
         d.dec.s[0] = 1.0;
         d.dec.w[0][35] = true;
-        let (_, j0) = StdObj::run(&mut d, &mut charger);
+        d.dec.v[0] = 35;
+        let (_, j0) = StdObj::run(&mut d, &mut charger, false);
+        assert!(j0 > 0.0);
 
         // Test 5
         d.dec.w[3][36] = true;
+        d.dec.v[3] = 36;
         d.dec.s[3] = 3.0;
-        let (_, j1) = StdObj::run(&mut d, &mut charger);
+        let (_, j1) = StdObj::run(&mut d, &mut charger, false);
+        println!("{} > {}", j1, j0);
         assert!(j1 > j0);
 
         // Test 6
         d.dec.w[5][40] = true;
+        d.dec.v[5] = 40;
         d.dec.s[5] = 9.0;
         d.dec.w[1][35] = true;
+        d.dec.v[1] = 35;
         d.dec.s[1] = 1.0;
-        let (_, j2) = StdObj::run(&mut d, &mut charger);
+        let (_, j2) = StdObj::run(&mut d, &mut charger, false);
         assert!(j2 > j1);
     }
 }

@@ -177,8 +177,8 @@ mod test_route_csv_generator {
         rg.run();
 
         // Ensure the arrival times are increasing
-        for i in 0..rg.data.param.r.len() {
-            assert_eq!(rg.data.param.r[i], rg.data.param.ep[i]);
+        for i in 1..rg.data.param.r.len() {
+            assert!(rg.data.param.ep[i - 1] <= rg.data.param.ep[i]);
         }
     }
 

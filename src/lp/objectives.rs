@@ -11,5 +11,5 @@ pub mod std_obj;
 /// Trait to define `objective` interfaces
 //
 pub trait Objective {
-    fn run(dat: &mut Data, ch: &mut Charger) -> (bool, f64);
+    fn run(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64);
 }

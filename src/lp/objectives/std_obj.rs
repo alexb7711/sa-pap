@@ -91,7 +91,7 @@ impl Objective for StdObj {
     /// # Output
     /// * J: Objective function cost
     ///
-    fn run(dat: &mut Data, ch: &mut Charger) -> (bool, f64) {
+    fn run(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Extract input parameters
         let N = dat.param.N;
@@ -99,10 +99,12 @@ impl Objective for StdObj {
         let mut val_sched: bool = false;
 
         for i in 0..N {
-            for j in 0..N {
-                //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                // Calculate constraints
-                val_sched = constraints::run(dat, ch, i, j);
+            if run_constr {
+                for j in 0..N {
+                    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    // Calculate constraints
+                    val_sched = constraints::run(dat, ch, i, j);
+                }
             }
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
