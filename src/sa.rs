@@ -210,11 +210,9 @@ impl<'a> SA<'a> {
         // Check if the data has been changed
         let result: Option<Results>;
         if sol_orig.dec != sol_best.dec {
-            let (_, J) = StdObj::run(&mut sol_best.clone(), &mut self.charger, true);
-
             // Create result object
             result = Some(Results {
-                score: J,
+                score: JB,
                 data: Box::new(sol_best.clone()),
                 charger: self.charger.clone(),
             });
@@ -290,6 +288,9 @@ impl<'a> SA<'a> {
 
         // If the current solution is strictly better than the current best
         if *jb - *j0 > 0.0 {
+            // Update objective function value
+            *jb = *j0;
+
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }
