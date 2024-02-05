@@ -44,9 +44,9 @@ impl StdObj {
         let mut phi: f64 = 0.0;
 
         // If the charge goes below the threshold
-        if (eta[i] - (nu * k[G[i] as usize]) as f32) < 0.0 {
+        let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
+        if c_dif < 0.0 {
             // Calculate the penalty
-            let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
             let C: f32 = 500.0;
 
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
@@ -99,12 +99,10 @@ impl Objective for StdObj {
         let mut val_sched: bool = false;
 
         for i in 0..N {
-            if run_constr {
-                for j in 0..N {
-                    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    // Calculate constraints
-                    val_sched = constraints::run(dat, ch, i, j);
-                }
+            for j in 0..N {
+                //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                // Calculate constraints
+                val_sched = constraints::run(run_constr, dat, ch, i, j);
             }
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

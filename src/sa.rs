@@ -173,7 +173,7 @@ impl<'a> SA<'a> {
                     sol_new = *self.gsys.get_data();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger, true);
+                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger, false);
 
                     // Update data sets
                     self.update_data_sets(
@@ -274,6 +274,12 @@ impl<'a> SA<'a> {
         if self.cmp_obj_fnc(*j0, *j1, t) {
             // Update the current solution with the new data set
             self.update_current_values(sol_current, sol_new);
+
+            // Update system with current solution
+            self.gsys.set_data(Box::new(sol_current.clone()));
+
+            // Update the charger availability matrix
+            self.charger.milp_to_schedule(sol_current);
 
             // Update J0
             *j0 = *j1;

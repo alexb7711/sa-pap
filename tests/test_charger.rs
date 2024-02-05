@@ -438,7 +438,7 @@ mod test_charger {
         assert_ne!(charger.get_ts(&q, &c), (0.0, 0.0));
 
         // Assign the charger
-        charger.assign(q, c, id);
+        assert!(charger.assign(q, c, id));
 
         // Test 2 - Check if previous assigned charger is still available
         assert_eq!(charger.get_ts(&q, &c), (0.0, 0.0));
