@@ -181,7 +181,7 @@ impl RouteCSVGenerator {
 
         // Create assignment cost
         self.data.param.ep = vec![0.0; A];
-        let mut charge_queue: Vec<f32> = (0..(Q - A)).map(|x| 1000.0 * (x as f32 + 1.0)).collect();
+        let mut charge_queue: Vec<f32> = (0..(Q - A)).map(|x| 10.0 * (x as f32 + 1.0)).collect();
         self.data.param.ep.append(&mut charge_queue);
 
         self.data.param.nu = self.config["buses"]["min_charge"].as_f64().unwrap() as f32;

@@ -191,7 +191,7 @@ impl<'a> SA<'a> {
             // Plot schedule in real time
             SchedulePlot::real_time(
                 rtp,
-                &mut Box::new(sol_current.clone()),
+                &mut Box::new(sol_best.clone()),
                 &mut fg_slow,
                 &mut fg_fast,
             );
@@ -209,7 +209,7 @@ impl<'a> SA<'a> {
             // Create result object
             result = Some(Results {
                 score: JB,
-                data: Box::new(sol_best),
+                data: Box::new(sol_best.clone()),
                 charger: self.charger.clone(),
             });
         } else {

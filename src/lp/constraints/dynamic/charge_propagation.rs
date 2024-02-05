@@ -83,11 +83,7 @@ impl ChargePropagate {
 ///
 #[allow(non_snake_case)]
 impl Constraint for ChargePropagate {
-    fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Update parameters
-        ChargePropagate::update_dec_var(dat, ch, i, j);
-
+    fn run(dat: &mut Data, ch: &mut Charger, i: usize, _j: usize) -> bool {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Constraint
 
@@ -142,7 +138,7 @@ impl ChargePropagate {
     /// # Output
     /// * NONE
     ///
-    fn update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
+    fn _update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
         // Update the initial charge time
         InitFinalCharge::run(data, ch, i, j);
     }
