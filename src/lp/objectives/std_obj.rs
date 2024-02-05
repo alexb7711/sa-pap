@@ -44,9 +44,9 @@ impl StdObj {
         let mut phi: f64 = 0.0;
 
         // If the charge goes below the threshold
-        if (eta[i] - (nu * k[G[i] as usize]) as f32) < 0.0 {
+        let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
+        if c_dif < 0.0 {
             // Calculate the penalty
-            let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
             let C: f32 = 500.0;
 
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
