@@ -13,6 +13,7 @@ pub mod temp_func; // Temperature functions
 use gnuplot::Figure;
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::{thread_rng, Rng};
+use std::time::{Duration, Instant};
 use yaml_rust::Yaml;
 
 //==============================================================================
@@ -127,13 +128,9 @@ impl<'a> SA<'a> {
             .set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
 
         // Extract solution sets
-        let sol_orig = *self.gsys.get_data();
         let mut sol_current = *self.gsys.get_data();
         let mut sol_best;
         let mut sol_new;
-
-        // Create buffers for schedules
-        let mut qsched_new: Charger;
 
         // Set local search iteration count
         let config: Yaml = yaml_loader::load_yaml(self.config_path);
@@ -143,6 +140,7 @@ impl<'a> SA<'a> {
         let mut J0: f64;
         let mut J1: f64;
         let mut JB: f64;
+        let JORIG: f64;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
@@ -152,23 +150,20 @@ impl<'a> SA<'a> {
 
         // Extract new data set and initialize new solution as best solution
         sol_new = *self.gsys.get_data();
-        qsched_new = *self.charger.clone();
         sol_best = *self.gsys.get_data();
 
         // Calculate objective function
-        (self.sol_found, J0) = StdObj::run(&mut sol_new, &mut qsched_new, true);
+        (self.sol_found, J0) = StdObj::run(&mut sol_new, &mut self.charger, true);
 
         // Initialize the current and best solution to the initially generated solution
         JB = J0;
+        JORIG = J0;
         self.update_current_values(&mut sol_current, &mut sol_new);
 
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
-            // Set the prefix depending on whether a solution has been found or not
-            self.update_prefix();
-
-            // Update the status bar
-            self.pb.inc(1);
+            // Get starting time
+            let start = Instant::now();
 
             // Iterate though local search
             for _ in 0..k {
@@ -176,10 +171,9 @@ impl<'a> SA<'a> {
                 if self.gtweak.run(&mut self.gsys, &mut self.charger) {
                     // Extract new data set
                     sol_new = *self.gsys.get_data();
-                    qsched_new = *self.charger.clone();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut qsched_new, true);
+                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger, true);
 
                     // Update data sets
                     self.update_data_sets(
@@ -197,20 +191,24 @@ impl<'a> SA<'a> {
             // Plot schedule in real time
             SchedulePlot::real_time(
                 rtp,
-                &mut Box::new(sol_current.clone()),
+                &mut Box::new(sol_best.clone()),
                 &mut fg_slow,
                 &mut fg_fast,
             );
+
+            // Set the prefix depending on whether a solution has been found or not
+            self.update_prefix(start.elapsed());
+
+            // Update the status bar
+            self.pb.inc(1);
         }
 
         // Check if the data has been changed
         let result: Option<Results>;
-        if sol_orig.dec != sol_best.dec {
-            let (_, J) = StdObj::run(&mut sol_best.clone(), &mut self.charger, true);
-
+        if JB != JORIG {
             // Create result object
             result = Some(Results {
-                score: J,
+                score: JB,
                 data: Box::new(sol_best.clone()),
                 charger: self.charger.clone(),
             });
@@ -229,17 +227,13 @@ impl<'a> SA<'a> {
     /// Update the visual indicator next to the progress bar.
     ///
     /// # Input
-    /// * None
+    /// * te: Time elapsed for SA
     ///
     /// # Output
     /// * None
     ///
-    fn update_prefix(self: &SA<'a>) {
-        if self.sol_found {
-            self.pb.set_prefix(format!("✓"));
-        } else {
-            self.pb.set_prefix(format!("×"));
-        }
+    fn update_prefix(self: &SA<'a>, te: Duration) {
+        self.pb.set_prefix(format!("{:.3}s", te.as_secs_f64()));
     }
 
     //--------------------------------------------------------------------------
@@ -290,6 +284,9 @@ impl<'a> SA<'a> {
 
         // If the current solution is strictly better than the current best
         if *jb - *j0 > 0.0 {
+            // Update objective function value
+            *jb = *j0;
+
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }

@@ -1,6 +1,5 @@
 //==============================================================================
 // Import developed modules
-use crate::lp::constraints::packing::service_time::ServiceTime;
 use crate::lp::constraints::packing::space_time_big_o::SpaceTimeBigO;
 use crate::lp::constraints::Constraint;
 use crate::sa::charger::Charger;
@@ -108,9 +107,6 @@ impl PsiSigma {
     /// * NONE
     ///
     fn update_dec_var(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) {
-        // Update the service time
-        ServiceTime::run(dat, ch, i, j);
-
         // Update sigma/psi decision variables
         SpaceTimeBigO::run(dat, ch, i, j);
         SpaceTimeBigO::run(dat, ch, j, i);

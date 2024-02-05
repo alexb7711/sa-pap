@@ -49,7 +49,7 @@ impl StdObj {
             let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
             let C: f32 = 500.0;
 
-            phi = (0.5 * C * f32::powf(c_dif, 2.0)) as f64;
+            phi = (C * f32::powf(c_dif, 2.0)) as f64;
         }
 
         // Calculate the assignment cost

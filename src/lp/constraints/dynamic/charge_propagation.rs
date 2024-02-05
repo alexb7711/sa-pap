@@ -16,7 +16,7 @@ pub struct ChargePropagate {}
 ///
 impl ChargePropagate {
     #[allow(non_snake_case)]
-    fn update_charge(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
+    fn update_charge(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
         // Extract parameters
         let Gam = &dat.param.Gam;
         let r = &dat.param.r;
@@ -28,17 +28,6 @@ impl ChargePropagate {
         let s = &mut dat.dec.s;
         let u = &mut dat.dec.u;
         let d = &mut dat.dec.d;
-
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Remove the current visit
-        if !ch.remove(v[i], (u[i], d[i])) {
-            println!("u: {}", u[i]);
-            println!("d: {}", d[i]);
-            println!("s_old: {}", s[i]);
-            println!("v: {}", v[i]);
-            println!("schedule before: {:?}", ch.schedule[v[i]]);
-            panic!("charge_propagation: Never removed!");
-        }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Adjust charge times
@@ -76,18 +65,6 @@ impl ChargePropagate {
             d[i] += EPSILON;
         }
 
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Add the charger back in the queue
-        if !ch.assign(v[i], (u[i], d[i]), Gam[i] as usize) {
-            println!("s_old - s_new: {}", s_diff);
-            println!("u_new: {}", u[i]);
-            println!("d_new: {}", d[i]);
-            println!("s_new: {}", s[i]);
-            println!("v: {}", v[i]);
-            println!("schedule aft: {:?}", ch.schedule[v[i]]);
-            panic!("charge_propagation: Never added back!")
-        }
-
         // Update the charge
         return r[v[i]] * s[i];
     }
@@ -106,11 +83,7 @@ impl ChargePropagate {
 ///
 #[allow(non_snake_case)]
 impl Constraint for ChargePropagate {
-    fn run(dat: &mut Data, ch: &mut Charger, i: usize, j: usize) -> bool {
-        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        // Update parameters
-        ChargePropagate::update_dec_var(dat, ch, i, j);
-
+    fn run(dat: &mut Data, ch: &mut Charger, i: usize, _j: usize) -> bool {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Constraint
 
@@ -165,7 +138,7 @@ impl ChargePropagate {
     /// # Output
     /// * NONE
     ///
-    fn update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
+    fn _update_dec_var(data: &mut Data, ch: &mut Charger, i: usize, j: usize) {
         // Update the initial charge time
         InitFinalCharge::run(data, ch, i, j);
     }
