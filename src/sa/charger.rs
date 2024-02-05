@@ -151,7 +151,7 @@ impl Charger {
             assigned = true;
 
             // Update the free time for the qth charger
-            // self.update_free_time(q);
+            self.update_free_time(q);
         }
 
         return assigned;
@@ -183,7 +183,7 @@ impl Charger {
             rem = l_bef > self.schedule[q].len();
 
             // Update the free time for the qth charger
-            // self.update_free_time(q);
+            self.update_free_time(q);
         }
 
         return rem;
@@ -407,9 +407,9 @@ impl Charger {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Regenerate availability matrix
-        // for q in 0..dat.param.Q {
-        //     self.update_free_time(q);
-        // }
+        for q in 0..dat.param.Q {
+            self.update_free_time(q);
+        }
     }
 
     /////////////////////////////////////////////////////////////////////////////
@@ -425,7 +425,7 @@ impl Charger {
     /// # Output
     /// * NONE
     ///
-    fn _update_free_time(self: &mut Charger, q: usize) {
+    fn update_free_time(self: &mut Charger, q: usize) {
         // Extract the BOD and EOD
         let bod = self.config.clone()["time"]["BOD"].as_f64().unwrap() as f32;
         let eod = self.config.clone()["time"]["EOD"].as_f64().unwrap() as f32;
@@ -447,16 +447,14 @@ impl Charger {
             if s == self.schedule[q].first().unwrap() {
                 ft.push((bod, s.t.0));
             // Else the iterator is in the middle of the list
+            } else if s == self.schedule[q].last().unwrap() {
+                ft.push((s.t.1, eod));
             } else {
                 match s_prev {
                     Some(s_prev) => ft.push((s_prev.t.1, s.t.0)),
                     None => panic!("'s_prev' is empty: charger.rs"),
                 }
-            }
-
-            // If the iterator is the last item in the list
-            if s == self.schedule[q].last().unwrap() {
-                ft.push((s.t.1, eod));
+                // If the iterator is the last item in the list
             }
 
             // Update the previous iterator
