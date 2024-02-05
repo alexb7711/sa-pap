@@ -275,6 +275,12 @@ impl<'a> SA<'a> {
             // Update the current solution with the new data set
             self.update_current_values(sol_current, sol_new);
 
+            // Update system with current solution
+            self.gsys.set_data(Box::new(sol_current.clone()));
+
+            // Update the charger availability matrix
+            self.charger.milp_to_schedule(sol_current);
+
             // Update J0
             *j0 = *j1;
         }

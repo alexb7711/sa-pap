@@ -5,6 +5,7 @@ use yaml_rust::Yaml;
 
 //===============================================================================
 // Import modules
+use crate::sa::data::Data;
 use crate::sa::generators::primitives;
 use crate::util::fileio::yaml_loader;
 
@@ -36,6 +37,10 @@ pub struct Charger {
 /// Implementation of Charger
 //
 impl Charger {
+    /////////////////////////////////////////////////////////////////////////////
+    // PUBLIC
+    /////////////////////////////////////////////////////////////////////////////
+
     //---------------------------------------------------------------------------
     /// Constructor that returns a Charger object
     ///
@@ -146,7 +151,7 @@ impl Charger {
             assigned = true;
 
             // Update the free time for the qth charger
-            self.update_free_time(q);
+            // self.update_free_time(q);
         }
 
         return assigned;
@@ -178,7 +183,7 @@ impl Charger {
             rem = l_bef > self.schedule[q].len();
 
             // Update the free time for the qth charger
-            self.update_free_time(q);
+            // self.update_free_time(q);
         }
 
         return rem;
@@ -374,6 +379,44 @@ impl Charger {
     }
 
     //--------------------------------------------------------------------------
+    /// Given MILP data `dat`, update the charge availability matrix.
+    ///
+    /// # Input
+    /// * dat: MILP data object
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    pub fn milp_to_schedule(self: &mut Charger, dat: &Data) {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Empty the current schedule
+        for q in self.schedule.iter_mut() {
+            *q = Vec::new();
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Update the schedule with the MILP data
+        for i in 0..dat.param.N {
+            let a = Assignment {
+                b: dat.param.Gam[i] as usize,
+                t: (dat.dec.u[i], dat.dec.d[i]),
+            };
+
+            self.schedule[dat.dec.v[i]].push(a);
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Regenerate availability matrix
+        // for q in 0..dat.param.Q {
+        //     self.update_free_time(q);
+        // }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    // PRIVATE
+    /////////////////////////////////////////////////////////////////////////////
+
+    //--------------------------------------------------------------------------
     /// The `update_free_time' function updates the times that charger q is available.
     ///
     /// # Input
@@ -382,7 +425,7 @@ impl Charger {
     /// # Output
     /// * NONE
     ///
-    fn update_free_time(self: &mut Charger, q: usize) {
+    fn _update_free_time(self: &mut Charger, q: usize) {
         // Extract the BOD and EOD
         let bod = self.config.clone()["time"]["BOD"].as_f64().unwrap() as f32;
         let eod = self.config.clone()["time"]["EOD"].as_f64().unwrap() as f32;
