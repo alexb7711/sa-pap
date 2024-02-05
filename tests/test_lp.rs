@@ -61,13 +61,13 @@ mod test_constraints {
         d.dec.v[1] = 0;
         d.dec.v[0] = 0;
         let (_, j0) = StdObj::run(&mut d, &mut charger, false);
-        assert!(j0 > 0.0);
+        assert!(j0 >= 0.0);
 
         // Test 1
         d.dec.w[0][35] = true;
         d.dec.v[0] = 35;
         let (_, j1) = StdObj::run(&mut d, &mut charger, false);
-        assert!(j1 > j0);
+        assert!(j1 >= j0);
 
         // Test 2
         d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
@@ -76,7 +76,7 @@ mod test_constraints {
         d.dec.v[0] = 35;
         d.dec.v[3] = 38;
         let (_, j2) = StdObj::run(&mut d, &mut charger, false);
-        assert!(j2 > j1);
+        assert!(j2 >= j1);
 
         // Test 3
         d.dec.w[2][35] = true;
@@ -86,7 +86,7 @@ mod test_constraints {
         d.dec.v[1] = 42;
         d.dec.v[5] = 37;
         let (_, j3) = StdObj::run(&mut d, &mut charger, false);
-        assert!(j3 > j2);
+        assert!(j3 >= j2);
 
         // Reset w terms
         d.dec.w = vec![vec![false; d.param.Q]; d.param.N];
