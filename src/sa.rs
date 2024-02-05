@@ -128,7 +128,6 @@ impl<'a> SA<'a> {
             .set_style(ProgressStyle::with_template("{prefix}|{wide_bar} {pos}/{len}").unwrap());
 
         // Extract solution sets
-        let sol_orig = *self.gsys.get_data();
         let mut sol_current = *self.gsys.get_data();
         let mut sol_best;
         let mut sol_new;
@@ -144,6 +143,7 @@ impl<'a> SA<'a> {
         let mut J0: f64;
         let mut J1: f64;
         let mut JB: f64;
+        let JORIG: f64;
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
@@ -161,6 +161,7 @@ impl<'a> SA<'a> {
 
         // Initialize the current and best solution to the initially generated solution
         JB = J0;
+        JORIG = J0;
         self.update_current_values(&mut sol_current, &mut sol_new);
 
         // While the temperature function is cooling down
@@ -209,7 +210,7 @@ impl<'a> SA<'a> {
 
         // Check if the data has been changed
         let result: Option<Results>;
-        if sol_orig.dec != sol_best.dec {
+        if JB != JORIG {
             // Create result object
             result = Some(Results {
                 score: JB,
