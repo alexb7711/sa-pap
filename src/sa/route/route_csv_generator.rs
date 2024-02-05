@@ -556,6 +556,14 @@ impl RouteCSVGenerator {
             // Assign the initial charge for BEB `a`
             self.data.param.alpha[first(Gam, a as u16).unwrap()] = init_charge;
         }
+
+        for i in 0..self.data.param.N {
+            if self.data.param.alpha[i] > 0.0 {
+                // Assign the initial charge
+                self.data.dec.eta[i] =
+                    self.data.param.alpha[i] * self.data.param.k[Gam[i] as usize];
+            }
+        }
     }
 
     //---------------------------------------------------------------------------
