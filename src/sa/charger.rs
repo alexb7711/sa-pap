@@ -447,14 +447,16 @@ impl Charger {
             if s == self.schedule[q].first().unwrap() {
                 ft.push((bod, s.t.0));
             // Else the iterator is in the middle of the list
-            } else if s == self.schedule[q].last().unwrap() {
-                ft.push((s.t.1, eod));
             } else {
                 match s_prev {
                     Some(s_prev) => ft.push((s_prev.t.1, s.t.0)),
                     None => panic!("'s_prev' is empty: charger.rs"),
                 }
-                // If the iterator is the last item in the list
+            }
+
+            // If the iterator is the last item in the list
+            if s == self.schedule[q].last().unwrap() {
+                ft.push((s.t.1, eod));
             }
 
             // Update the previous iterator
