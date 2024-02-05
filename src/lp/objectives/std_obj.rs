@@ -99,12 +99,10 @@ impl Objective for StdObj {
         let mut val_sched: bool = false;
 
         for i in 0..N {
-            if run_constr {
-                for j in 0..N {
-                    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    // Calculate constraints
-                    val_sched = constraints::run(dat, ch, i, j);
-                }
+            for j in 0..N {
+                //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                // Calculate constraints
+                val_sched = constraints::run(run_constr, dat, ch, i, j);
             }
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

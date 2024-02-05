@@ -173,7 +173,7 @@ impl<'a> SA<'a> {
                     sol_new = *self.gsys.get_data();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger, true);
+                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger, false);
 
                     // Update data sets
                     self.update_data_sets(
