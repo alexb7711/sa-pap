@@ -1,12 +1,12 @@
 # Number of processes to input values
-cores: 4
+cores: 1
 
 # 1: True; 0: False
 plot: 0
 
 # Real Time Plot - 1: True; 0: False
 # NOTE: If this is set to 1, it is recommended to change "cores" to 1.
-rtp: 0
+rtp: 1
 
 # "rand"; "csv"
 schedule: "csv"
@@ -16,6 +16,9 @@ solution_gen: "wait"
 
 # "quick"; "exhaustive"
 tweak_method: "quick"
+
+# Run all constraints (slow), or run required constraints (fast)
+run_all_constr: 0
 
 # Output previous decision variable/param results
 load_from_file: 0
