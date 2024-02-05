@@ -69,6 +69,7 @@ pub mod new_visit_quick {
             // Update initial/final charge times
             d.dec.u[i] = ud_new.0;
             d.dec.d[i] = ud_new.1;
+            d.dec.s[i] = ud_new.1 - ud_new.0;
 
             return true;
         }
