@@ -8,11 +8,19 @@ mod test_charger {
     // Import modules
     use super::sa_pap::sa::charger::Assignment;
     use super::sa_pap::sa::charger::Charger;
+    use super::sa_pap::sa::route::route_csv_generator::RouteCSVGenerator;
+    use super::sa_pap::sa::route::Route;
 
     //---------------------------------------------------------------------------
     //
-    fn yaml_path() -> &'static str {
+    fn schedule_path() -> &'static str {
         return "./src/config/schedule-test.yaml";
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    fn csv_path() -> &'static str {
+        return "./src/config/routes.csv";
     }
 
     //--------------------------------------------------------------------------
@@ -31,7 +39,7 @@ mod test_charger {
     #[test]
     fn test_charger_initilazation() {
         // Load charger parameters from YAML file
-        let charger: Charger = Charger::new(yaml_path(), true, None, None);
+        let charger: Charger = Charger::new(schedule_path(), true, None, None);
 
         // Test 0 - Ensure the correct amount of chargers have been created
         let cc = charger.charger_count.1 + charger.charger_count.2;
@@ -51,7 +59,7 @@ mod test_charger {
     #[test]
     fn test_charger_addition() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Make sure we have an empty charger queue
         assert_eq!(charger.schedule.is_empty(), false);
@@ -77,7 +85,7 @@ mod test_charger {
     #[test]
     fn test_charger_assignment() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Add queues (four three chargers)
         charger.add_chargers(2);
@@ -225,7 +233,7 @@ mod test_charger {
         assert_eq!(time_slice_exists(&charger, &q, &c), false);
 
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Add queues (four three chargers)
         charger.add_chargers(2);
@@ -259,7 +267,7 @@ mod test_charger {
     #[test]
     fn test_charger_deletion() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -323,7 +331,7 @@ mod test_charger {
     #[test]
     fn test_charger_ordering() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Create a simple schedule
         let q: usize = 0;
@@ -360,7 +368,7 @@ mod test_charger {
     #[test]
     fn test_charger_avail() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Add queues (four total chargers)
         charger.add_chargers(3);
@@ -424,7 +432,7 @@ mod test_charger {
     #[test]
     fn test_charger_get_ts() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Add queues (four total chargers)
         charger.add_chargers(3);
@@ -489,7 +497,7 @@ mod test_charger {
     fn test_free_time() {
         // Create charger
         let q: usize = 0;
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Test 0
         assert_eq!(charger.free_time[q].is_empty(), false);
@@ -538,7 +546,7 @@ mod test_charger {
     fn test_find_free_time() {
         // Create charger
         let q: usize = 0;
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Create a simple schedule
         let c: (f32, f32) = (0.1, 0.2);
@@ -618,7 +626,7 @@ mod test_charger {
         }
 
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, Some(2));
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, Some(2));
 
         // Create a simple schedule
         let c: (f32, f32) = (0.1, 0.2);
@@ -640,7 +648,7 @@ mod test_charger {
     #[test]
     fn test_get_ts() {
         // Create charger
-        let mut charger: Charger = Charger::new(yaml_path(), false, None, None);
+        let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
 
         // Add queues (four three chargers)
         charger.add_chargers(2);
@@ -686,5 +694,45 @@ mod test_charger {
         charger.assign(q, c, id);
 
         assert_eq!(charger.schedule[q][0], Assignment { t: c, b: id });
+    }
+
+    //---------------------------------------------------------------------------
+    //
+    #[test]
+    fn test_milp_to_schedule() {
+        // Create route generator
+        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+
+        // Load the CSV schedule
+        rg.run();
+
+        // Create charger object
+        let mut charger: Charger =
+            Charger::new(schedule_path(), false, None, Some(rg.data.param.Q));
+
+        // Assign some BEBs to queues
+        for b in 0..rg.data.param.A {
+            rg.data.dec.v[b] = b;
+            rg.data.dec.u[b] = 1.0;
+            rg.data.dec.d[b] = 2.0;
+        }
+
+        // Populate the charger with the route data
+        charger.milp_to_schedule(&rg.data);
+
+        // Ensure its contents
+        assert_eq!(charger.schedule.len(), rg.data.param.Q);
+        assert!(charger.schedule[0].len() > 0);
+        assert!(charger.schedule[0][0].t.0 == 1.0);
+        assert!(charger.schedule[0][0].t.1 == 2.0);
+        assert!(charger.schedule[0][0].b <= rg.data.param.A);
+        assert!(charger.schedule[2].len() > 0);
+        assert!(charger.schedule[2][0].t.0 == 1.0);
+        assert!(charger.schedule[2][0].t.1 == 2.0);
+        assert!(charger.schedule[2][0].b <= rg.data.param.A);
+        assert!(charger.schedule[4].len() > 0);
+        assert!(charger.schedule[4][0].t.0 == 1.0);
+        assert!(charger.schedule[4][0].t.1 == 2.0);
+        assert!(charger.schedule[0][0].b <= rg.data.param.A);
     }
 }
