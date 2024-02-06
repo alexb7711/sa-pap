@@ -88,13 +88,13 @@ impl Plotter for ChargePlot {
         // Configure plot
         let name: String = String::from("charge");
         let mut fg = Figure::new();
+        let ax = fg.axes2d();
         let (x, y) = ChargePlot::group_charge_results(&d);
 
         // Plot each charge line
         for i in 0..A {
             // Configure the plot
-            fg.axes2d()
-                .set_title(name.as_str(), &[])
+            ax.set_title(name.as_str(), &[])
                 .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
                 .set_x_label("Time [hr]", &[])
                 .set_x_range(Fix(0.0), Fix(24.0))
