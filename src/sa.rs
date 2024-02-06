@@ -118,8 +118,7 @@ impl<'a> SA<'a> {
         // Initialize
 
         // Create real time figures
-        let mut fg_slow = Figure::new();
-        let mut fg_fast = Figure::new();
+        let mut fg = Figure::new();
 
         // Create progress bar and set style
         self.pb
@@ -189,12 +188,7 @@ impl<'a> SA<'a> {
             }
 
             // Plot schedule in real time
-            SchedulePlot::real_time(
-                rtp,
-                &mut Box::new(sol_best.clone()),
-                &mut fg_slow,
-                &mut fg_fast,
-            );
+            SchedulePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg);
 
             // Set the prefix depending on whether a solution has been found or not
             self.update_prefix(start.elapsed());
