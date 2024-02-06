@@ -160,6 +160,9 @@ impl<'a> SA<'a> {
         JORIG = J0;
         self.update_current_values(&mut sol_current, &mut sol_new);
 
+        // Decide whether to run all the constraints or not
+        let run_all_constr = config["run_all_constr"].clone().into_bool().unwrap();
+
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
             // Get starting time
@@ -173,7 +176,8 @@ impl<'a> SA<'a> {
                     sol_new = *self.gsys.get_data();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger, false);
+                    (self.sol_found, J1) =
+                        StdObj::run(&mut sol_new, &mut self.charger, run_all_constr);
 
                     // Update data sets
                     self.update_data_sets(
