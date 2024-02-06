@@ -49,7 +49,8 @@ pub struct SA<'a> {
     gtweak: Box<dyn Generator>, // Solution modifier
     charger: Box<Charger>,      // Charge schedule keeper
     tf: &'a mut Box<TempFunc>,  // Cooling Schedule
-    config_path: &'a str,       // Path to simulation configuration file
+    schedule_path: &'a str,     // Path to simulation configuration file
+    config_path: &'a str,       // Path to general configuration file
     sol_found: bool,            // Indicates whether a solution was found
     pb: &'a ProgressBar,        // Progress Bar for this thread
 }
@@ -77,6 +78,7 @@ impl<'a> SA<'a> {
     ///
     pub fn new(
         config_path: &'a str,
+        schedule_path: &'a str,
         gsol: Box<dyn Generator>,
         mut gsys: Box<dyn Route>,
         gtweak: Box<dyn Generator>,
@@ -94,9 +96,10 @@ impl<'a> SA<'a> {
             gsol,
             gsys,
             gtweak,
-            charger: Box::new(Charger::new(config_path, true, A, None)),
+            charger: Box::new(Charger::new(schedule_path, true, A, None)),
             tf,
             config_path,
+            schedule_path,
             sol_found: false,
             pb,
         };
@@ -132,8 +135,9 @@ impl<'a> SA<'a> {
         let mut sol_new;
 
         // Set local search iteration count
+        let sched: Yaml = yaml_loader::load_yaml(self.schedule_path);
         let config: Yaml = yaml_loader::load_yaml(self.config_path);
-        let k = config["time"]["K"].clone().into_i64().unwrap();
+        let k = sched["time"]["K"].clone().into_i64().unwrap();
 
         // Create objective function variables
         let mut J0: f64;
@@ -159,6 +163,9 @@ impl<'a> SA<'a> {
         JORIG = J0;
         self.update_current_values(&mut sol_current, &mut sol_new);
 
+        // Decide whether to run all the constraints or not
+        let run_all_constr = config["run_all_constr"].clone().into_bool().unwrap();
+
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
             // Get starting time
@@ -172,7 +179,8 @@ impl<'a> SA<'a> {
                     sol_new = *self.gsys.get_data();
 
                     // Calculate objective function
-                    (self.sol_found, J1) = StdObj::run(&mut sol_new, &mut self.charger, false);
+                    (self.sol_found, J1) =
+                        StdObj::run(&mut sol_new, &mut self.charger, run_all_constr);
 
                     // Update data sets
                     self.update_data_sets(
