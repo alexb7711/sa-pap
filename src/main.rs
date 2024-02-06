@@ -135,7 +135,15 @@ fn execute(pb: &mut ProgressBar) {
     // Create SA object and run SA
 
     // Pass schedule generator, temperature function, solution generator, and solution tweaker into the SA module
-    let mut sa: SA = SA::new(schedule_path(), gsol, gsys, gtweak, &mut tf, pb);
+    let mut sa: SA = SA::new(
+        general_path(),
+        schedule_path(),
+        gsol,
+        gsys,
+        gtweak,
+        &mut tf,
+        pb,
+    );
 
     // Run simulated annealing simulation
     if let Some(res) = sa.run(rtp, load_from_file) {
