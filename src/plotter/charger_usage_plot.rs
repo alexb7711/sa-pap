@@ -108,5 +108,5 @@ impl Plotter for ChargerUsagePlot {
 
     //===============================================================================
     //
-    fn real_time(_: bool, _: &mut Box<Data>, _: &mut Figure, _: &mut Figure) {}
+    fn real_time(_: bool, _: &mut Box<Data>, _: &mut Figure) {}
 }

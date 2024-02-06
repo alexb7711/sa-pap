@@ -50,5 +50,5 @@ pub mod plot {
 //
 pub trait Plotter {
     fn plot(display_plot: bool, d: &mut Box<Data>);
-    fn real_time(display_plot: bool, d: &mut Box<Data>, fg_slow: &mut Figure, fg_fast: &mut Figure);
+    fn real_time(display_plot: bool, d: &mut Box<Data>, fg_slow: &mut Figure);
 }
