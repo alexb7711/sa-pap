@@ -59,38 +59,27 @@ pub mod new_charger {
 
         // Iterate the shuffled queue indices
         for q in queues.into_iter() {
-            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-            // Create a list of time slices and shuffle them
-            let mut time_slice = ch.free_time[q].clone();
-            time_slice = rand_utils::shuffle_vec(&time_slice);
+            // Retrieve the time slice of interest if it exists
+            let ts = ch.get_ts(&q, &ud);
 
-            // Filter out very small windows
-            time_slice = time_slice
-                .into_iter()
-                .filter(|x| x.1 - x.0 >= primitives::EPSILON)
-                .collect();
+            // Check if the arrival/departure fits in the time slice
+            // Note that this line is what differentiates this function from `new_visit` by applying the same
+            // start/stop charge time as before, just on a new charger.
+            let (fits, _) = ch.find_free_time(ud, &ts);
 
-            // Iterate through the shuffled time slices
-            for ts in time_slice.iter() {
-                // Check if the arrival/departure fits in the time slice
-                // Note that this line is what differentiates this function from `new_visit` by applying the same
-                // start/stop charge time as before, just on a new charger.
-                let (fits, _) = ch.find_free_time(ud, ts);
+            // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
+            // times
+            if ts != (0.0, 0.0) && fits && ch.assign(q, *ud, b) {
+                // Update route data
+                if d.dec.w[i].len() > q {
+                    // Update queue
+                    d.dec.v[i] = q;
 
-                // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
-                // times
-                if fits && ch.assign(q, *ud, b) {
-                    // Update route data
-                    if d.dec.w[i].len() > q {
-                        // Update queue
-                        d.dec.v[i] = q;
-
-                        // Update vector representation
-                        d.dec.w[i].fill(false);
-                        d.dec.w[i][q] = true;
-                    }
-                    return true;
+                    // Update vector representation
+                    d.dec.w[i].fill(false);
+                    d.dec.w[i][q] = true;
                 }
+                return true;
             }
         }
 
