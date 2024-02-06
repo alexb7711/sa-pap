@@ -42,13 +42,12 @@ pub struct Parameter {
     pub gam: Vec<i16>,   // Array of values indicating the next index for bus i
     pub k: Vec<f32>,     // (kappa) Battery capacity for bus i             [MJ]
     pub l: Vec<f32>,     // (lambda) Discharge of bus visit over route i
-    // pub m: Vec<usize>,   // Cost of bus i being assigned to charger q
-    pub nu: f32,        // Minimum charge allowed on departure of visit i [%]
-    pub r: Vec<f32>,    // Charge rate for charger q                      [KWh]
-    pub slow: usize,    // Number of slow chargers
-    pub tk: Vec<f32>,   // Array of discrete times                        [hr]
-    pub ts: f32,        // Amount of offset applied                       [hr]
-    pub zeta: Vec<f32>, // Discharge rate of bus b
+    pub nu: f32,         // Minimum charge allowed on departure of visit i [%]
+    pub r: Vec<f32>,     // Charge rate for charger q                      [KWh]
+    pub slow: usize,     // Number of slow chargers
+    pub tk: Vec<f32>,    // Array of discrete times                        [hr]
+    pub ts: f32,         // Amount of offset applied                       [hr]
+    pub zeta: Vec<f32>,  // Discharge rate of bus b
 }
 
 //===============================================================================
