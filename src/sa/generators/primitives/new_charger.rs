@@ -9,7 +9,7 @@ pub mod new_charger {
     // Import modules
     use crate::sa::charger::Charger;
     use crate::sa::data::Data;
-    use crate::sa::generators::primitives::{self, purge::*};
+    use crate::sa::generators::primitives::purge::*;
 
     //--------------------------------------------------------------------------
     /// The run function executes the `new_charger` module. This module
