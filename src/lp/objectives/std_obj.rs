@@ -67,7 +67,7 @@ impl StdObj {
     /// # Output
     /// * UC: Assignment cost for the provided schedule
     ///
-    fn UC(dat: &mut Data, i: usize) -> f64 {
+    fn UC(dat: &mut Data, ch: &Charger, i: usize) -> f64 {
         // Extract decision variables
         let s = dat.dec.s[i];
         let v = dat.dec.v[i];
@@ -78,8 +78,25 @@ impl StdObj {
         // Calculate the consumption cost
         let cc = (r * s) as f64;
 
+        // Calculate the demand cost
+        let _dc = StdObj::demand_cost(dat, ch, i);
+
         // Calculate the assignment cost
         return cc;
+    }
+
+    //--------------------------------------------------------------------------
+    /// Calculates the demand cost for the usage cost
+    ///
+    /// # Input
+    /// * dat:
+    /// * ch :
+    /// i    :
+    ///
+    /// # Output
+    /// * dc : Demand cost of the system
+    fn demand_cost(_dat: &mut Data, _ch: &Charger, _i: usize) -> f64 {
+        return 0.0;
     }
 }
 
@@ -113,7 +130,7 @@ impl Objective for StdObj {
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Calculate the objective function
-            J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
+            J += StdObj::AC(dat, i) + StdObj::UC(dat, ch, i);
         }
         return (val_sched, J);
     }
