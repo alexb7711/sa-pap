@@ -59,11 +59,9 @@ pub mod slide_visit {
             // times
             if fits && ch.assign(q, ud, b) {
                 // Update route data
-                if d.param.N > 0 {
-                    d.dec.u[i] = ud.0; // Update attach time
-                    d.dec.d[i] = ud.1; // Update detach time
-                    d.dec.s[i] = ud.1 - ud.0;
-                }
+                d.dec.u[i] = ud.0; // Update attach time
+                d.dec.d[i] = ud.1; // Update detach time
+                d.dec.s[i] = ud.1 - ud.0;
 
                 return true;
             }
