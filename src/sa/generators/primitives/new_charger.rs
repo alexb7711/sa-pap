@@ -71,14 +71,13 @@ pub mod new_charger {
             // times
             if ts != (0.0, 0.0) && fits && ch.assign(q, *ud, b) {
                 // Update route data
-                if d.dec.w[i].len() > q {
-                    // Update queue
-                    d.dec.v[i] = q;
+                // Update queue
+                d.dec.v[i] = q;
 
-                    // Update vector representation
-                    d.dec.w[i].fill(false);
-                    d.dec.w[i][q] = true;
-                }
+                // Update vector representation
+                d.dec.w[i].fill(false);
+                d.dec.w[i][q] = true;
+
                 return true;
             }
         }
