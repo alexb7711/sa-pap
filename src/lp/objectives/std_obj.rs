@@ -67,13 +67,19 @@ impl StdObj {
     /// # Output
     /// * UC: Assignment cost for the provided schedule
     ///
-    fn UC(_dat: &mut Data, _i: usize) -> f64 {
-        // Extract input parameters
-
+    fn UC(dat: &mut Data, i: usize) -> f64 {
         // Extract decision variables
+        let s = dat.dec.s[i];
+        let v = dat.dec.v[i];
+
+        // Extract input parameters
+        let r = dat.param.r[v];
+
+        // Calculate the consumption cost
+        let cc = (r * s) as f64;
 
         // Calculate the assignment cost
-        return 0.0;
+        return cc;
     }
 }
 
