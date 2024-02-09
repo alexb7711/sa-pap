@@ -6,6 +6,10 @@ use crate::sa::charger::Charger;
 use crate::sa::data::Data;
 
 //===============================================================================
+// Import external crate
+use itertools_num::linspace;
+
+//===============================================================================
 /// Structure defining the data required to calculate the standard objective
 /// function for SA PAP
 //
@@ -67,7 +71,7 @@ impl StdObj {
     /// # Output
     /// * UC: Assignment cost for the provided schedule
     ///
-    fn UC(dat: &mut Data, ch: &Charger, i: usize) -> f64 {
+    fn UC(dat: &mut Data, i: usize) -> f64 {
         // Extract decision variables
         let s = dat.dec.s[i];
         let v = dat.dec.v[i];
@@ -78,9 +82,6 @@ impl StdObj {
         // Calculate the consumption cost
         let cc = (r * s) as f64;
 
-        // Calculate the demand cost
-        let _dc = StdObj::demand_cost(dat, ch, i);
-
         // Calculate the assignment cost
         return cc;
     }
@@ -89,14 +90,34 @@ impl StdObj {
     /// Calculates the demand cost for the usage cost
     ///
     /// # Input
-    /// * dat:
-    /// * ch :
-    /// i    :
+    /// * dat: Data structure for candidate schedule
+    /// * ch : Charger availability object for candidate schedule
+    /// i    : Index of the visit of interest
     ///
     /// # Output
-    /// * dc : Demand cost of the system
-    fn demand_cost(_dat: &mut Data, _ch: &Charger, _i: usize) -> f64 {
-        return 0.0;
+    /// * pmax : Demand cost of the system
+    fn demand_cost(dat: &mut Data, ch: &Charger) -> f64 {
+        // Variables
+        let dt = 0.15; // Step size of p15
+        let H = (dat.param.T / dt) as usize; // Get the time horizon divided by the step size
+        let _pfix: f64 = 20.0; // TODO: Placeholder, get this data from data
+        let _p: Vec<f64> = vec![0.0; H]; // Create a `p' vector of size H
+        let pmax: f64 = 0.0; // Maximum cost
+
+        for q in ch.schedule.iter() {
+            for r in q {
+                // Create a vector of discrete time steps
+                for i in linspace::<f64>(r.t.0, dt, r.t.1)
+                    .map(|x| x / dt)
+                    .collect()
+                    .iter()
+                {
+                    // _pfix[i] += r[v[i]];
+                }
+            }
+        }
+
+        return pmax;
     }
 }
 
@@ -123,15 +144,20 @@ impl Objective for StdObj {
 
         for i in 0..N {
             for j in 0..N {
-                //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 // Calculate constraints
                 val_sched = constraints::run(run_constr, dat, ch, i, j);
             }
 
-            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Calculate the objective function
-            J += StdObj::AC(dat, i) + StdObj::UC(dat, ch, i);
+            J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
         }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Calculate the demand cost
+        J += StdObj::demand_cost(dat, ch);
+
         return (val_sched, J);
     }
 }
