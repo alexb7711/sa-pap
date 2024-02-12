@@ -92,18 +92,33 @@ impl StdObj {
     /// # Input
     /// * dat: Data structure for candidate schedule
     /// * ch : Charger availability object for candidate schedule
-    /// i    : Index of the visit of interest
     ///
     /// # Output
     /// * pmax : Demand cost of the system
     fn demand_cost(dat: &mut Data, ch: &Charger) -> f64 {
+        // Calculate vector of power consumption
+        let p: Vec<f64> = StdObj::calc_power_vec(dat, ch); // Track the power consumption at each discrete point
+
+        // Calculate the p15 and return the value
+        return StdObj::calc_p15(&p);
+    }
+
+    //--------------------------------------------------------------------------
+    /// Calculate the power vector over the time horizon.
+    ///
+    /// # Input
+    /// * dat: Data structure for candidate schedule
+    /// * ch : Charger availability object for candidate schedule
+    ///
+    /// # Output
+    /// * p: Vector of power consumption at each discrete point
+    ///
+    fn calc_power_vec(dat: &Data, ch: &Charger) -> Vec<f64> {
         // Variables
         let dt = 0.15; // Step size of p15
         let H = (dat.param.T / dt) as usize; // Get the time horizon divided by the step size
         let mut p: Vec<f64> = vec![0.0; H]; // Track the power consumption at each discrete point
-        let mut pmax: f64 = 0.0; // Maximum cost
 
-        // Calculate vector of power consumption
         for (i, q) in ch.schedule.iter().enumerate() {
             // Get the charge rate
             let rate: f32 = ch.get_charge_rate(i);
@@ -124,7 +139,21 @@ impl StdObj {
             }
         }
 
+        return p;
+    }
+
+    //--------------------------------------------------------------------------
+    /// Calculate the p15 given the vector of discrete power consumption.
+    ///
+    /// # Input
+    /// * p: Vector of discrete power consumption
+    ///
+    /// # Output
+    /// * p15: Peak 15 over the time horizon
+    ///
+    fn calc_p15(p: &Vec<f64>) -> f64 {
         // Calculate p15
+        let mut pmax: f64 = 0.0; // Maximum cost
         for (i, _) in p.iter().enumerate() {
             // TODO: See if there is a better way to do this
             // Ignore the first 15 elements
