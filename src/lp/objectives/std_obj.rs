@@ -100,23 +100,13 @@ impl StdObj {
         // Variables
         let dt = 0.15; // Step size of p15
         let H = (dat.param.T / dt) as usize; // Get the time horizon divided by the step size
-        let pfix: f64 = 20.0; // TODO: Placeholder, get this data from data
-        let mut p: Vec<f64> = vec![0.0; H - 15]; // Create a `p' vector of size H - 15
-        let pmax: f64 = 0.0; // Maximum cost
+        let mut p: Vec<f64> = vec![0.0; H]; // Track the power consumption at each discrete point
+        let mut pmax: f64 = 0.0; // Maximum cost
 
-        // Calculate p vector
+        // Calculate vector of power consumption
         for (i, q) in ch.schedule.iter().enumerate() {
-            // Get the charge for charger `q`
-            let mut rate: f32 = 0.0;
-            if i < ch.charger_count.0 {
-                continue;
-            } else if i >= ch.charger_count.0 && i < ch.charger_count.0 + ch.charger_count.1 {
-                rate = ch.charger_speed.1;
-            } else if i >= ch.charger_count.0 + ch.charger_count.1
-                && i < ch.charger_count.0 + ch.charger_count.1 + ch.charger_count.2
-            {
-                rate = ch.charger_speed.2;
-            }
+            // Get the charge rate
+            let rate: f32 = ch.get_charge_rate(i);
 
             // For every time slice in the charge schedule for `q`
             for ts in q {
@@ -124,14 +114,32 @@ impl StdObj {
                 let n: usize = ((ts.t.1 - ts.t.0) / dt) as usize;
 
                 // Create a vector of discrete time steps
-                for j in linspace::<f64>(ts.t.0 as f64, dt as f64, n).map(|x| x / dt as f64) {
-                    p[j as usize] += rate as f64;
+                //
+                // t = k*dt
+                // k = t/dt
+                //
+                for k in linspace::<f64>(ts.t.0 as f64, dt as f64, n).map(|x| x / dt as f64) {
+                    p[k as usize] += rate as f64;
                 }
             }
         }
 
         // Calculate p15
-        for _val in p.iter() {}
+        for (i, _) in p.iter().enumerate() {
+            // TODO: See if there is a better way to do this
+            // Ignore the first 15 elements
+            if i < 15 {
+                continue;
+            }
+
+            // Extract 15 minutes worth of power consumption and sum it
+            let slice: f64 = p[i - 15..i].into_iter().sum();
+
+            // If the slice is greater than pmax, update pmax
+            if slice > pmax {
+                pmax = slice;
+            }
+        }
 
         return pmax;
     }

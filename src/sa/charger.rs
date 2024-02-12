@@ -412,6 +412,37 @@ impl Charger {
         }
     }
 
+    //--------------------------------------------------------------------------
+    /// Given the charger index, return the charge rate.
+    ///
+    /// # Inbox
+    /// * q: Charger index
+    ///
+    /// # Output
+    /// * r : Charge rate
+    ///
+    pub fn get_charge_rate(self: &Charger, q: usize) -> f32 {
+        // Ensure the charger index is within bound
+        if q >= self.schedule.len() {
+            panic!("charger.rs: Charger index is not valid.")
+        }
+
+        // Buffer to store charge rate
+        let rate: f32;
+
+        // Waiting queue
+        if q < self.charger_count.0 {
+            rate = self.charger_speed.0;
+        // Slow charger
+        } else if q >= self.charger_count.0 && q < self.charger_count.0 + self.charger_count.1 {
+            rate = self.charger_speed.1;
+        // Fast charger
+        } else {
+            rate = self.charger_speed.2;
+        }
+        return rate;
+    }
+
     /////////////////////////////////////////////////////////////////////////////
     // PRIVATE
     /////////////////////////////////////////////////////////////////////////////
