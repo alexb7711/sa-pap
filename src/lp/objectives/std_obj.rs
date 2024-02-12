@@ -100,22 +100,38 @@ impl StdObj {
         // Variables
         let dt = 0.15; // Step size of p15
         let H = (dat.param.T / dt) as usize; // Get the time horizon divided by the step size
-        let _pfix: f64 = 20.0; // TODO: Placeholder, get this data from data
-        let _p: Vec<f64> = vec![0.0; H]; // Create a `p' vector of size H
+        let pfix: f64 = 20.0; // TODO: Placeholder, get this data from data
+        let mut p: Vec<f64> = vec![0.0; H - 15]; // Create a `p' vector of size H - 15
         let pmax: f64 = 0.0; // Maximum cost
 
-        for q in ch.schedule.iter() {
-            for r in q {
+        // Calculate p vector
+        for (i, q) in ch.schedule.iter().enumerate() {
+            // Get the charge for charger `q`
+            let mut rate: f32 = 0.0;
+            if i < ch.charger_count.0 {
+                continue;
+            } else if i >= ch.charger_count.0 && i < ch.charger_count.0 + ch.charger_count.1 {
+                rate = ch.charger_speed.1;
+            } else if i >= ch.charger_count.0 + ch.charger_count.1
+                && i < ch.charger_count.0 + ch.charger_count.1 + ch.charger_count.2
+            {
+                rate = ch.charger_speed.2;
+            }
+
+            // For every time slice in the charge schedule for `q`
+            for ts in q {
+                // Calculate the number of steps to take
+                let n: usize = ((ts.t.1 - ts.t.0) / dt) as usize;
+
                 // Create a vector of discrete time steps
-                for i in linspace::<f64>(r.t.0, dt, r.t.1)
-                    .map(|x| x / dt)
-                    .collect()
-                    .iter()
-                {
-                    // _pfix[i] += r[v[i]];
+                for j in linspace::<f64>(ts.t.0 as f64, dt as f64, n).map(|x| x / dt as f64) {
+                    p[j as usize] += rate as f64;
                 }
             }
         }
+
+        // Calculate p15
+        for _val in p.iter() {}
 
         return pmax;
     }
