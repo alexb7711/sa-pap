@@ -97,7 +97,7 @@ impl StdObj {
     /// * pmax : Demand cost of the system
     fn demand_cost(dat: &mut Data, ch: &Charger) -> f64 {
         // Calculate vector of power consumption
-        let p: Vec<f64> = StdObj::calc_power_vec(dat, ch); // Track the power consumption at each discrete point
+        let p: Vec<f64> = StdObj::calc_power_vec(dat, ch);
 
         // Calculate the p15 and return the value
         return StdObj::calc_p15(&p);
