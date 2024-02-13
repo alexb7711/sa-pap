@@ -112,7 +112,7 @@ pub mod DataOutput {
         for b in 0..A {
             let mut t_i: usize = 0;
 
-            // Fro every visit
+            // For every visit
             for i in 0..N {
                 // If the current visit is for the BEB of interest
                 if G[i] as usize == b {
