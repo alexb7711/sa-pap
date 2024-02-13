@@ -118,6 +118,11 @@ impl StdObj {
 
         // For each charger queue
         for (i, q) in ch.schedule.iter().enumerate() {
+            // If the charger of interest is a wait queue
+            if i < ch.charger_count.0 {
+                continue;
+            }
+
             // Get the charge rate
             let rate: f32 = ch.get_charge_rate(i);
 
