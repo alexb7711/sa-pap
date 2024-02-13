@@ -119,11 +119,12 @@ impl StdObj {
         let H = (dat.param.T / dt) as usize; // Get the time horizon divided by the step size
         let mut p: Vec<f64> = vec![0.0; H]; // Track the power consumption at each discrete point
 
+        // For each charger queue
         for (i, q) in ch.schedule.iter().enumerate() {
             // Get the charge rate
             let rate: f32 = ch.get_charge_rate(i);
 
-            // For every time slice in the charge schedule for `q`
+            // For every time slice in the schedule for charger for `q`
             for ts in q {
                 // Calculate the number of steps to take
                 let n: usize = ((ts.t.1 - ts.t.0) / dt) as usize;
