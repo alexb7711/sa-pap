@@ -228,7 +228,7 @@ pub mod DataOutput {
         for k in 0..K {
             // Calculate time slice
             let t: f32 = k as f32 * dt;
-            data[k as usize][0] = dt;
+            data[k as usize][0] = t;
 
             // For each visit
             for i in 0..N {
@@ -277,7 +277,7 @@ pub mod DataOutput {
         for k in 0..K {
             // Calculate time slice
             let t: f32 = k as f32 * dt;
-            data[k as usize][0] = dt;
+            data[k as usize][0] = t;
 
             // If the index is greater than zero
             if k > 0 {
