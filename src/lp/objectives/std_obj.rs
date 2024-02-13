@@ -117,12 +117,12 @@ impl StdObj {
         let mut p: Vec<f64> = vec![0.0; H]; // Track the power consumption at each discrete point
 
         // For each charger queue
-        for (i, q) in ch.schedule.iter().enumerate() {
-            // If the charger of interest is a wait queue
-            if i < ch.charger_count.0 {
-                continue;
-            }
-
+        for (i, q) in ch
+            .schedule
+            .iter()
+            .enumerate()
+            .skip_while(|x| x.0 < ch.charger_count.0)
+        {
             // Get the charge rate
             let rate: f32 = ch.get_charge_rate(i);
 
@@ -157,13 +157,7 @@ impl StdObj {
     fn calc_p15(p: &Vec<f64>) -> f64 {
         // Calculate p15
         let mut pmax: f64 = 0.0; // Maximum cost
-        for (i, _) in p.iter().enumerate() {
-            // TODO: See if there is a better way to do this
-            // Ignore the first 15 elements
-            if i < 15 {
-                continue;
-            }
-
+        for (i, _) in p.iter().enumerate().skip_while(|x| x.0 < 15) {
             // Extract 15 minutes worth of power consumption and sum it
             let slice: f64 = p[i - 15..i].into_iter().sum();
 
