@@ -337,7 +337,6 @@ pub mod DataOutput {
         let s: &Vec<f32> = &dat.dec.s;
         let w: &Vec<Vec<bool>> = &dat.dec.w;
         let wait: usize = char.charger_count.0;
-        let slow: usize = char.charger_count.1;
 
         // Table variables
         let name = file_name.to_owned() + &"-schedule";
@@ -357,9 +356,9 @@ pub mod DataOutput {
         for i in 0..N {
             // If the current visit is scheduled, the charge duration is of some significant time, and the BEB was
             // placed on a non-waiting queue.
-            if w[i][v[i]] && s[i] > 0.001 && v[i] >= wait + slow {
+            if w[i][v[i]] && s[i] > 0.001 && v[i] >= wait {
                 // Include the information in the data buffer
-                data[i][G[i] as usize * 3 + 0] = (v[i] - slow) as f32;
+                data[i][G[i] as usize * 3 + 0] = (v[i] - wait) as f32;
                 data[i][G[i] as usize * 3 + 1] = u[i];
                 data[i][G[i] as usize * 3 + 2] = s[i];
             }
