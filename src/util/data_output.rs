@@ -62,7 +62,7 @@ pub mod DataOutput {
 
         // Create Plots
         charge_out(&file_name, &d, &c, &fp);
-        usage_out(&file_name, &d, &c, &fp);
+        charger_count_out(&file_name, &d, &c, &fp);
         power_out(&file_name, &d, &c, &fp);
         acc_energy_out(&file_name, &d, &c, &fp);
         schedule_out(&file_name, &d, &c, &fp);
@@ -146,7 +146,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn usage_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
+    fn charger_count_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
         // Variables
         let K: u16 = dat.param.K;
         let N: usize = dat.param.N;
@@ -177,6 +177,11 @@ pub mod DataOutput {
 
             // For each visit
             for i in 0..N {
+                // Ignore the very early times as it breaks GNUPlot filling
+                if t < 4.0 {
+                    continue;
+                }
+
                 // if the time step is between the current visit and the BEB has
                 // assigned
                 if u[i] <= t && d[i] >= t && w[i][v[i]] {
@@ -237,7 +242,8 @@ pub mod DataOutput {
             for i in 0..N {
                 // if the time step is between the current visit and the BEB has
                 // assigned
-                if u[i] <= t && d[i] >= t && w[i][v[i]] {
+                if w[i][v[i]] && u[i] <= t && d[i] >= t {
+                    // Add on the accumulated power for the current discrete time slice
                     data[k as usize][1] += r[v[i]];
                 }
             }
@@ -248,7 +254,7 @@ pub mod DataOutput {
     }
 
     //---------------------------------------------------------------------------
-    /// Accumulated output power usage data
+    /// Accumulated energy data output
     ///
     /// # Input:
     /// * file_name : Base name of the file
@@ -264,12 +270,13 @@ pub mod DataOutput {
         let K: usize = dat.param.K as usize;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
-        let dt: f32 = T as f32 / K as f32;
-        let u: &Vec<f32> = &dat.dec.u;
-        let w: &Vec<Vec<bool>> = &dat.dec.w;
-        let v: &Vec<usize> = &dat.dec.v;
-        let r: &Vec<f32> = &dat.param.r;
         let d: &Vec<f32> = &dat.dec.d;
+        let dt: f32 = T as f32 / K as f32;
+        let r: &Vec<f32> = &dat.param.r;
+        let s: &Vec<f32> = &dat.dec.s;
+        let u: &Vec<f32> = &dat.dec.u;
+        let v: &Vec<usize> = &dat.dec.v;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
 
         // Table variables
         let name = file_name.to_owned() + &"-acc-energy-usage";
@@ -293,7 +300,8 @@ pub mod DataOutput {
                 // if the time step is between the current visit and the BEB has
                 // assigned
                 if u[i] <= t && d[i] >= t && w[i][v[i]] {
-                    data[k as usize][1] += r[v[i]];
+                    // Add on the accumulated energy for visit `i`
+                    data[k as usize][1] += r[v[i]] * s[i];
                 }
             }
         }
@@ -314,7 +322,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn schedule_out(file_name: &String, dat: &Data, _c: &Charger, path: &String) {
+    fn schedule_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
         // Variables
         let A: usize = dat.param.A;
         let N: usize = dat.param.N;
@@ -323,6 +331,7 @@ pub mod DataOutput {
         let v: &Vec<usize> = &dat.dec.v;
         let s: &Vec<f32> = &dat.dec.s;
         let w: &Vec<Vec<bool>> = &dat.dec.w;
+        let slow: usize = char.charger_count.1;
 
         // Table variables
         let name = file_name.to_owned() + &"-schedule";
@@ -340,8 +349,11 @@ pub mod DataOutput {
 
         // For each visit
         for i in 0..N {
-            if w[i][v[i]] && s[i] > 0.001 {
-                data[i][G[i] as usize * 3 + 0] = v[i] as f32;
+            // If the current visit is scheduled, the charge duration is of some significant time, and the BEB was
+            // placed on a non-waiting queue.
+            if w[i][v[i]] && s[i] > 0.001 && v[i] >= slow {
+                // Include the information in the data buffer
+                data[i][G[i] as usize * 3 + 0] = (v[i] - slow) as f32;
                 data[i][G[i] as usize * 3 + 1] = u[i];
                 data[i][G[i] as usize * 3 + 2] = s[i];
             }
