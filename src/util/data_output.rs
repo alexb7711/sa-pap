@@ -72,7 +72,7 @@ pub mod DataOutput {
     // PRIVATE
 
     //---------------------------------------------------------------------------
-    /// Output charge plot data
+    /// Output charge data for each BEB over time
     ///
     /// # Input:
     /// * file_name : Base name of the file
@@ -135,7 +135,7 @@ pub mod DataOutput {
     }
 
     //---------------------------------------------------------------------------
-    /// Output charger usage data
+    /// Output the charger count over the time horizon
     ///
     /// # Input:
     /// * file_name : Base name of the file
@@ -180,11 +180,14 @@ pub mod DataOutput {
                 // if the time step is between the current visit and the BEB has
                 // assigned
                 if u[i] <= t && d[i] >= t && w[i][v[i]] {
+                    // If the BEB is in a waiting queue
                     if v[i] < wait {
                         data[k as usize][1] += 1.0;
-                    } else if v[i] >= wait && v[i] < slow {
+                    // Else if the BEB is in a slow charging queue
+                    } else if v[i] >= wait && v[i] < wait + slow {
                         data[k as usize][2] += 1.0;
-                    } else {
+                    // Else if the BEB is in a fast charging queue
+                    } else if v[i] >= wait + slow {
                         data[k as usize][3] += 1.0;
                     }
                 }
