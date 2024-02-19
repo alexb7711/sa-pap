@@ -220,12 +220,12 @@ pub mod DataOutput {
         let K: u16 = dat.param.K;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
-        let dt: f32 = T as f32 / K as f32;
-        let u: &Vec<f32> = &dat.dec.u;
-        let w: &Vec<Vec<bool>> = &dat.dec.w;
-        let v: &Vec<usize> = &dat.dec.v;
-        let r: &Vec<f32> = &dat.param.r;
         let d: &Vec<f32> = &dat.dec.d;
+        let dt: f32 = T as f32 / K as f32;
+        let r: &Vec<f32> = &dat.param.r;
+        let u: &Vec<f32> = &dat.dec.u;
+        let v: &Vec<usize> = &dat.dec.v;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
 
         // Table variables
         let name = file_name.to_owned() + &"-power-usage";
@@ -237,6 +237,11 @@ pub mod DataOutput {
             // Calculate time slice
             let t: f32 = k as f32 * dt;
             data[k as usize][0] = t;
+
+            // Ignore early times as it breaks GNUPlot
+            if t < 4.0 {
+                continue;
+            }
 
             // For each visit
             for i in 0..N {
