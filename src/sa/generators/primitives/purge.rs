@@ -24,8 +24,8 @@ pub mod purge {
     pub fn run(_: &mut Data, _: usize, ch: &mut Charger, q: usize, ud: &(f32, f32)) -> bool {
         if ch.remove(q, *ud) {
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 }
