@@ -17,7 +17,8 @@ pub mod DataOutput {
 
     //==========================================================================
     // Static data
-    static E_CELL: &str = "nan";
+    static E_CELL: &str = "nan"; // Text to place in empty cell
+    static STEP_CNT: usize = 1000; // Set static step count
 
     //===========================================================================
     // PUBLIC
@@ -148,7 +149,7 @@ pub mod DataOutput {
     ///
     fn charger_count_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
         // Variables
-        let K: u16 = dat.param.K;
+        let K: usize = STEP_CNT;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
         let dt: f32 = T as f32 / K as f32;
@@ -167,7 +168,7 @@ pub mod DataOutput {
             String::from("slow"),
             String::from("fast"),
         ];
-        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 4]; K as usize];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 4]; K];
 
         // For each time step
         for k in 0..K {
@@ -217,7 +218,7 @@ pub mod DataOutput {
     ///
     fn power_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
-        let K: u16 = dat.param.K;
+        let K: usize = STEP_CNT;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
         let d: &Vec<f32> = &dat.dec.d;
@@ -229,7 +230,7 @@ pub mod DataOutput {
 
         // Table variables
         let name = file_name.to_owned() + &"-power-usage";
-        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K];
         let fields: Vec<String> = vec![String::from("time"), String::from("power")];
 
         // For each time step
@@ -272,20 +273,19 @@ pub mod DataOutput {
     ///
     fn acc_energy_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
-        let K: usize = dat.param.K as usize;
+        let K: usize = STEP_CNT;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
         let d: &Vec<f32> = &dat.dec.d;
         let dt: f32 = T as f32 / K as f32;
         let r: &Vec<f32> = &dat.param.r;
-        let s: &Vec<f32> = &dat.dec.s;
         let u: &Vec<f32> = &dat.dec.u;
         let v: &Vec<usize> = &dat.dec.v;
         let w: &Vec<Vec<bool>> = &dat.dec.w;
 
         // Table variables
         let name = file_name.to_owned() + &"-acc-energy-usage";
-        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K];
         let fields: Vec<String> = vec![String::from("time"), String::from("power")];
 
         // For each time step
@@ -306,7 +306,7 @@ pub mod DataOutput {
                 // assigned
                 if u[i] <= t && d[i] >= t && w[i][v[i]] {
                     // Add on the accumulated energy for visit `i`
-                    data[k as usize][1] += r[v[i]] * s[i];
+                    data[k as usize][1] += r[v[i]] * dt;
                 }
             }
         }
