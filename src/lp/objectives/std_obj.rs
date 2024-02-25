@@ -80,7 +80,7 @@ impl StdObj {
         let r = dat.param.r[v];
 
         // Calculate the consumption cost
-        return (r * s) as f64;
+        return 100.0 * (r * s) as f64;
     }
 
     //--------------------------------------------------------------------------
