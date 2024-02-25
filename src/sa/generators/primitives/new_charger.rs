@@ -47,15 +47,21 @@ pub mod new_charger {
         let q_cnt: usize = ch.schedule.len();
 
         // Determine the charger offset from waiting queues
-        let offset: usize = ch.charger_count.0;
+        let offset: usize; // Offset for slow or fast chargers
+        let charge_type: usize = rand_utils::rand_range(0, 1);
+
+        if charge_type == 0 {
+            offset = ch.charger_count.0;
+        } else {
+            offset = ch.charger_count.0 + ch.charger_count.1;
+        }
 
         // Create a vector with the bus wait queue and all the charger queues
-        let mut queues: Vec<usize> = vec![b];
-        let mut c_queues: Vec<usize> = (offset..q_cnt).collect();
+        let queues: Vec<usize> = (offset..q_cnt).collect();
 
         // Create a list of queue indices and shuffle them
-        queues.append(&mut c_queues);
-        queues = rand_utils::shuffle_vec(&queues);
+        // queues.append(&mut c_queues);
+        // queues = rand_utils::shuffle_vec(&queues);
 
         // Iterate the shuffled queue indices
         for q_new in queues.into_iter() {

@@ -51,7 +51,7 @@ impl StdObj {
         let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
         if c_dif < 0.0 {
             // Calculate the penalty
-            let C: f32 = 500.0;
+            let C: f32 = 9000.0;
 
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
         }
