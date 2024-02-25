@@ -80,9 +80,9 @@ pub mod new_visit {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Place the original visit back in the queue availability matrix
-        if !ch.assign(dat.dec.v[i], (dat.dec.u[i], dat.dec.d[i]), b) {
-            panic!("Lost a visit!");
-        };
+        // if !ch.assign(dat.dec.v[i], (dat.dec.u[i], dat.dec.d[i]), b) {
+        //     panic!("Lost a visit!");
+        // };
 
         return false;
     }
