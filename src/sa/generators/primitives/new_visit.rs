@@ -38,7 +38,14 @@ pub mod new_visit {
         let q_cnt: usize = ch.schedule.len();
 
         // Determine the charger offset from waiting queues
-        let offset: usize = ch.charger_count.0;
+        let offset;
+        let charge_type: usize = rand_utils::rand_range(0, 1);
+
+        if charge_type == 0 {
+            offset = ch.charger_count.0;
+        } else {
+            offset = ch.charger_count.0 + ch.charger_count.1;
+        }
 
         // Create a vector with the bus wait queue and all the charger queues
         let queues: Vec<usize> = (offset..q_cnt).collect();
