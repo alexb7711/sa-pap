@@ -17,7 +17,8 @@ pub mod DataOutput {
 
     //==========================================================================
     // Static data
-    static E_CELL: &str = "nan";
+    static E_CELL: &str = "nan"; // Text to place in empty cell
+    static STEP_CNT: usize = 1000; // Set static step count
 
     //===========================================================================
     // PUBLIC
@@ -62,7 +63,7 @@ pub mod DataOutput {
 
         // Create Plots
         charge_out(&file_name, &d, &c, &fp);
-        usage_out(&file_name, &d, &c, &fp);
+        charger_count_out(&file_name, &d, &c, &fp);
         power_out(&file_name, &d, &c, &fp);
         acc_energy_out(&file_name, &d, &c, &fp);
         schedule_out(&file_name, &d, &c, &fp);
@@ -72,7 +73,7 @@ pub mod DataOutput {
     // PRIVATE
 
     //---------------------------------------------------------------------------
-    /// Output charge plot data
+    /// Output charge data for each BEB over time
     ///
     /// # Input:
     /// * file_name : Base name of the file
@@ -135,7 +136,7 @@ pub mod DataOutput {
     }
 
     //---------------------------------------------------------------------------
-    /// Output charger usage data
+    /// Output the charger count over the time horizon
     ///
     /// # Input:
     /// * file_name : Base name of the file
@@ -146,9 +147,9 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn usage_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
+    fn charger_count_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
         // Variables
-        let K: u16 = dat.param.K;
+        let K: usize = STEP_CNT;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
         let dt: f32 = T as f32 / K as f32;
@@ -167,7 +168,7 @@ pub mod DataOutput {
             String::from("slow"),
             String::from("fast"),
         ];
-        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 4]; K as usize];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 4]; K];
 
         // For each time step
         for k in 0..K {
@@ -177,14 +178,22 @@ pub mod DataOutput {
 
             // For each visit
             for i in 0..N {
+                // Ignore the very early times as it breaks GNUPlot filling
+                if t < 4.0 {
+                    continue;
+                }
+
                 // if the time step is between the current visit and the BEB has
                 // assigned
                 if u[i] <= t && d[i] >= t && w[i][v[i]] {
+                    // If the BEB is in a waiting queue
                     if v[i] < wait {
                         data[k as usize][1] += 1.0;
-                    } else if v[i] >= wait && v[i] < slow {
+                    // Else if the BEB is in a slow charging queue
+                    } else if v[i] >= wait && v[i] < wait + slow {
                         data[k as usize][2] += 1.0;
-                    } else {
+                    // Else if the BEB is in a fast charging queue
+                    } else if v[i] >= wait + slow {
                         data[k as usize][3] += 1.0;
                     }
                 }
@@ -209,19 +218,19 @@ pub mod DataOutput {
     ///
     fn power_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
-        let K: u16 = dat.param.K;
+        let K: usize = STEP_CNT;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
-        let dt: f32 = T as f32 / K as f32;
-        let u: &Vec<f32> = &dat.dec.u;
-        let w: &Vec<Vec<bool>> = &dat.dec.w;
-        let v: &Vec<usize> = &dat.dec.v;
-        let r: &Vec<f32> = &dat.param.r;
         let d: &Vec<f32> = &dat.dec.d;
+        let dt: f32 = T as f32 / K as f32;
+        let r: &Vec<f32> = &dat.param.r;
+        let u: &Vec<f32> = &dat.dec.u;
+        let v: &Vec<usize> = &dat.dec.v;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
 
         // Table variables
         let name = file_name.to_owned() + &"-power-usage";
-        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K];
         let fields: Vec<String> = vec![String::from("time"), String::from("power")];
 
         // For each time step
@@ -230,11 +239,17 @@ pub mod DataOutput {
             let t: f32 = k as f32 * dt;
             data[k as usize][0] = t;
 
+            // Ignore early times as it breaks GNUPlot
+            if t < 4.0 {
+                continue;
+            }
+
             // For each visit
             for i in 0..N {
                 // if the time step is between the current visit and the BEB has
                 // assigned
-                if u[i] <= t && d[i] >= t && w[i][v[i]] {
+                if w[i][v[i]] && u[i] <= t && d[i] >= t {
+                    // Add on the accumulated power for the current discrete time slice
                     data[k as usize][1] += r[v[i]];
                 }
             }
@@ -245,7 +260,7 @@ pub mod DataOutput {
     }
 
     //---------------------------------------------------------------------------
-    /// Accumulated output power usage data
+    /// Accumulated energy data output
     ///
     /// # Input:
     /// * file_name : Base name of the file
@@ -258,19 +273,19 @@ pub mod DataOutput {
     ///
     fn acc_energy_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
-        let K: usize = dat.param.K as usize;
+        let K: usize = STEP_CNT;
         let N: usize = dat.param.N;
         let T: f32 = dat.param.T;
-        let dt: f32 = T as f32 / K as f32;
-        let u: &Vec<f32> = &dat.dec.u;
-        let w: &Vec<Vec<bool>> = &dat.dec.w;
-        let v: &Vec<usize> = &dat.dec.v;
-        let r: &Vec<f32> = &dat.param.r;
         let d: &Vec<f32> = &dat.dec.d;
+        let dt: f32 = T as f32 / K as f32;
+        let r: &Vec<f32> = &dat.param.r;
+        let u: &Vec<f32> = &dat.dec.u;
+        let v: &Vec<usize> = &dat.dec.v;
+        let w: &Vec<Vec<bool>> = &dat.dec.w;
 
         // Table variables
         let name = file_name.to_owned() + &"-acc-energy-usage";
-        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K as usize];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 2]; K];
         let fields: Vec<String> = vec![String::from("time"), String::from("power")];
 
         // For each time step
@@ -290,7 +305,8 @@ pub mod DataOutput {
                 // if the time step is between the current visit and the BEB has
                 // assigned
                 if u[i] <= t && d[i] >= t && w[i][v[i]] {
-                    data[k as usize][1] += r[v[i]];
+                    // Add on the accumulated energy for visit `i`
+                    data[k as usize][1] += r[v[i]] * dt;
                 }
             }
         }
@@ -311,7 +327,7 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn schedule_out(file_name: &String, dat: &Data, _c: &Charger, path: &String) {
+    fn schedule_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
         // Variables
         let A: usize = dat.param.A;
         let N: usize = dat.param.N;
@@ -320,6 +336,7 @@ pub mod DataOutput {
         let v: &Vec<usize> = &dat.dec.v;
         let s: &Vec<f32> = &dat.dec.s;
         let w: &Vec<Vec<bool>> = &dat.dec.w;
+        let wait: usize = char.charger_count.0;
 
         // Table variables
         let name = file_name.to_owned() + &"-schedule";
@@ -337,8 +354,11 @@ pub mod DataOutput {
 
         // For each visit
         for i in 0..N {
-            if w[i][v[i]] && s[i] > 0.001 {
-                data[i][G[i] as usize * 3 + 0] = v[i] as f32;
+            // If the current visit is scheduled, the charge duration is of some significant time, and the BEB was
+            // placed on a non-waiting queue.
+            if w[i][v[i]] && s[i] > 0.001 && v[i] >= wait {
+                // Include the information in the data buffer
+                data[i][G[i] as usize * 3 + 0] = (v[i] - wait) as f32;
                 data[i][G[i] as usize * 3 + 1] = u[i];
                 data[i][G[i] as usize * 3 + 2] = s[i];
             }

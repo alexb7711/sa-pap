@@ -58,9 +58,9 @@ pub mod new_charger {
         queues = rand_utils::shuffle_vec(&queues);
 
         // Iterate the shuffled queue indices
-        for q in queues.into_iter() {
+        for q_new in queues.into_iter() {
             // Retrieve the time slice of interest if it exists
-            let ts = ch.get_ts(&q, &ud);
+            let ts = ch.get_ts(&q_new, &ud);
 
             // Check if the arrival/departure fits in the time slice
             // Note that this line is what differentiates this function from `new_visit` by applying the same
@@ -69,18 +69,24 @@ pub mod new_charger {
 
             // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
             // times
-            if ts != (0.0, 0.0) && fits && ch.assign(q, *ud, b) {
+            if ts != (0.0, 0.0) && fits && ch.assign(q_new, *ud, b) {
                 // Update route data
                 // Update queue
-                d.dec.v[i] = q;
+                d.dec.v[i] = q_new;
 
                 // Update vector representation
                 d.dec.w[i].fill(false);
-                d.dec.w[i][q] = true;
+                d.dec.w[i][q_new] = true;
 
                 return true;
             }
         }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Place the original visit back in the queue availability matrix
+        if !ch.assign(q, *ud, b) {
+            panic!("Lost a visit!");
+        };
 
         return false;
     }

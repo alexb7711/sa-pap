@@ -67,6 +67,13 @@ pub mod slide_visit {
             }
         }
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Place the original visit back in the queue availability matrix
+
+        if !ch.assign(q, *ud, b) {
+            panic!("Lost a visit!");
+        };
+
         return false;
     }
 }

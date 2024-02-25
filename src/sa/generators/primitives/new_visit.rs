@@ -25,7 +25,7 @@ pub mod new_visit {
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    pub fn run(d: &mut Data, i: usize, ch: &mut Charger, b: usize, ae: &(f32, f32)) -> bool {
+    pub fn run(dat: &mut Data, i: usize, ch: &mut Charger, b: usize, ae: &(f32, f32)) -> bool {
         // Extract the number of chargers
         let q_cnt: usize = ch.schedule.len();
 
@@ -41,9 +41,9 @@ pub mod new_visit {
         queues = rand_utils::shuffle_vec(&queues);
 
         // Iterate the shuffled queue indices
-        for q in queues.into_iter() {
+        for q_new in queues.into_iter() {
             // Create a list of time slices and shuffle them
-            let mut time_slice = ch.free_time[q].clone();
+            let mut time_slice = ch.free_time[q_new].clone();
             time_slice = rand_utils::shuffle_vec(&time_slice);
 
             // Filter out very small windows
@@ -59,24 +59,30 @@ pub mod new_visit {
 
                 // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
                 // times
-                if fits && ch.assign(q, ud, b) {
+                if fits && ch.assign(q_new, ud, b) {
                     // Update queue
-                    d.dec.v[i] = q;
+                    dat.dec.v[i] = q_new;
 
                     // Update vector representation
-                    d.dec.w[i].fill(false);
-                    d.dec.w[i][q] = true;
+                    dat.dec.w[i].fill(false);
+                    dat.dec.w[i][q_new] = true;
 
                     // Update initial/final charge times
-                    d.dec.u[i] = ud.0;
-                    d.dec.d[i] = ud.1;
-                    d.dec.s[i] = ud.1 - ud.0;
+                    dat.dec.u[i] = ud.0;
+                    dat.dec.d[i] = ud.1;
+                    dat.dec.s[i] = ud.1 - ud.0;
 
                     // Indicate success
                     return true;
                 }
             }
         }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Place the original visit back in the queue availability matrix
+        // if !ch.assign(dat.dec.v[i], (dat.dec.u[i], dat.dec.d[i]), b) {
+        //     panic!("Lost a visit!");
+        // };
 
         return false;
     }
