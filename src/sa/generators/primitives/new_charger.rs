@@ -50,9 +50,12 @@ pub mod new_charger {
         let offset: usize; // Offset for slow or fast chargers
         let charge_type: usize = rand_utils::rand_range(0, 1);
 
+        // If the charger selected is a slow charger
         if charge_type == 0 {
+            // Set the offset to ignore waiting queues
             offset = ch.charger_count.0;
         } else {
+            // Set the offset to ignore waiting and slow queues
             offset = ch.charger_count.0 + ch.charger_count.1;
         }
 
