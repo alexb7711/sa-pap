@@ -15,7 +15,7 @@ schedule: "csv"
 solution_gen: "wait"
 
 # "quick"; "exhaustive"
-tweak_method: "exhaustive"
+tweak_method: "quick"
 
 # Run all constraints (slow), or run required constraints (fast)
 run_all_constr: false
