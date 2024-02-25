@@ -25,7 +25,15 @@ pub mod new_visit {
     /// # Output
     /// * bool: Assignment failure/success
     ///
-    pub fn run(dat: &mut Data, i: usize, ch: &mut Charger, b: usize, ae: &(f32, f32)) -> bool {
+    pub fn run(
+        dat: &mut Data,
+        i: usize,
+        ch: &mut Charger,
+        q: usize,
+        b: usize,
+        ae: &(f32, f32),
+        ud: &(f32, f32),
+    ) -> bool {
         // Extract the number of chargers
         let q_cnt: usize = ch.schedule.len();
 
@@ -80,10 +88,10 @@ pub mod new_visit {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Place the original visit back in the queue availability matrix
-        // if !ch.assign(dat.dec.v[i], (dat.dec.u[i], dat.dec.d[i]), b) {
-        //     panic!("Lost a visit!");
-        // };
 
+        if !ch.assign(q, *ud, b) {
+            panic!("Lost a visit!");
+        };
         return false;
     }
 }

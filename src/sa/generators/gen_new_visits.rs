@@ -56,7 +56,7 @@ impl Generator for GenNewVisits {
             let ae = &(i.arrival_time, i.departure_time);
 
             // Check if the bus can be assigned, assign the bus wait queue
-            if new_visit::run(&mut data, i.visit, c, i.id as usize, ae) {
+            if new_visit::run(&mut data, i.visit, c, i.id as usize, i.id as usize, ae, ae) {
                 // Update route event
                 i.attach_time = ae.0;
                 i.detach_time = ae.1;
