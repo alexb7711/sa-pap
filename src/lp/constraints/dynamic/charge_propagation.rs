@@ -15,6 +15,12 @@ pub struct ChargePropagate {}
 /// Implementation of `Constraint` for `ChargePropogation` structure.
 ///
 impl ChargePropagate {
+    //==========================================================================
+    ///
+    /// # Input
+    ///
+    /// # Output
+    ///
     #[allow(non_snake_case)]
     fn update_charge(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
         // Extract parameters
@@ -68,6 +74,22 @@ impl ChargePropagate {
         // Update the charge
         return r[v[i]] * s[i];
     }
+
+    //==========================================================================
+    ///
+    /// # Input
+    ///
+    /// # Output
+    ///
+    fn linear_model() {}
+
+    //==========================================================================
+    ///
+    /// # Input
+    ///
+    /// # Output
+    ///
+    fn nonlinear_model() {}
 }
 
 //===============================================================================

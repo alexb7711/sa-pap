@@ -204,8 +204,11 @@ impl RouteCSVGenerator {
         let slow_c: Vec<f32>;
         let fast_c: Vec<f32>;
 
+        // Set the model type
+        self.data.param.model = self.g_config["bat_model"].as_str().unwrap().to_string();
+
         // If the system is utilizing the linear model
-        if self.g_config["linear"].as_str().unwrap() == "linear" {
+        if self.data.param.model == "linear" {
             // Create parts of charge rate vector
             slow_c = [self.s_config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
                 .repeat(self.s_config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
