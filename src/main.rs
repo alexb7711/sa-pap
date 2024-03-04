@@ -84,7 +84,11 @@ fn execute(pb: &mut ProgressBar) {
 
     // Run the schedule that was specified
     if schedule_type == "csv" {
-        gsys = Box::new(RouteCSVGenerator::new(schedule_path(), csv_path()));
+        gsys = Box::new(RouteCSVGenerator::new(
+            schedule_path(),
+            general_path(),
+            csv_path(),
+        ));
     } else if schedule_type == "rand" {
         // Create schedule generator
         gsys = Box::new(RouteRandGenerator::new(load_from_file, schedule_path()));

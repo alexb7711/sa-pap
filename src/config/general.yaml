@@ -8,6 +8,9 @@ plot: 0
 # NOTE: If this is set to 1, it is recommended to change "cores" to 1.
 rtp: 0
 
+# "linear" or "nonlinear" battery dynamic model
+bat_madel: "nonlinear"
+
 # "rand"; "csv"
 schedule: "csv"
 
