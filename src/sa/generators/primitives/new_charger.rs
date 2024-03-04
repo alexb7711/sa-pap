@@ -62,10 +62,6 @@ pub mod new_charger {
         // Create a vector with the bus wait queue and all the charger queues
         let queues: Vec<usize> = (offset..q_cnt).collect();
 
-        // Create a list of queue indices and shuffle them
-        // queues.append(&mut c_queues);
-        // queues = rand_utils::shuffle_vec(&queues);
-
         // Iterate the shuffled queue indices
         for q_new in queues.into_iter() {
             // Retrieve the time slice of interest if it exists
