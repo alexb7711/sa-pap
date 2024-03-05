@@ -136,7 +136,7 @@ impl StdObj {
                 // t = k*dt
                 // k = t/dt
                 //
-                for k in linspace::<f64>(ts.t.0 as f64, dt as f64, n).map(|x| x / dt as f64) {
+                for k in linspace::<f64>(ts.t.0 as f64, ts.t.1 as f64, n).map(|x| x / dt as f64) {
                     p[k as usize] += rate as f64;
                 }
             }
