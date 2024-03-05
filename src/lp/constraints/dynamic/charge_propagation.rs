@@ -21,8 +21,22 @@ impl ChargePropagate {
     ///
     /// # Output
     ///
+    fn update_charge(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
+        if dat.param.model == "linear" {
+            return ChargePropagate::linear_model(dat, ch, i);
+        } else {
+            return ChargePropagate::nonlinear_model(dat, ch, i);
+        }
+    }
+
+    //==========================================================================
+    ///
+    /// # Input
+    ///
+    /// # Output
+    ///
     #[allow(non_snake_case)]
-    fn update_charge(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
+    fn linear_model(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
         // Extract parameters
         let Gam = &dat.param.Gam;
         let r = &dat.param.r;
@@ -81,15 +95,9 @@ impl ChargePropagate {
     ///
     /// # Output
     ///
-    fn linear_model() {}
-
-    //==========================================================================
-    ///
-    /// # Input
-    ///
-    /// # Output
-    ///
-    fn nonlinear_model() {}
+    fn nonlinear_model(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
+        return 0.0;
+    }
 }
 
 //===============================================================================
