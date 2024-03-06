@@ -8,7 +8,7 @@ use crate::sa::data::Data;
 //===============================================================================
 // Import external crate
 use itertools_num::linspace;
-use rand::rngs::StdRng;
+// use rand::rngs::StdRng;
 
 //===============================================================================
 /// Structure defining the data required to calculate the standard objective

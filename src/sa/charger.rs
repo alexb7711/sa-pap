@@ -131,9 +131,9 @@ impl Charger {
         let mut assigned: bool = false;
 
         // Check that the time slice is increasing
-        if !self.check_in_bounds(&c) {
-            return assigned;
-        }
+        // if !self.check_in_bounds(&c) {
+        //     return assigned;
+        // }
 
         // If the space is available, assign the bus to that time slot
         if self.avail(&q, &c) {
@@ -328,11 +328,11 @@ impl Charger {
         }
 
         // The arrival/departure times are fully within the free time
-        if lower <= a && upper >= e {
+        if lower <= a && e <= upper {
             (u, fits_u) = self.get_rand_range(None, Some(d), (a, e));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
             // The departure time is fully within the free time and the arrival time is less than the lower bound
-        } else if lower >= a && upper >= e {
+        } else if a <= lower && e <= upper {
             (u, fits_u) = self.get_rand_range(None, Some(d), (lower, e));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
             // The arrival time is fully within the free time and the departure time is greater than the lower bound
@@ -340,7 +340,7 @@ impl Charger {
             (u, fits_u) = self.get_rand_range(None, Some(d), (a, upper));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
             // The arrival/departure times are less than and greater than the lower and upper bound, respectively
-        } else if lower > a && upper <= e {
+        } else if a <= lower && upper <= e {
             (u, fits_u) = self.get_rand_range(None, Some(d), (lower, upper));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
         }
