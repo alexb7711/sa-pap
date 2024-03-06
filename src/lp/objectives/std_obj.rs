@@ -8,6 +8,7 @@ use crate::sa::data::Data;
 //===============================================================================
 // Import external crate
 use itertools_num::linspace;
+use rand::rngs::StdRng;
 
 //===============================================================================
 /// Structure defining the data required to calculate the standard objective
@@ -169,23 +170,17 @@ impl StdObj {
 
         return pmax;
     }
-}
 
-//===============================================================================
-/// Implementation of `Objective` for `StdObj` structure.
-//
-#[allow(non_snake_case)]
-impl Objective for StdObj {
     //--------------------------------------------------------------------------
-    /// Calculates the objective function for the provided schedule.
+    /// TODO: Description
     ///
     /// # Input
-    /// * d: Data object containing the current charge schedule
+    /// *
     ///
     /// # Output
-    /// * J: Objective function cost
+    /// *
     ///
-    fn run(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
+    fn run_all_constr(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Extract input parameters
         let N = dat.param.N;
@@ -207,6 +202,70 @@ impl Objective for StdObj {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Calculate the demand cost
         J += StdObj::demand_cost(dat, ch);
+
+        return (val_sched, J);
+    }
+
+    //--------------------------------------------------------------------------
+    /// TODO: Description
+    ///
+    /// # Input
+    /// *
+    ///
+    /// # Output
+    /// *
+    ///
+    fn run_lim_constr(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Extract input parameters
+        let N = dat.param.N;
+        let mut J: f64 = 0.0;
+        let mut val_sched: bool = false;
+
+        for i in 0..N {
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Calculate constraints
+            val_sched = constraints::run(run_constr, dat, ch, i, 0);
+
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Calculate the objective function
+            J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Calculate the demand cost
+        J += StdObj::demand_cost(dat, ch);
+
+        return (val_sched, J);
+    }
+}
+
+//===============================================================================
+/// Implementation of `Objective` for `StdObj` structure.
+//
+#[allow(non_snake_case)]
+impl Objective for StdObj {
+    //--------------------------------------------------------------------------
+    /// Calculates the objective function for the provided schedule.
+    ///
+    /// # Input
+    /// * d: Data object containing the current charge schedule
+    ///
+    /// # Output
+    /// * J: Objective function cost
+    ///
+    fn run(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
+        // Variables
+        let J: f64;
+        let val_sched: bool;
+
+        // If all the constraints are to be ran
+        if run_constr {
+            (val_sched, J) = StdObj::run_all_constr(dat, ch, run_constr);
+        // Otherwise only a limited number of the constraints are required
+        } else {
+            (val_sched, J) = StdObj::run_lim_constr(dat, ch, run_constr);
+        }
 
         return (val_sched, J);
     }
