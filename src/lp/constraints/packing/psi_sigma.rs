@@ -72,6 +72,7 @@ impl Constraint for PsiSigma {
         {
             println!("Visit {}", i);
             println!("Schedule: {:?}", ch.schedule[dat.dec.v[i]]);
+            println!("Free Time: {:?}", ch.free_time[dat.dec.v[i]]);
             println!(
                 "{} + {} + {} + {} <= 1",
                 psi[i][j], psi[j][i], sig[i][j], sig[j][i]
