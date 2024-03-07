@@ -8,7 +8,6 @@ use crate::sa::data::Data;
 //===============================================================================
 // Import external crate
 use itertools_num::linspace;
-// use rand::rngs::StdRng;
 
 //===============================================================================
 /// Structure defining the data required to calculate the standard objective
@@ -26,9 +25,8 @@ impl StdObj {
     /// Calculates the assignment cost for the objective function
     ///
     /// # Input
-    /// * d: Data object containing the current charge schedule
+    /// * dat: Data object containing the current charge schedule
     /// * i: Visit of interest
-    /// * q: Charger queue of interest
     ///
     /// # Output
     /// * AC: Assignment cost for the provided schedule
@@ -172,13 +170,16 @@ impl StdObj {
     }
 
     //--------------------------------------------------------------------------
-    /// TODO: Description
+    /// The run all constraints function does an exhaustive run of all the
+    /// constraints. This function exists to ensure for debugging purposes.
     ///
     /// # Input
-    /// *
+    /// * dat: Data object containing the current charge schedule
+    /// * i: Visit of interest
+    /// * run_constr: Flag to indicate whether to run all of the constraints
     ///
     /// # Output
-    /// *
+    /// * (bool, f64): Flag to indicate success and the objective function score
     ///
     fn run_all_constr(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,13 +208,16 @@ impl StdObj {
     }
 
     //--------------------------------------------------------------------------
-    /// TODO: Description
+    /// The run limited constraint function executes only the required constraints
+    /// for the SA algorithm to function properly.
     ///
     /// # Input
-    /// *
+    /// * dat: Data object containing the current charge schedule
+    /// * i: Visit of interest
+    /// * run_constr: Flag to indicate whether to run all of the constraints
     ///
     /// # Output
-    /// *
+    /// * (bool, f64): Flag to indicate success and the objective function score
     ///
     fn run_lim_constr(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,6 +254,8 @@ impl Objective for StdObj {
     ///
     /// # Input
     /// * d: Data object containing the current charge schedule
+    /// * ch: Charger object
+    /// * run_constr: Flag to indicate whether to run all of the constraints
     ///
     /// # Output
     /// * J: Objective function cost
