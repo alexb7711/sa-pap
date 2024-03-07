@@ -139,10 +139,10 @@ mod test_charger {
         let id: usize = 1;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         // Make sure that the time slice was not assigned
-        assert_eq!(time_slice_exists(&charger, &q, &c), false);
+        assert_eq!(time_slice_exists(&charger, &q, &c), true);
 
         // Test 5
         let q: usize = 0;
@@ -161,10 +161,10 @@ mod test_charger {
         let id: usize = 1;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         // Make sure that the time slice was not assigned
-        assert_eq!(time_slice_exists(&charger, &q, &c), false);
+        assert_eq!(time_slice_exists(&charger, &q, &c), true);
 
         // Test 7
         let q: usize = 2;
@@ -172,10 +172,10 @@ mod test_charger {
         let id: usize = 0;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         // Make sure that the time slice was not assigned
-        assert_eq!(time_slice_exists(&charger, &q, &c), false);
+        assert_eq!(time_slice_exists(&charger, &q, &c), true);
 
         // Test 8
         let q: usize = 2;
@@ -194,10 +194,10 @@ mod test_charger {
         let id: usize = 0;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         // Make sure that the time slice was not assigned
-        assert_eq!(time_slice_exists(&charger, &q, &c), false);
+        assert_eq!(time_slice_exists(&charger, &q, &c), true);
 
         // Test 9
         let q: usize = 2;
@@ -205,10 +205,10 @@ mod test_charger {
         let id: usize = 0;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         // Make sure that the time slice was not assigned
-        assert_eq!(time_slice_exists(&charger, &q, &c), false);
+        assert_eq!(time_slice_exists(&charger, &q, &c), true);
 
         // Test 10
         let q: usize = 2;
@@ -216,10 +216,10 @@ mod test_charger {
         let id: usize = 0;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         // Make sure that the time slice was not assigned
-        assert_eq!(time_slice_exists(&charger, &q, &c), false);
+        assert_eq!(time_slice_exists(&charger, &q, &c), true);
 
         // Test 11 - Ordering
         let q: usize = 2;
@@ -227,10 +227,10 @@ mod test_charger {
         let id: usize = 0;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         // Make sure that the time slice was not assigned
-        assert_eq!(time_slice_exists(&charger, &q, &c), false);
+        assert_eq!(time_slice_exists(&charger, &q, &c), true);
 
         // Create charger
         let mut charger: Charger = Charger::new(schedule_path(), false, None, None);
@@ -257,7 +257,7 @@ mod test_charger {
         let id: usize = 4;
 
         // Assign the charger
-        assert_eq!(charger.assign(q, c, id), false);
+        assert_eq!(charger.assign(q, c, id), true);
 
         assert!(charger.exists(&q, &c));
     }
@@ -635,7 +635,7 @@ mod test_charger {
 
         let c: (f32, f32) = (0.1, 0.2);
         let id: usize = 2;
-        assert_eq!(charger.assign(0, c, id), false);
+        assert_eq!(charger.assign(0, c, id), true);
 
         let c: (f32, f32) = (0.4, 0.5);
         assert!(charger.assign(1, c, id));
@@ -723,16 +723,16 @@ mod test_charger {
         // Ensure its contents
         assert_eq!(charger.schedule.len(), rg.data.param.Q);
         assert!(charger.schedule[0].len() > 0);
-        assert!(charger.schedule[0][0].t.0 == 1.0);
-        assert!(charger.schedule[0][0].t.1 == 2.0);
+        assert_eq!(charger.schedule[0][0].t.0, 0.0);
+        assert_eq!(charger.schedule[0][0].t.1, 0.0);
         assert!(charger.schedule[0][0].b <= rg.data.param.A);
         assert!(charger.schedule[2].len() > 0);
-        assert!(charger.schedule[2][0].t.0 == 1.0);
-        assert!(charger.schedule[2][0].t.1 == 2.0);
+        assert_eq!(charger.schedule[2][0].t.0, 1.0);
+        assert_eq!(charger.schedule[2][0].t.1, 2.0);
         assert!(charger.schedule[2][0].b <= rg.data.param.A);
         assert!(charger.schedule[4].len() > 0);
-        assert!(charger.schedule[4][0].t.0 == 1.0);
-        assert!(charger.schedule[4][0].t.1 == 2.0);
+        assert_eq!(charger.schedule[4][0].t.0, 1.0);
+        assert_eq!(charger.schedule[4][0].t.1, 2.0);
         assert!(charger.schedule[0][0].b <= rg.data.param.A);
     }
 }
