@@ -25,9 +25,8 @@ impl StdObj {
     /// Calculates the assignment cost for the objective function
     ///
     /// # Input
-    /// * d: Data object containing the current charge schedule
+    /// * dat: Data object containing the current charge schedule
     /// * i: Visit of interest
-    /// * q: Charger queue of interest
     ///
     /// # Output
     /// * AC: Assignment cost for the provided schedule
@@ -171,23 +170,20 @@ impl StdObj {
 
         return pmax;
     }
-}
 
-//===============================================================================
-/// Implementation of `Objective` for `StdObj` structure.
-//
-#[allow(non_snake_case)]
-impl Objective for StdObj {
     //--------------------------------------------------------------------------
-    /// Calculates the objective function for the provided schedule.
+    /// The run all constraints function does an exhaustive run of all the
+    /// constraints. This function exists to ensure for debugging purposes.
     ///
     /// # Input
-    /// * d: Data object containing the current charge schedule
+    /// * dat: Data object containing the current charge schedule
+    /// * i: Visit of interest
+    /// * run_constr: Flag to indicate whether to run all of the constraints
     ///
     /// # Output
-    /// * J: Objective function cost
+    /// * (bool, f64): Flag to indicate success and the objective function score
     ///
-    fn run(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
+    fn run_all_constr(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Extract input parameters
         let N = dat.param.N;
@@ -209,6 +205,75 @@ impl Objective for StdObj {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Calculate the demand cost
         J += StdObj::demand_cost(dat, ch);
+
+        return (val_sched, J);
+    }
+
+    //--------------------------------------------------------------------------
+    /// The run limited constraint function executes only the required constraints
+    /// for the SA algorithm to function properly.
+    ///
+    /// # Input
+    /// * dat: Data object containing the current charge schedule
+    /// * i: Visit of interest
+    /// * run_constr: Flag to indicate whether to run all of the constraints
+    ///
+    /// # Output
+    /// * (bool, f64): Flag to indicate success and the objective function score
+    ///
+    fn run_lim_constr(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Extract input parameters
+        let N = dat.param.N;
+        let mut J: f64 = 0.0;
+        let mut val_sched: bool = false;
+
+        for i in 0..N {
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Calculate constraints
+            val_sched = constraints::run(run_constr, dat, ch, i, 0);
+
+            //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            // Calculate the objective function
+            J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
+        }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Calculate the demand cost
+        J += StdObj::demand_cost(dat, ch);
+
+        return (val_sched, J);
+    }
+}
+
+//===============================================================================
+/// Implementation of `Objective` for `StdObj` structure.
+//
+#[allow(non_snake_case)]
+impl Objective for StdObj {
+    //--------------------------------------------------------------------------
+    /// Calculates the objective function for the provided schedule.
+    ///
+    /// # Input
+    /// * d: Data object containing the current charge schedule
+    /// * ch: Charger object
+    /// * run_constr: Flag to indicate whether to run all of the constraints
+    ///
+    /// # Output
+    /// * J: Objective function cost
+    ///
+    fn run(dat: &mut Data, ch: &mut Charger, run_constr: bool) -> (bool, f64) {
+        // Variables
+        let J: f64;
+        let val_sched: bool;
+
+        // If all the constraints are to be ran
+        if run_constr {
+            (val_sched, J) = StdObj::run_all_constr(dat, ch, run_constr);
+        // Otherwise only a limited number of the constraints are required
+        } else {
+            (val_sched, J) = StdObj::run_lim_constr(dat, ch, run_constr);
+        }
 
         return (val_sched, J);
     }

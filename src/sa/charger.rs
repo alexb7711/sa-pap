@@ -127,34 +127,20 @@ impl Charger {
     /// * assigned: True if the bus was successfully assigned, false otherwise
     ///
     pub fn assign(self: &mut Charger, q: usize, c: (f32, f32), id: usize) -> bool {
-        // Default the assigned to false
-        let mut assigned: bool = false;
+        // Create Assignment
+        let a: Assignment = Assignment { b: id, t: c };
 
-        // Check that the time slice is increasing
-        if !self.check_in_bounds(&c) {
-            return assigned;
-        }
+        // Assign
+        self.schedule[q].push(a);
 
-        // If the space is available, assign the bus to that time slot
-        if self.avail(&q, &c) {
-            // Create Assignment
-            let a: Assignment = Assignment { b: id, t: c };
+        // Sort the schedule by the starting charge time
+        // https://rust-lang-nursery.github.io/rust-cookbook/algorithms/sorting.html
+        self.schedule[q].sort_by(|a, b| a.t.0.partial_cmp(&b.t.0).unwrap());
 
-            // Assign
-            self.schedule[q].push(a);
+        // Update the free time for the qth charger
+        self.update_free_time(q);
 
-            // Sort the schedule by the starting charge time
-            // https://rust-lang-nursery.github.io/rust-cookbook/algorithms/sorting.html
-            self.schedule[q].sort_by(|a, b| a.t.0.partial_cmp(&b.t.0).unwrap());
-
-            // Indicate that the assignment was successful
-            assigned = true;
-
-            // Update the free time for the qth charger
-            self.update_free_time(q);
-        }
-
-        return assigned;
+        return true;
     }
 
     //--------------------------------------------------------------------------
@@ -169,22 +155,19 @@ impl Charger {
     ///
     pub fn remove(self: &mut Charger, q: usize, c: (f32, f32)) -> bool {
         // Default to indicate that the time slice item was not removed
-        let mut rem: bool = false;
+        let rem: bool;
 
         // Check if the time slice exists in the charger queue
-        if self.exists(&q, &c) {
-            // Store length
-            let l_bef = self.schedule[q].len();
+        let l_bef = self.schedule[q].len();
 
-            // Remove the item
-            self.schedule[q].retain(|s| s.t != c);
+        // Remove the item
+        self.schedule[q].retain(|s| s.t != c);
 
-            // State that the item is being removed
-            rem = l_bef > self.schedule[q].len();
+        // State that the item is being removed
+        rem = l_bef > self.schedule[q].len();
 
-            // Update the free time for the qth charger
-            self.update_free_time(q);
-        }
+        // Update the free time for the qth charger
+        self.update_free_time(q);
 
         return rem;
     }
@@ -318,8 +301,8 @@ impl Charger {
         let mut fits_d = false;
 
         // Create charge start/stop buffers
-        let mut u: f32 = a;
-        let mut d: f32 = e;
+        let mut u: f32 = 0.0;
+        let mut d: f32 = 0.0;
 
         // If the time slice and the arrival/departure times don't match up, immediately return a fail
         if (a <= lower && e <= lower) || (a >= upper && e >= upper) {
@@ -328,19 +311,19 @@ impl Charger {
         }
 
         // The arrival/departure times are fully within the free time
-        if lower <= a && upper >= e {
+        if lower <= a && a <= e && e <= upper {
             (u, fits_u) = self.get_rand_range(None, Some(d), (a, e));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
             // The departure time is fully within the free time and the arrival time is less than the lower bound
-        } else if lower >= a && upper >= e {
+        } else if a <= lower && lower <= e && e <= upper {
             (u, fits_u) = self.get_rand_range(None, Some(d), (lower, e));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, e));
             // The arrival time is fully within the free time and the departure time is greater than the lower bound
-        } else if lower <= a && upper <= e {
+        } else if lower <= a && a <= upper && upper <= e {
             (u, fits_u) = self.get_rand_range(None, Some(d), (a, upper));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
             // The arrival/departure times are less than and greater than the lower and upper bound, respectively
-        } else if lower > a && upper <= e {
+        } else if a <= lower && lower <= upper && upper <= e {
             (u, fits_u) = self.get_rand_range(None, Some(d), (lower, upper));
             (d, fits_d) = self.get_rand_range(Some(u), None, (u, upper));
         }
@@ -403,6 +386,9 @@ impl Charger {
             };
 
             self.schedule[dat.dec.v[i]].push(a);
+
+            // https://rust-lang-nursery.github.io/rust-cookbook/algorithms/sorting.html
+            self.schedule[dat.dec.v[i]].sort_by(|a, b| a.t.0.partial_cmp(&b.t.0).unwrap());
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -507,7 +493,7 @@ impl Charger {
     /// # Output
     /// * bool: true if the values are within the time horizon, false otherwise
     ///
-    fn check_in_bounds(self: &mut Charger, c: &(f32, f32)) -> bool {
+    fn _check_in_bounds(self: &mut Charger, c: &(f32, f32)) -> bool {
         let bod = self.config.clone()["time"]["BOD"].as_f64().unwrap() as f32;
         let eod = self.config.clone()["time"]["EOD"].as_f64().unwrap() as f32;
 
@@ -568,12 +554,9 @@ impl Charger {
                 }
             }
 
-            // If the arrival time is being updated
-            if let Some(d) = d {
-                // Make sure the new arrival time does not create a zero-time visit
-                if d - v > 0.0 {
-                    break;
-                }
+            // // If the arrival time is being updated
+            if let Some(_) = d {
+                break;
             }
         }
 
