@@ -4,7 +4,8 @@
 pub mod new_charger {
 
     // Import standard lib
-    use crate::util::rand_utils;
+    use rand::distributions::{Distribution, WeightedIndex};
+    use rand::prelude::*;
 
     // Import modules
     use crate::sa::charger::Charger;
@@ -48,7 +49,11 @@ pub mod new_charger {
 
         // Determine the charger offset from waiting queues
         let offset: usize; // Offset for slow or fast chargers
-        let charge_type: usize = rand_utils::rand_range(0, 1);
+        let w = [2, 1];
+        let dist = WeightedIndex::new(&w).unwrap();
+        let selection_vals = [0, 1];
+        let mut rng = thread_rng();
+        let charge_type: usize = selection_vals[dist.sample(&mut rng)];
 
         // If the charger selected is a slow charger
         if charge_type == 0 {
