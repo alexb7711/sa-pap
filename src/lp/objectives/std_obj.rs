@@ -50,10 +50,12 @@ impl StdObj {
         let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
         if c_dif < 0.0 {
             // Calculate the penalty
-            let C: f32 = 9000.0;
+            let C: f32 = 800.0;
 
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
         }
+
+        // println!("AC: {} + {}", ep[v] * r[v], phi);
 
         // Calculate the assignment cost
         return (ep[v] * r[v]) as f64 + phi;
@@ -78,8 +80,10 @@ impl StdObj {
         // Extract input parameters
         let r = dat.param.r[v];
 
+        // println!("UC: {}", 100.0 * r * s);
+
         // Calculate the consumption cost
-        return 100.0 * (r * s) as f64;
+        return (r * s) as f64;
     }
 
     //--------------------------------------------------------------------------
@@ -164,7 +168,8 @@ impl StdObj {
 
             // If the slice is greater than pmax, update pmax
             if slice > pmax {
-                pmax = slice;
+                pmax = 9000.0 * slice;
+                // println!("pmax: {:?}", pmax);
             }
         }
 
@@ -237,6 +242,8 @@ impl StdObj {
             // Calculate the objective function
             J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
         }
+
+        // println!("J: {}", J);
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Calculate the demand cost
