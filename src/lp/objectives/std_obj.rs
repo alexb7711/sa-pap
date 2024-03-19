@@ -50,7 +50,7 @@ impl StdObj {
         let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
         if c_dif < 0.0 {
             // Calculate the penalty
-            let C: f32 = 800.0;
+            let C: f32 = 5000.0;
 
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
         }
@@ -168,7 +168,7 @@ impl StdObj {
 
             // If the slice is greater than pmax, update pmax
             if slice > pmax {
-                pmax = 9000.0 * slice;
+                pmax = 10000.0 * slice;
                 // println!("pmax: {:?}", pmax);
             }
         }
@@ -277,7 +277,7 @@ impl Objective for StdObj {
         // If all the constraints are to be ran
         if run_constr {
             (val_sched, J) = StdObj::run_all_constr(dat, ch, run_constr);
-        // Otherwise only a limited number of the constraints are required
+            // Otherwise only a limited number of the constraints are required
         } else {
             (val_sched, J) = StdObj::run_lim_constr(dat, ch, run_constr);
         }

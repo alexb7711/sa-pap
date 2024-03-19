@@ -49,7 +49,7 @@ pub mod new_charger {
 
         // Determine the charger offset from waiting queues
         let offset: usize; // Offset for slow or fast chargers
-        let w = [2, 1];
+        let w = [3, 1];
         let dist = WeightedIndex::new(&w).unwrap();
         let selection_vals = [0, 1];
         let mut rng = thread_rng();
