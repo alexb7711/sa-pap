@@ -1,7 +1,8 @@
 //===============================================================================
 // Import standard library modules
-use crate::util::rand_utils;
-use rand::distributions::{Distribution, Standard};
+// use crate::util::rand_utils;
+use rand::distributions::{Distribution, Standard, WeightedIndex};
+use rand::prelude::*;
 use rand::Rng;
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -70,11 +71,13 @@ impl TweakSchedule {
 impl Generator for TweakSchedule {
     fn run(self: &mut TweakSchedule, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Track the success of tweak
-        let mut success: bool = false;
+        let success: bool;
 
         // Create a vector of `Primitives` and shuffle the vector
         let primitives = Primitives::iter().collect::<Vec<_>>();
-        let primitives = rand_utils::shuffle_vec(&primitives);
+        let weight = [3, 3, 2, 1];
+        let dist = WeightedIndex::new(&weight).unwrap();
+        let mut rng = thread_rng();
 
         // Get random visit
         let mut rd = r.get_data();
@@ -85,20 +88,19 @@ impl Generator for TweakSchedule {
         let ae = &(rd.param.a[ri], rd.param.e[ri]);
 
         // Loop through the primitives
-        for p in primitives {
-            // Try running the primitive and store the result
-            success = match p {
-                Primitives::NewCharger => new_charger::run(&mut rd, ri, c, q, id, ud),
-                Primitives::NewWindow => new_window::run(&mut rd, ri, c, q, id, ae, ud),
-                Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
-                Primitives::SlideVisit => slide_visit::run(&mut rd, ri, c, id, q, ae, ud),
-            };
+        let p = primitives[dist.sample(&mut rng)].clone();
 
-            // If successful, update the MILP data and break out of loop
-            if success {
-                r.set_data(rd.clone());
-                break;
-            }
+        // Try running the primitive and store the result
+        success = match p {
+            Primitives::NewCharger => new_charger::run(&mut rd, ri, c, q, id, ud),
+            Primitives::NewWindow => new_window::run(&mut rd, ri, c, q, id, ae, ud),
+            Primitives::Wait => wait::run(&mut rd, ri, c, q, id, ae, ud),
+            Primitives::SlideVisit => slide_visit::run(&mut rd, ri, c, id, q, ae, ud),
+        };
+
+        // If successful, update the MILP data and break out of loop
+        if success {
+            r.set_data(rd.clone());
         }
 
         return success;

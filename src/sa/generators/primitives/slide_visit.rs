@@ -53,15 +53,15 @@ pub mod slide_visit {
         // Iterate through the shuffled time slices
         for ts in time_slice.iter() {
             // Check if the arrival/departure fits in the time slice
-            let (fits, ud) = ch.find_free_time(ae, ts);
+            let (fits, ud_new) = ch.find_free_time(ae, ts);
 
             // If the selected time slice arrival/departure fits in the time slice, assign the start/stop charge
             // times
-            if fits && ch.assign(q, ud, b) {
+            if fits && ch.assign(q, ud_new, b) {
                 // Update route data
-                d.dec.u[i] = ud.0; // Update attach time
-                d.dec.d[i] = ud.1; // Update detach time
-                d.dec.s[i] = ud.1 - ud.0;
+                d.dec.u[i] = ud_new.0; // Update attach time
+                d.dec.d[i] = ud_new.1; // Update detach time
+                d.dec.s[i] = ud_new.1 - ud_new.0;
 
                 return true;
             }

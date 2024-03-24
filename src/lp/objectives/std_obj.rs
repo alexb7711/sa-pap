@@ -50,7 +50,7 @@ impl StdObj {
         let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
         if c_dif < 0.0 {
             // Calculate the penalty
-            let C: f32 = 500.0;
+            let C: f32 = 5000.0;
 
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
         }
@@ -111,7 +111,7 @@ impl StdObj {
     ///
     fn calc_power_vec(dat: &Data, ch: &Charger) -> Vec<f64> {
         // Variables
-        let dt = 0.15; // Step size of p15
+        let dt = 1.0 / 60.0; // Step size of one minute
         let H = (dat.param.T / dt) as usize; // Get the time horizon divided by the step size
         let mut p: Vec<f64> = vec![0.0; H]; // Track the power consumption at each discrete point
 
@@ -135,7 +135,7 @@ impl StdObj {
                 // t = k*dt
                 // k = t/dt
                 //
-                for k in linspace::<f64>(ts.t.0 as f64, dt as f64, n).map(|x| x / dt as f64) {
+                for k in linspace::<f64>(ts.t.0 as f64, ts.t.1 as f64, n).map(|x| x / dt as f64) {
                     p[k as usize] += rate as f64;
                 }
             }
@@ -156,13 +156,15 @@ impl StdObj {
     fn calc_p15(p: &Vec<f64>) -> f64 {
         // Calculate p15
         let mut pmax: f64 = 0.0; // Maximum cost
+
+        // For each visit that is after 15 minutes into the working day
         for (i, _) in p.iter().enumerate().skip_while(|x| x.0 < 15) {
             // Extract 15 minutes worth of power consumption and sum it
             let slice: f64 = p[i - 15..i].into_iter().sum();
 
             // If the slice is greater than pmax, update pmax
             if slice > pmax {
-                pmax = slice;
+                pmax = 10000.0 * slice;
             }
         }
 

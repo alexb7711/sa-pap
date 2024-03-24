@@ -197,7 +197,7 @@ mod test_route_csv_generator {
             if i < 35 {
                 ep = 0.0;
             } else {
-                ep = 10.0 * (i as f32 - 34.0);
+                ep = 100.0 * (i as f32 - 34.0);
             }
 
             assert_eq!(rg.data.param.ep[i], ep);
