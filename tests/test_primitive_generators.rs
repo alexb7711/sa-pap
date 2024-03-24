@@ -86,7 +86,15 @@ mod test_primitive_generators {
 
         // Test 2 - Create a new visit in an empty schedule
         assert!(
-            new_visit::run(&mut rd, 0, &mut charger, id, &(0.01, 0.09)),
+            new_visit::run(
+                &mut rd,
+                0,
+                &mut charger,
+                id,
+                id,
+                &(0.01, 0.09),
+                &(0.01, 0.09)
+            ),
             "Could not create new visit."
         );
         assert_eq!(rd.dec.v[0], 0);
@@ -116,33 +124,57 @@ mod test_primitive_generators {
         assert_eq!(charger.free_time[q].len(), 4);
 
         // Test 5 - Assign a new bus to be charged in a busy schedule
-        assert!(new_visit::run(&mut rd, 0, &mut charger, id, &(0.7, 1.0)));
+        assert!(new_visit::run(
+            &mut rd,
+            0,
+            &mut charger,
+            id,
+            id,
+            &(0.7, 1.0),
+            &(0.7, 1.0)
+        ));
         assert_eq!(charger.free_time[q].len(), 5);
         assert_eq!(rd.dec.v[0], id);
         assert_eq!(rd.dec.w[0][0], true);
 
         // Test 6 - Assign a bus to be charged with an invalid time
         assert_eq!(
-            new_visit::run(&mut rd, 0, &mut charger, id, &(0.2, 0.5)),
+            new_visit::run(&mut rd, 0, &mut charger, id, id, &(0.2, 0.5), &(2.0, 2.5)),
             false
         );
-        assert_eq!(charger.free_time[q].len(), 5);
+        assert_eq!(charger.free_time[q].len(), 6);
 
         // Test 7 - Assign a new bus to be charged in a busy schedule
         for idx in 0..10 {
-            if new_visit::run(&mut rd, 0, &mut charger, id, &(0.0, 0.1)) {
+            if new_visit::run(&mut rd, 0, &mut charger, id, id, &(0.0, 0.1), &(0.0, 0.1)) {
                 assert!(true);
                 break;
             } else if idx + 1 == 10 {
                 assert!(false);
             }
         }
-        assert_eq!(charger.free_time[q].len(), 6);
+        assert_eq!(charger.free_time[q].len(), 7);
 
         // Test 8 - Assign two buses to be charged close to each other
-        assert!(new_visit::run(&mut rd, 0, &mut charger, id, &(0.5, 1.0)));
-        assert!(new_visit::run(&mut rd, 0, &mut charger, id, &(1.0, 1.5)));
-        assert_eq!(charger.free_time[q].len(), 8);
+        assert!(new_visit::run(
+            &mut rd,
+            0,
+            &mut charger,
+            id,
+            id,
+            &(0.5, 1.0),
+            &(0.5, 1.0)
+        ));
+        assert!(new_visit::run(
+            &mut rd,
+            0,
+            &mut charger,
+            id,
+            id,
+            &(1.0, 1.5),
+            &(1.0, 1.5)
+        ));
+        assert_eq!(charger.free_time[q].len(), 9);
     }
 
     //---------------------------------------------------------------------------
