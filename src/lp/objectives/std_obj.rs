@@ -270,7 +270,7 @@ impl Objective for StdObj {
         // If all the constraints are to be ran
         if run_constr {
             (val_sched, J) = StdObj::run_all_constr(dat, ch, run_constr);
-            // Otherwise only a limited number of the constraints are required
+        // Otherwise only a limited number of the constraints are required
         } else {
             (val_sched, J) = StdObj::run_lim_constr(dat, ch, run_constr);
         }
