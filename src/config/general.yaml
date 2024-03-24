@@ -1,5 +1,5 @@
 # Number of processes to input values
-cores: 3
+cores: 8
 
 # 1: True; 0: False
 plot: 0
@@ -15,10 +15,10 @@ bat_model: "nonlinear"
 schedule: "csv"
 
 # "wait"; "rand"
-solution_gen: "wait"
+solution_gen: "rand"
 
 # "quick"; "exhaustive"
-tweak_method: "quick"
+tweak_method: "exhaustive"
 
 # Run all constraints (slow), or run required constraints (fast)
 run_all_constr: false
