@@ -131,7 +131,7 @@ impl ChargePropagate {
     /// * charge: Non-linear battery dynamics SOC estimation
     ///
     #[allow(non_snake_case)]
-    fn nonlinear_model(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
+    fn nonlinear_model(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Constraint
 
