@@ -26,10 +26,17 @@ mod test_constraints {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //---------------------------------------------------------------------------
     //
     fn get_data() -> Data {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();

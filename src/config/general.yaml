@@ -9,7 +9,7 @@ plot: 0
 rtp: 0
 
 # "linear" or "nonlinear" battery dynamic model
-bat_model: "nonlinear"
+bat_model: "linear"
 
 # "rand"; "csv"
 schedule: "csv"

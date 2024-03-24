@@ -23,6 +23,8 @@ chargers:
   slow:
     num: 7
     rate: 100.0        # [Kw]
+    conv: 0.01
   fast:
     num: 4
     rate: 400.0        # [Kw]
+    conv: 0.1

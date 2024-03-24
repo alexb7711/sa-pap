@@ -25,12 +25,18 @@ mod test_generators {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //---------------------------------------------------------------------------
     //
     #[test]
     fn test_schedule_generator() {
         // Create CSV generator
-        let rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut rg: Box<dyn Route> = Box::new(rg);
         rg.run();
 

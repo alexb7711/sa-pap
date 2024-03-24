@@ -820,6 +820,7 @@ mod priv_test_route_gen {
     fn create_object() -> RouteCSVGenerator {
         return RouteCSVGenerator::new(
             "./src/config/schedule-test.yaml",
+            "./src/config/general.yaml",
             "./src/config/routes.csv",
         );
     }
