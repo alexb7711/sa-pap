@@ -20,13 +20,19 @@ pub struct ChargePropagate {}
 ///
 impl ChargePropagate {
     //==========================================================================
+    /// The `update_lin_charge` function adjusts the charge time so that the
+    /// BEB is not over charged using the linear battery dynamics model.
     ///
     /// # Input
+    /// * dat: Data object
+    /// * ch: Charger object
+    /// * i: Visit index
     ///
     /// # Output
+    /// * charge: Liner battery dynamics SOC estimation
     ///
     #[allow(non_snake_case)]
-    fn update_lin_charge(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
+    fn update_lin_charge(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
         // Extract parameters
         let Gam = &dat.param.Gam;
         let r = &dat.param.r;
@@ -79,10 +85,81 @@ impl ChargePropagate {
     }
 
     //==========================================================================
+    /// The `update_nonlin_charge` function adjusts the charge time so that the
+    /// BEB is not over charged using the linear battery dynamics model.
     ///
     /// # Input
+    /// * dat: Data object
+    /// * ch: Charger object
+    /// * i: Visit index
     ///
     /// # Output
+    /// * charge: Non-linear battery dynamics SOC estimation
+    ///
+    #[allow(non_snake_case)]
+    fn update_nonlin_charge(dat: &mut Data, _ch: &mut Charger, i: usize) -> f32 {
+        // Extract parameters
+        let Gam = &dat.param.Gam;
+        let r = &dat.param.r;
+        let kappa = &dat.param.k;
+
+        // Extract decision variables
+        let eta = &mut dat.dec.eta;
+        let v = &dat.dec.v;
+        let s = &mut dat.dec.s;
+        let u = &mut dat.dec.u;
+        let d = &mut dat.dec.d;
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        // Adjust charge times
+
+        // Retrieve the charger speed
+        let charge_rate: f32 = r[v[i]];
+
+        // Store the original charge duration
+        let l_s = s[i];
+
+        // Adjust the charge time such that the BEB is at maximum charge
+        // and the schedule does not fail
+        //
+        // Units: Kwh * (hr / Kwh) = hr
+        s[i] = (kappa[Gam[i] as usize] - eta[i]) / charge_rate;
+
+        // Ensure charge time is non-zero
+        if s[i] == 0.0 {
+            s[i] = EPSILON;
+        }
+        // Update initial and final charge times. Choose to move u and d
+        // closer together by (s_old - s_new) / 2
+        let s_diff = (l_s - s[i]) / 2.0;
+        u[i] += s_diff;
+        d[i] -= s_diff;
+
+        // If the update causes the time ordering to flip
+        if u[i] > d[i] {
+            // Update so that the assignment is valid
+            let utmp = u[i].clone();
+            u[i] = d[i];
+            d[i] = utmp;
+        } else if u[i] == d[i] {
+            d[i] += EPSILON;
+        }
+
+        // Update the charge
+        return r[v[i]] * s[i];
+    }
+
+    //==========================================================================
+    /// The `linear_model` function determines the amount of charge supplied to
+    /// the BEB for visit `i` using a linear battery dynamics model.
+    ///
+    /// # Input
+    /// * dat: Data object
+    /// * ch: Charger object
+    /// * i: Visit index
+    ///
+    /// # Output
+    /// * charge: Liner battery dynamics SOC estimation
     ///
     #[allow(non_snake_case)]
     fn linear_model(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
@@ -107,10 +184,16 @@ impl ChargePropagate {
     }
 
     //==========================================================================
+    /// The `nonlinear_model` function determines the amount of charge supplied
+    /// to the BEB for visit `i` using a non-linear battery dynamics.
     ///
     /// # Input
+    /// * dat: Data object
+    /// * ch: Charger object
+    /// * i: Visit index
     ///
     /// # Output
+    /// * charge: Non-linear battery dynamics SOC estimation
     ///
     #[allow(non_snake_case)]
     fn nonlinear_model(dat: &mut Data, ch: &mut Charger, i: usize) -> f32 {
@@ -141,7 +224,7 @@ impl ChargePropagate {
 
         // Ensure the charge does not exceed the battery limit
         if !(dat.dec.eta[i] + charge <= kappa[Gam[i] as usize]) {
-            charge = ChargePropagate::update_lin_charge(dat, ch, i);
+            charge = ChargePropagate::update_nonlin_charge(dat, ch, i);
         }
 
         return charge;
