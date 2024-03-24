@@ -23,6 +23,12 @@ mod test_charger {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //--------------------------------------------------------------------------
     // Returns if the given time slice exists in the current chargers schedule
     //
@@ -701,7 +707,8 @@ mod test_charger {
     #[test]
     fn test_milp_to_schedule() {
         // Create route generator
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();

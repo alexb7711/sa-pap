@@ -27,6 +27,12 @@ mod test_tweak_schedule {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //--------------------------------------------------------------------------
     //
     #[test]
@@ -38,8 +44,11 @@ mod test_tweak_schedule {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Generate schedule
-        let mut gsys: Box<RouteCSVGenerator> =
-            Box::new(RouteCSVGenerator::new(yaml_path(), csv_path()));
+        let mut gsys: Box<RouteCSVGenerator> = Box::new(RouteCSVGenerator::new(
+            yaml_path(),
+            general_path(),
+            csv_path(),
+        ));
         gsys.run();
         let mut gsys: Box<dyn Route> = gsys;
 
@@ -80,8 +89,11 @@ mod test_tweak_schedule {
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Generate schedule
-        let mut gsys: Box<RouteCSVGenerator> =
-            Box::new(RouteCSVGenerator::new(yaml_path(), csv_path()));
+        let mut gsys: Box<RouteCSVGenerator> = Box::new(RouteCSVGenerator::new(
+            yaml_path(),
+            general_path(),
+            csv_path(),
+        ));
         gsys.run();
         let mut gsys: Box<dyn Route> = gsys;
 
