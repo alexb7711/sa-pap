@@ -55,8 +55,6 @@ impl StdObj {
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
         }
 
-        // println!("AC: {} + {}", ep[v] * r[v], phi);
-
         // Calculate the assignment cost
         return (ep[v] * r[v]) as f64 + phi;
     }
@@ -79,8 +77,6 @@ impl StdObj {
 
         // Extract input parameters
         let r = dat.param.r[v];
-
-        // println!("UC: {}", 100.0 * r * s);
 
         // Calculate the consumption cost
         return (r * s) as f64;
@@ -169,7 +165,6 @@ impl StdObj {
             // If the slice is greater than pmax, update pmax
             if slice > pmax {
                 pmax = 10000.0 * slice;
-                // println!("pmax: {:?}", pmax);
             }
         }
 
@@ -242,8 +237,6 @@ impl StdObj {
             // Calculate the objective function
             J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
         }
-
-        // println!("J: {}", J);
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Calculate the demand cost
