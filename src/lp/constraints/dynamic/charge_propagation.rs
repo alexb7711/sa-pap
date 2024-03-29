@@ -7,10 +7,6 @@ use crate::sa::data::Data;
 use crate::sa::generators::primitives::EPSILON;
 
 //===============================================================================
-// Import external crate
-use itertools_num::linspace;
-
-//===============================================================================
 /// Structure defining the information to calculate service time
 //
 pub struct ChargePropagate {}
@@ -137,12 +133,10 @@ impl ChargePropagate {
 
         // Extract parameters
         let Gam = &dat.param.Gam;
-        let d = &mut dat.dec.d;
-        let dt = dat.param.T / dat.param.K as f32;
+        let dt = dat.dec.s[i];
         let eta = &dat.dec.eta;
         let kappa = &dat.param.k;
         let r = &dat.param.r;
-        let u = &dat.dec.u;
         let v = &dat.dec.v;
 
         // Calculate model parameters
@@ -150,25 +144,12 @@ impl ChargePropagate {
         let bbar = abar - 1.0;
 
         // Calculate charge amount
-        let mut charge: f32 = eta[i];
+        let mut soc: f32 = eta[i];
 
-        // Iterate through the assigned charge time
-        for k in linspace::<f32>(u[i], d[i], dt as usize) {
-            charge += charge * abar - bbar * kappa[Gam[i] as usize];
+        // Calculate the new SOC
+        soc = soc * abar - bbar * kappa[Gam[i] as usize];
 
-            // Ensure the charge does not exceed the battery limit
-            if !(dat.dec.eta[i] + charge <= kappa[Gam[i] as usize]) {
-                // Adjust the time on the charger
-                let s = &mut dat.dec.s;
-                s[i] = k - u[i];
-                d[i] = k;
-
-                // Break from the loop
-                break;
-            }
-        }
-
-        return charge;
+        return soc - eta[i];
     }
 }
 

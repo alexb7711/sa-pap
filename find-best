@@ -29,6 +29,8 @@ sub find_best_solution {
     # Get the value of the current score
     $candidate = $candidate;
 
+    print "Score: $score - Path $File::Find::name.\n";
+
     # Compare candidate with the current score
     return unless $candidate < $score;
 
