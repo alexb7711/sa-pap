@@ -199,31 +199,25 @@ impl RouteCSVGenerator {
     /// * r: Vector of charge rates
     ///
     fn create_charge_rate_vector(self: &mut RouteCSVGenerator) -> Vec<f32> {
-        // Variables
-        let wait_c: Vec<f32> = vec![0.0; self.data.param.A];
-        let slow_c: Vec<f32>;
-        let fast_c: Vec<f32>;
-
         // Set the model type
         self.data.param.model = self.g_config["bat_model"].as_str().unwrap().to_string();
 
-        // If the system is utilizing the linear model
-        if self.data.param.model == "linear" {
-            // Create parts of charge rate vector
-            slow_c = [self.s_config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
+        // Create parts of charge rate vector
+        let wait_c: Vec<f32> = vec![0.0; self.data.param.A];
+        let slow_c = [self.s_config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
+            .repeat(self.s_config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
+        let fast_c = [self.s_config["chargers"]["fast"]["rate"].as_f64().unwrap() as f32]
+            .repeat(self.s_config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
+
+        // Otherwise the system us utilizing the non-linear model
+        if self.data.param.model == "nonlinear" {
+            // Get the convergence rates
+            let slow_conv = [self.s_config["chargers"]["slow"]["conv"].as_f64().unwrap() as f32]
                 .repeat(self.s_config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
-            fast_c = [self.s_config["chargers"]["fast"]["rate"].as_f64().unwrap() as f32]
+            let fast_conv = [self.s_config["chargers"]["fast"]["conv"].as_f64().unwrap() as f32]
                 .repeat(self.s_config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
 
-            // Create charge rate vector
-            self.data.param.r = vec![wait_c.clone(), slow_c.clone(), fast_c.clone()].concat();
-        }
-        // Otherwise the system us utilizing the non-linear model
-        else {
-            slow_c = [self.s_config["chargers"]["slow"]["conv"].as_f64().unwrap() as f32]
-                .repeat(self.s_config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
-            fast_c = [self.s_config["chargers"]["fast"]["conv"].as_f64().unwrap() as f32]
-                .repeat(self.s_config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
+            self.data.param.conv = vec![wait_c.clone(), slow_conv, fast_conv].concat();
         }
 
         // Store charger count

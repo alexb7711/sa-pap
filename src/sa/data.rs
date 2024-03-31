@@ -45,6 +45,7 @@ pub struct Parameter {
     pub model: String,   // Linear/non-linear battery dynamics model
     pub nu: f32,         // Minimum charge allowed on departure of visit i [%]
     pub r: Vec<f32>,     // Charge rate for charger q                      [KWh]
+    pub conv: Vec<f32>,  // Convergence rate for charger q
     pub slow: usize,     // Number of slow chargers
     pub tk: Vec<f32>,    // Array of discrete times                        [hr]
     pub ts: f32,         // Amount of offset applied                       [hr]

@@ -133,10 +133,10 @@ impl ChargePropagate {
 
         // Extract parameters
         let Gam = &dat.param.Gam;
-        let dt = dat.dec.s[i];
+        let dt = dat.dec.s[i] * 3600.0;
         let eta = &dat.dec.eta;
         let kappa = &dat.param.k;
-        let r = &dat.param.r;
+        let r = &dat.param.conv;
         let v = &dat.dec.v;
 
         // Calculate model parameters
