@@ -42,8 +42,10 @@ pub struct Parameter {
     pub gam: Vec<i16>,   // Array of values indicating the next index for bus i
     pub k: Vec<f32>,     // (kappa) Battery capacity for bus i             [MJ]
     pub l: Vec<f32>,     // (lambda) Discharge of bus visit over route i
+    pub model: String,   // Linear/non-linear battery dynamics model
     pub nu: f32,         // Minimum charge allowed on departure of visit i [%]
     pub r: Vec<f32>,     // Charge rate for charger q                      [KWh]
+    pub conv: Vec<f32>,  // Convergence rate for charger q
     pub slow: usize,     // Number of slow chargers
     pub tk: Vec<f32>,    // Array of discrete times                        [hr]
     pub ts: f32,         // Amount of offset applied                       [hr]

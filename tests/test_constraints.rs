@@ -29,11 +29,18 @@ mod test_packing_constraints {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //---------------------------------------------------------------------------
     // Test psi constraint
     #[test]
     fn test_space_time_big_o_psi() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -77,7 +84,8 @@ mod test_packing_constraints {
     // Test sigma constraint
     #[test]
     fn test_space_time_big_o_sigma() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -126,7 +134,8 @@ mod test_packing_constraints {
     //
     #[test]
     fn test_service_time() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -168,7 +177,8 @@ mod test_packing_constraints {
     #[test]
     fn test_psi_sigma() {
         // Test 0 - Obvious case
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -199,7 +209,8 @@ mod test_packing_constraints {
         }
 
         // Test 1 - All time
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -226,7 +237,8 @@ mod test_packing_constraints {
         }
 
         // Test 2 - All queue
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -264,7 +276,8 @@ mod test_packing_constraints {
     //
     #[test]
     fn test_valid_init_dep_end_time() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -329,11 +342,18 @@ mod test_dynamic_constraints {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //---------------------------------------------------------------------------
     // Test charge propagation constraint
     #[test]
     fn test_charge_propagation() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -370,7 +390,8 @@ mod test_dynamic_constraints {
     // Test initial/final charge constraint
     #[test]
     fn test_init_final_charge_propagation() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -426,7 +447,8 @@ mod test_dynamic_constraints {
     // Test initial charge constraint
     #[test]
     fn test_init_charge_propagation() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -460,7 +482,8 @@ mod test_dynamic_constraints {
     #[test]
     #[should_panic]
     fn test_final_charge_insufficient_charge() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule
@@ -497,7 +520,8 @@ mod test_dynamic_constraints {
     // Test scalar to vector queue constraint
     #[test]
     fn test_scalar_to_vector_queue_propagation() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(yaml_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(yaml_path(), general_path(), csv_path());
         let mut charger: Charger = Charger::new(yaml_path(), true, None, None);
 
         // Load the CSV schedule

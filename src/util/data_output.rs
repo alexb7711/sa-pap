@@ -84,55 +84,13 @@ pub mod DataOutput {
     /// # Output:
     /// * Data files
     ///
-    fn charge_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
-        // Variables
-        let name = file_name.to_owned() + &"-charge";
-        let N = dat.param.N;
-        let A = dat.param.A;
-        let G = &dat.param.Gam;
-        let eta = &dat.dec.eta;
-        let u = &dat.dec.u;
-        let d = &dat.dec.d;
-        let v = &dat.dec.v;
-        let r = &dat.param.r;
-        let s = &dat.dec.s;
-        let mut data: Vec<Vec<f32>> = vec![vec![-1.0; 2 * A]; 2 * N];
-
-        // Create top row of CSV file
-        let fields: Vec<Vec<String>> = (0..A)
-            .map(|b| {
-                vec![
-                    String::from("time").to_owned() + &b.to_string(),
-                    String::from("eta").to_owned() + &b.to_string(),
-                ]
-            })
-            .collect();
-        let fields: Vec<String> = fields.into_iter().flatten().collect();
-
-        // For every bus
-        for b in 0..A {
-            let mut t_i: usize = 0;
-
-            // For every visit
-            for i in 0..N {
-                // If the current visit is for the BEB of interest
-                if G[i] as usize == b {
-                    // Append the charge on arrival
-                    data[t_i][b * 2 + 0] = u[i];
-                    data[t_i][b * 2 + 1] = eta[i];
-
-                    // Append the charge on departure
-                    data[t_i + 1][b * 2 + 0] = d[i];
-                    data[t_i + 1][b * 2 + 1] = eta[i] + s[i] * r[v[i]];
-
-                    // Update the index
-                    t_i += 2;
-                }
-            }
+    fn charge_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
+        let slow = char.charger_count.0;
+        if dat.param.conv[slow] > 0.0 {
+            nonlinear_soc(file_name, dat, char, path);
+        } else {
+            linear_soc(file_name, dat, char, path);
         }
-
-        // Write data to disk
-        save_to_file(path, &name, &fields, data);
     }
 
     //---------------------------------------------------------------------------
@@ -427,5 +385,118 @@ pub mod DataOutput {
         } else {
             panic!("Could not write to the file: {}", file_name);
         }
+    }
+
+    fn linear_soc(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
+        // Variables
+        let name = file_name.to_owned() + &"-charge";
+        let N = dat.param.N;
+        let A = dat.param.A;
+        let G = &dat.param.Gam;
+        let eta = &dat.dec.eta;
+        let u = &dat.dec.u;
+        let d = &dat.dec.d;
+        let v = &dat.dec.v;
+        let r = &dat.param.r;
+        let s = &dat.dec.s;
+        let mut data: Vec<Vec<f32>> = vec![vec![-1.0; 2 * A]; 2 * N];
+
+        // Create top row of CSV file
+        let fields: Vec<Vec<String>> = (0..A)
+            .map(|b| {
+                vec![
+                    String::from("time").to_owned() + &b.to_string(),
+                    String::from("eta").to_owned() + &b.to_string(),
+                ]
+            })
+            .collect();
+        let fields: Vec<String> = fields.into_iter().flatten().collect();
+
+        // For every bus
+        for b in 0..A {
+            let mut t_i: usize = 0;
+
+            // For every visit
+            for i in 0..N {
+                println!("LINEAR");
+                // If the current visit is for the BEB of interest
+                if G[i] as usize == b {
+                    // Append the charge on arrival
+                    data[t_i][b * 2 + 0] = u[i];
+                    data[t_i][b * 2 + 1] = eta[i];
+
+                    // Append the charge on departure
+                    data[t_i + 1][b * 2 + 0] = d[i];
+                    data[t_i + 1][b * 2 + 1] = eta[i] + s[i] * r[v[i]];
+
+                    // Update the index
+                    t_i += 2;
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
+
+    fn nonlinear_soc(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
+        // Variables
+        let name = file_name.to_owned() + &"-charge";
+        let N = dat.param.N;
+        let A = dat.param.A;
+        let G = &dat.param.Gam;
+        let eta = &dat.dec.eta;
+        let kappa = &dat.param.k;
+        let u = &dat.dec.u;
+        let d = &dat.dec.d;
+        let v = &dat.dec.v;
+        let r = &dat.param.conv;
+        let s = &dat.dec.s;
+        let mut data: Vec<Vec<f32>> = vec![vec![-1.0; 2 * A]; 2 * N];
+
+        // Create top row of CSV file
+        let fields: Vec<Vec<String>> = (0..A)
+            .map(|b| {
+                vec![
+                    String::from("time").to_owned() + &b.to_string(),
+                    String::from("eta").to_owned() + &b.to_string(),
+                ]
+            })
+            .collect();
+        let fields: Vec<String> = fields.into_iter().flatten().collect();
+
+        // For every bus
+        for b in 0..A {
+            let mut t_i: usize = 0;
+
+            // For every visit
+            for i in 0..N {
+                // If the current visit is for the BEB of interest
+                if G[i] as usize == b {
+                    // Calculate model parameters
+                    let dt = s[i] * 3600.0;
+                    let abar = f32::exp(-r[v[i]] * dt);
+                    let bbar = abar - 1.0;
+
+                    // Append the charge on arrival
+                    data[t_i][b * 2 + 0] = u[i];
+                    data[t_i][b * 2 + 1] = eta[i];
+
+                    // Append the charge on departure
+                    data[t_i + 1][b * 2 + 0] = d[i];
+                    data[t_i + 1][b * 2 + 1] = eta[i] * abar - bbar * kappa[G[i] as usize];
+
+                    if eta[i] * abar - bbar * kappa[G[i] as usize] > 388.0 {
+                        println!("OUTPUT ISSUES")
+                    }
+
+                    // Update the index
+                    t_i += 2;
+                }
+            }
+        }
+
+        // Write data to disk
+        save_to_file(path, &name, &fields, data);
     }
 }

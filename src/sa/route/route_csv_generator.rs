@@ -33,7 +33,8 @@ pub struct RouteCSVGenerator {
     pub route: Vec<RouteEvent>,
 
     // PRIVATE
-    config: Yaml,
+    g_config: Yaml,
+    s_config: Yaml,
     csv_h: csv::Reader<std::fs::File>,
 }
 
@@ -47,19 +48,21 @@ impl RouteCSVGenerator {
     /// Constructor that returns a CSV schedule generator
     ///
     /// # Input
-    /// * `config_path`   : Path to YAML schedule config
+    /// * `schedule_path` : Path to YAML schedule configuration file
+    /// * `general_path`  : Path to YAML general configuration file
     /// * `csv_path`      : Path to CSV file
     ///
     /// # Output
     /// * `RouteCSVGenerator`
     ///
-    pub fn new(config_path: &str, csv_path: &str) -> RouteCSVGenerator {
+    pub fn new(schedule_path: &str, general_path: &str, csv_path: &str) -> RouteCSVGenerator {
         // Create new RouteGenerator
         let rg = RouteCSVGenerator {
             csv_schedule: (Vec::new(), Vec::new()),
             data: Default::default(),
             route: Vec::new(),
-            config: yaml_loader::load_yaml(config_path),
+            g_config: yaml_loader::load_yaml(general_path),
+            s_config: yaml_loader::load_yaml(schedule_path),
             csv_h: parse_routes::read_csv(csv_path),
         };
 
@@ -135,14 +138,14 @@ impl RouteCSVGenerator {
     fn buffer_input_parameters(self: &mut RouteCSVGenerator, visits: &HashMap<u16, Vec<Vec<f32>>>) {
         // Misc Variables
         let csv: &(Vec<u16>, Vec<Vec<f32>>) = &self.csv_schedule;
-        let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
-        let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
+        let bod: f32 = self.s_config["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod: f32 = self.s_config["time"]["EOD"].as_f64().unwrap() as f32;
 
         // Constants
         self.data.param.A = csv.0.len();
         self.data.param.N = self.count_visits(visits);
         self.data.param.T = eod - bod;
-        self.data.param.K = self.config["time"]["K"].as_i64().unwrap() as u16;
+        self.data.param.K = self.s_config["time"]["K"].as_i64().unwrap() as u16;
         self.data.param.S = 1;
         self.data.param.ts = 0.001;
 
@@ -159,39 +162,70 @@ impl RouteCSVGenerator {
         self.data.param.alpha = vec![0.0; N];
         self.data.param.beta = vec![0.0; N];
 
-        // Create parts of charge rate vector
-        let wait_c: Vec<f32> = vec![0.0; A];
-        let slow_c = [self.config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
-            .repeat(self.config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
-        let fast_c = [self.config["chargers"]["fast"]["rate"].as_f64().unwrap() as f32]
-            .repeat(self.config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
-        self.data.param.Q = wait_c.len() + slow_c.len() + fast_c.len();
-
         // Create charge rate vector
-        self.data.param.r = vec![wait_c.clone(), slow_c.clone(), fast_c.clone()].concat();
+        self.data.param.r = self.create_charge_rate_vector();
 
+        // Discretise the system
         let T = self.data.param.T;
         let K = self.data.param.K;
         self.data.param.dt = T / K as f32;
 
+        // Battery capacity
         self.data.param.k =
-            [self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(N);
-
-        let Q = self.data.param.Q;
+            [self.s_config["buses"]["bat_capacity"].as_f64().unwrap() as f32].repeat(N);
 
         // Create assignment cost
+        let Q = self.data.param.Q;
         self.data.param.ep = vec![0.0; A];
         let mut charge_queue: Vec<f32> = (0..(Q - A)).map(|x| 100.0 * (x as f32 + 1.0)).collect();
         self.data.param.ep.append(&mut charge_queue);
 
-        self.data.param.nu = self.config["buses"]["min_charge"].as_f64().unwrap() as f32;
-        self.data.param.D = [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
+        self.data.param.nu = self.s_config["buses"]["min_charge"].as_f64().unwrap() as f32;
+        self.data.param.D = [self.s_config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
 
+        self.data.param.zeta =
+            [self.s_config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
+    }
+
+    //---------------------------------------------------------------------------
+    /// This function returns a vector of charge rates. The values are dependent
+    /// on the `bat_model` value in `general.yaml`. The rates can either be set
+    /// for a linear or non-linear battery dynamics model.
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * r: Vector of charge rates
+    ///
+    fn create_charge_rate_vector(self: &mut RouteCSVGenerator) -> Vec<f32> {
+        // Set the model type
+        self.data.param.model = self.g_config["bat_model"].as_str().unwrap().to_string();
+
+        // Create parts of charge rate vector
+        let wait_c: Vec<f32> = vec![0.0; self.data.param.A];
+        let slow_c = [self.s_config["chargers"]["slow"]["rate"].as_f64().unwrap() as f32]
+            .repeat(self.s_config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
+        let fast_c = [self.s_config["chargers"]["fast"]["rate"].as_f64().unwrap() as f32]
+            .repeat(self.s_config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
+
+        // Otherwise the system us utilizing the non-linear model
+        if self.data.param.model == "nonlinear" {
+            // Get the convergence rates
+            let slow_conv = [self.s_config["chargers"]["slow"]["conv"].as_f64().unwrap() as f32]
+                .repeat(self.s_config["chargers"]["slow"]["num"].as_i64().unwrap() as usize);
+            let fast_conv = [self.s_config["chargers"]["fast"]["conv"].as_f64().unwrap() as f32]
+                .repeat(self.s_config["chargers"]["fast"]["num"].as_i64().unwrap() as usize);
+
+            self.data.param.conv = vec![wait_c.clone(), slow_conv, fast_conv].concat();
+        }
+
+        // Store charger count
+        self.data.param.Q = wait_c.len() + slow_c.len() + fast_c.len();
         self.data.param.slow = slow_c.len();
         self.data.param.fast = fast_c.len();
 
-        self.data.param.zeta =
-            [self.config["buses"]["dis_rate"].as_f64().unwrap() as f32].repeat(A);
+        return vec![wait_c, slow_c, fast_c].concat();
     }
 
     //---------------------------------------------------------------------------
@@ -259,8 +293,8 @@ impl RouteCSVGenerator {
     ///
     fn convert_route_to_visit(self: &RouteCSVGenerator) -> HashMap<u16, Vec<Vec<f32>>> {
         // Variables
-        let bod: f32 = self.config["time"]["BOD"].as_f64().unwrap() as f32;
-        let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
+        let bod: f32 = self.s_config["time"]["BOD"].as_f64().unwrap() as f32;
+        let eod: f32 = self.s_config["time"]["EOD"].as_f64().unwrap() as f32;
         let mut route_visit: HashMap<u16, Vec<Vec<f32>>> = HashMap::new();
 
         // Generate set of visit/departures
@@ -324,7 +358,7 @@ impl RouteCSVGenerator {
     ///
     fn calc_discharge(self: &RouteCSVGenerator) -> HashMap<usize, Vec<f32>> {
         let mut discharge: HashMap<usize, Vec<f32>> = HashMap::new();
-        let eod: f32 = self.config["time"]["EOD"].as_f64().unwrap() as f32;
+        let eod: f32 = self.s_config["time"]["EOD"].as_f64().unwrap() as f32;
         let routes = &self.csv_schedule;
 
         // For each set of routes for bus b
@@ -431,15 +465,15 @@ impl RouteCSVGenerator {
     /// * Bus: Information about bus b
     ///
     fn gen_bus(self: &RouteCSVGenerator) -> Bus {
-        let bat_capacity = self.config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
-        let alpha = self.config["initial_charge"]["max"].as_f64().unwrap() as f32;
-        let beta = self.config["final_charge"].as_f64().unwrap() as f32;
+        let bat_capacity = self.s_config["buses"]["bat_capacity"].as_f64().unwrap() as f32;
+        let alpha = self.s_config["initial_charge"]["max"].as_f64().unwrap() as f32;
+        let beta = self.s_config["final_charge"].as_f64().unwrap() as f32;
 
         return Bus {
             bat_capacity,
             initial_charge: alpha * bat_capacity,
             final_charge: beta * bat_capacity,
-            discharge_rate: self.config["buses"]["dis_rate"].as_f64().unwrap() as f32,
+            discharge_rate: self.s_config["buses"]["dis_rate"].as_f64().unwrap() as f32,
         };
     }
 
@@ -545,7 +579,7 @@ impl RouteCSVGenerator {
     ///
     fn determine_initial_charges(self: &mut RouteCSVGenerator) {
         // Local variables
-        let init_charge = self.config["initial_charge"]["max"]
+        let init_charge = self.s_config["initial_charge"]["max"]
             .clone()
             .into_f64()
             .unwrap() as f32;
@@ -577,7 +611,7 @@ impl RouteCSVGenerator {
     ///
     fn determine_final_charges(self: &mut RouteCSVGenerator) {
         // Local variables
-        let final_charge = self.config["final_charge"].clone().into_f64().unwrap() as f32;
+        let final_charge = self.s_config["final_charge"].clone().into_f64().unwrap() as f32;
         let gam = &self.data.param.gam;
         let beta = &mut self.data.param.beta;
 
@@ -666,7 +700,7 @@ impl Route for RouteCSVGenerator {
     ///
     fn run(self: &mut RouteCSVGenerator) {
         // Parse CSV
-        self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h, &self.config);
+        self.csv_schedule = parse_routes::parse_csv(&mut self.csv_h, &self.s_config);
 
         // Convert routes to visits
         let visits = self.convert_route_to_visit();
@@ -780,6 +814,7 @@ mod priv_test_route_gen {
     fn create_object() -> RouteCSVGenerator {
         return RouteCSVGenerator::new(
             "./src/config/schedule-test.yaml",
+            "./src/config/general.yaml",
             "./src/config/routes.csv",
         );
     }

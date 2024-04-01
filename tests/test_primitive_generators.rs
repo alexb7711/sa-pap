@@ -39,11 +39,18 @@ mod test_primitive_generators {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //---------------------------------------------------------------------------
     //
     fn get_data() -> Box<Data> {
         // Create empty `RouteEvent` vector
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();

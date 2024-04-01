@@ -24,11 +24,18 @@ mod test_route_csv_generator {
         return "./src/config/routes.csv";
     }
 
+    //------------------------------------------------------------------------------
+    //
+    fn general_path() -> &'static str {
+        return "./src/config/general.yaml";
+    }
+
     //---------------------------------------------------------------------------
     //
     #[test]
     fn test_csv_load() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -72,7 +79,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_visit_count() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -89,7 +97,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_route_data() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -130,7 +139,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_route_sort() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -148,7 +158,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_charge_rate_vector() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -171,7 +182,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_charge_assignment_vector() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -186,7 +198,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_assignment_cost() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -208,7 +221,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_route_visit_index() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Load the CSV schedule
         rg.run();
@@ -223,7 +237,8 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_milp_data_update() {
-        let mut rg: RouteCSVGenerator = RouteCSVGenerator::new(schedule_path(), csv_path());
+        let mut rg: RouteCSVGenerator =
+            RouteCSVGenerator::new(schedule_path(), general_path(), csv_path());
 
         // Get a copy of the MILP data
         let data_cpy = rg.get_data().clone();
@@ -291,7 +306,11 @@ mod test_route_csv_generator {
     //
     #[test]
     fn test_route_data_update() {
-        let mut rg: Box<dyn Route> = Box::new(RouteCSVGenerator::new(schedule_path(), csv_path()));
+        let mut rg: Box<dyn Route> = Box::new(RouteCSVGenerator::new(
+            schedule_path(),
+            general_path(),
+            csv_path(),
+        ));
 
         // Load the CSV schedule
         rg.run();
