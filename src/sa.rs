@@ -21,7 +21,8 @@ use yaml_rust::Yaml;
 use self::temp_func::TempFunc;
 use crate::lp::objectives::std_obj::StdObj;
 use crate::lp::objectives::Objective;
-use crate::plotter::schedule_plot::SchedulePlot;
+//use crate::plotter::schedule_plot::SchedulePlot;
+use crate::plotter::power_usage_plot::PowerUsagePlot;
 use crate::plotter::Plotter;
 use crate::sa::charger::Charger;
 use crate::sa::data::Data;
@@ -196,7 +197,7 @@ impl<'a> SA<'a> {
             }
 
             // Plot schedule in real time
-            SchedulePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg);
+            PowerUsagePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg);
 
             // Set the prefix depending on whether a solution has been found or not
             self.update_prefix(start.elapsed());
