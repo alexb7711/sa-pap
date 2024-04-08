@@ -22,6 +22,9 @@ use self::temp_func::TempFunc;
 use crate::lp::objectives::std_obj::StdObj;
 use crate::lp::objectives::Objective;
 //use crate::plotter::schedule_plot::SchedulePlot;
+use crate::plotter::accumulated_energy_usage_plot::AccumulatedEnergyUsagePlot;
+use crate::plotter::charge_plot::ChargePlot;
+use crate::plotter::charger_usage_plot::ChargerUsagePlot;
 use crate::plotter::power_usage_plot::PowerUsagePlot;
 use crate::plotter::Plotter;
 use crate::sa::charger::Charger;
@@ -122,7 +125,10 @@ impl<'a> SA<'a> {
         // Initialize
 
         // Create real time figures
-        let mut fg = Figure::new();
+        let mut fg_acc = Figure::new();
+        let mut fg_charge = Figure::new();
+        let mut fg_cu = Figure::new();
+        let mut fg_power = Figure::new();
 
         // Create progress bar and set style
         self.pb
@@ -197,7 +203,14 @@ impl<'a> SA<'a> {
             }
 
             // Plot schedule in real time
-            PowerUsagePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg);
+            PowerUsagePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_power);
+            ChargerUsagePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_cu);
+            ChargePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_charge);
+            AccumulatedEnergyUsagePlot::real_time(
+                rtp,
+                &mut Box::new(sol_best.clone()),
+                &mut fg_acc,
+            );
 
             // Set the prefix depending on whether a solution has been found or not
             self.update_prefix(start.elapsed());
