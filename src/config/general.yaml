@@ -1,12 +1,12 @@
 # Number of processes to input values
-cores: 8
+cores: 1
 
 # 1: True; 0: False
 plot: 0
 
 # Real Time Plot - 1: True; 0: False
 # NOTE: If this is set to 1, it is recommended to change "cores" to 1.
-rtp: 0
+rtp: 1
 
 # "linear" or "nonlinear" battery dynamic model
 bat_model: "linear"
@@ -20,7 +20,7 @@ solution_gen: "rand"
 # "quick"; "exhaustive"
 tweak_method: "exhaustive"
 
-# Run all constraints (slow), or run required constraints (fast)
+# Run all con
 run_all_constr: false
 
 # Output previous decision variable/param results

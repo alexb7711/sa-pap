@@ -311,6 +311,7 @@ impl<'a> SA<'a> {
 
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
+            sol_best.dec.J = *jb;
         }
     }
 
