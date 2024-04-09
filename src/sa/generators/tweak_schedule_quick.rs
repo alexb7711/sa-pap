@@ -74,6 +74,8 @@ impl Generator for TweakScheduleQuick {
         let mut rd = r.get_data();
         let k = rd.param.k[0];
         let nu = rd.param.nu;
+        let gam = &rd.param.gam;
+        let eta = &rd.dec.eta;
 
         // Track the success of tweak
         let success: bool;
@@ -88,10 +90,11 @@ impl Generator for TweakScheduleQuick {
             .eta
             .clone()
             .iter()
-            .map(|x| {
+            .enumerate()
+            .map(|(idx, x)| {
                 if *x > nu * k {
                     x.abs() / k
-                } else if *x <= nu * k {
+                } else if *x <= nu * k || (gam[idx] >= 0 && eta[gam[idx] as usize] <= nu * k) {
                     x.abs() * k
                 } else {
                     k
