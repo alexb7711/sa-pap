@@ -73,6 +73,7 @@ impl Generator for TweakScheduleQuick {
         // Get the data
         let mut rd = r.get_data();
         let k = rd.param.k[0];
+        let nu = rd.param.nu;
 
         // Track the success of tweak
         let success: bool;
@@ -88,10 +89,12 @@ impl Generator for TweakScheduleQuick {
             .clone()
             .iter()
             .map(|x| {
-                if x.abs() > 0.0 {
-                    1.0 / (x.abs() / k)
+                if *x > nu * k {
+                    x.abs() / k
+                } else if *x <= nu * k {
+                    x.abs() * k
                 } else {
-                    1.0
+                    k
                 }
             })
             .collect();
