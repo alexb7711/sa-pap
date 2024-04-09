@@ -215,10 +215,10 @@ impl<'a> SA<'a> {
             // Plot schedule in real time
             if rtp {
                 PowerUsagePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_power);
-                ChargerUsagePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_cu);
+                ChargerUsagePlot::real_time(!rtp, &mut Box::new(sol_best.clone()), &mut fg_cu);
                 ChargePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_charge);
                 AccumulatedEnergyUsagePlot::real_time(
-                    rtp,
+                    !rtp,
                     &mut Box::new(sol_best.clone()),
                     &mut fg_acc,
                 );
@@ -348,11 +348,7 @@ impl<'a> SA<'a> {
         // Otherwise, the new data, `j_1`, has a larger objective function
         } else {
             // Calculate the coefficient
-            let mut coef: f64 = delta_e / (t as f64);
-
-            if coef > 0.0 {
-                coef *= -1.0;
-            }
+            let coef: f64 = delta_e / (9000000.0 * t as f64);
 
             // Calculate `e^coef`
             let e: f64 = coef.exp();

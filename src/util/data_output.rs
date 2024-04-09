@@ -85,8 +85,7 @@ pub mod DataOutput {
     /// * Data files
     ///
     fn charge_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
-        let slow = char.charger_count.0;
-        if dat.param.conv[slow] > 0.0 {
+        if dat.param.conv.len() > 0 {
             nonlinear_soc(file_name, dat, char, path);
         } else {
             linear_soc(file_name, dat, char, path);
@@ -418,7 +417,6 @@ pub mod DataOutput {
 
             // For every visit
             for i in 0..N {
-                println!("LINEAR");
                 // If the current visit is for the BEB of interest
                 if G[i] as usize == b {
                     // Append the charge on arrival
