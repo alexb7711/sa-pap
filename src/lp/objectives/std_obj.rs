@@ -50,7 +50,7 @@ impl StdObj {
         let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
         if c_dif < 0.0 {
             // Calculate the penalty
-            let C: f32 = 5000.0;
+            let C: f32 = 9999.0;
 
             phi = (C * f32::powf(c_dif, 2.0)) as f64;
         }
@@ -235,12 +235,13 @@ impl StdObj {
 
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Calculate the objective function
-            J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
+            // J += StdObj::AC(dat, i) + StdObj::UC(dat, i);
+            J += StdObj::AC(dat, i); // + StdObj::UC(dat, i);
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Calculate the demand cost
-        J += StdObj::demand_cost(dat, ch);
+        // J += StdObj::demand_cost(dat, ch);
 
         return (val_sched, J);
     }

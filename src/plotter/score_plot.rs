@@ -31,10 +31,12 @@ impl ScorePlot {
     ///
     fn create_plot(dat: &mut Box<Data>, fg: &mut Figure) {
         // Variables
-        let score: &Vec<f64> = &dat.dec.J;
+        let bscore: &Vec<f64> = &dat.dec.Jb;
+        let cscore: &Vec<f64> = &dat.dec.Jc;
+        let nscore: &Vec<f64> = &dat.dec.Jn;
 
         // Create domain
-        let x: Vec<f32> = (0..score.len()).map(|x| x as f32).collect();
+        let x: Vec<f32> = (0..cscore.len()).map(|x| x as f32).collect();
 
         // Configure the plot
         let name: String = String::from("Score");
@@ -42,7 +44,15 @@ impl ScorePlot {
             .set_title(name.as_str(), &[])
             .set_x_label("Iteration", &[])
             .set_y_label("Score", &[])
-            .boxes(x.clone(), score, &[]);
+            .set_legend(
+                gnuplot::Graph(0.0),
+                gnuplot::Graph(0.0),
+                &[Placement(AlignLeft, AlignBottom)],
+                &[TextAlign(AlignRight)],
+            )
+            .lines(x.clone(), bscore, &[Caption("Best")])
+            .lines(x.clone(), cscore, &[Caption("Current")])
+            .lines(x.clone(), nscore, &[Caption("New")]);
     }
 
     //--------------------------------------------------------------------------
@@ -99,7 +109,12 @@ impl Plotter for ScorePlot {
 
     //===============================================================================
     //
-    fn real_time(_: bool, dat: &mut Box<Data>, fg: &mut Figure) {
+    fn real_time(rpt: bool, dat: &mut Box<Data>, fg: &mut Figure) {
+        // Determine whether to create the plot
+        if !rpt {
+            return;
+        }
+
         // Clear plots
         fg.clear_axes();
 

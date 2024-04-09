@@ -25,6 +25,7 @@ use crate::plotter::accumulated_energy_usage_plot::AccumulatedEnergyUsagePlot;
 use crate::plotter::charge_plot::ChargePlot;
 use crate::plotter::charger_usage_plot::ChargerUsagePlot;
 use crate::plotter::power_usage_plot::PowerUsagePlot;
+use crate::plotter::schedule_plot::SchedulePlot;
 use crate::plotter::score_plot::ScorePlot;
 use crate::plotter::Plotter;
 use crate::sa::charger::Charger;
@@ -130,6 +131,7 @@ impl<'a> SA<'a> {
         let mut fg_cu = Figure::new();
         let mut fg_power = Figure::new();
         let mut fg_score = Figure::new();
+        let mut fg_schedule = Figure::new();
 
         // Create progress bar and set style
         self.pb
@@ -141,6 +143,7 @@ impl<'a> SA<'a> {
         let mut sol_current = *self.gsys.get_data();
         let mut sol_best;
         let mut sol_new;
+        let mut sol_scores = *self.gsys.get_data();
 
         // Set local search iteration count
         let sched: Yaml = yaml_loader::load_yaml(self.schedule_path);
@@ -156,6 +159,9 @@ impl<'a> SA<'a> {
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         // Execute SA
 
+        // Decide whether to run all the constraints or not
+        let run_all_constr = config["run_all_constr"].clone().into_bool().unwrap();
+
         // Generate new solution
         self.gsol.run(&mut self.gsys, &mut self.charger);
 
@@ -164,15 +170,12 @@ impl<'a> SA<'a> {
         sol_best = *self.gsys.get_data();
 
         // Calculate objective function
-        (self.sol_found, J0) = StdObj::run(&mut sol_new, &mut self.charger, true);
+        (self.sol_found, J0) = StdObj::run(&mut sol_new, &mut self.charger, run_all_constr);
 
         // Initialize the current and best solution to the initially generated solution
         JB = J0;
         JORIG = J0;
         self.update_current_values(&mut sol_current, &mut sol_new);
-
-        // Decide whether to run all the constraints or not
-        let run_all_constr = config["run_all_constr"].clone().into_bool().unwrap();
 
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
@@ -189,6 +192,12 @@ impl<'a> SA<'a> {
                     // Calculate objective function
                     (self.sol_found, J1) =
                         StdObj::run(&mut sol_new, &mut self.charger, run_all_constr);
+
+                    if rtp {
+                        sol_scores.dec.Jb.push(JB);
+                        sol_scores.dec.Jc.push(J0);
+                        sol_scores.dec.Jn.push(J1);
+                    }
 
                     // Update data sets
                     self.update_data_sets(
@@ -213,7 +222,8 @@ impl<'a> SA<'a> {
                     &mut Box::new(sol_best.clone()),
                     &mut fg_acc,
                 );
-                ScorePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_score);
+                ScorePlot::real_time(rtp, &mut Box::new(sol_scores.clone()), &mut fg_score);
+                SchedulePlot::real_time(false, &mut Box::new(sol_best.clone()), &mut fg_schedule);
             }
             // Set the prefix depending on whether a solution has been found or not
             self.update_prefix(start.elapsed());
@@ -301,7 +311,7 @@ impl<'a> SA<'a> {
             self.charger.milp_to_schedule(sol_current);
 
             // Update J0
-            *j0 = *j1;
+            *j0 = j1.clone();
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -310,14 +320,11 @@ impl<'a> SA<'a> {
         // If the current solution is strictly better than the current best
         if *jb - *j0 > 0.0 {
             // Update objective function value
-            *jb = *j0;
+            *jb = j0.clone();
 
             // Update the best to match the current data set
             self.update_current_values(sol_best, sol_current);
         }
-
-        // Always append the best score
-        sol_best.dec.J.push(j0.clone());
     }
 
     //--------------------------------------------------------------------------
@@ -341,7 +348,11 @@ impl<'a> SA<'a> {
         // Otherwise, the new data, `j_1`, has a larger objective function
         } else {
             // Calculate the coefficient
-            let coef: f64 = delta_e / (30.0 * t as f64);
+            let mut coef: f64 = delta_e / (t as f64);
+
+            if coef > 0.0 {
+                coef *= -1.0;
+            }
 
             // Calculate `e^coef`
             let e: f64 = coef.exp();
@@ -349,10 +360,12 @@ impl<'a> SA<'a> {
             // Generate a number between 0 and 1
             let prob = thread_rng().gen_range(0.0..=1.0);
 
+            // println!("{}: {} <= {} == {}", coef, prob, e, prob <= e);
+
             // Return whether to keep the new data.
             // - if e <= prob: keep new data
             // - if e > prob: keep old data
-            return e <= prob;
+            return prob <= e;
         }
     }
 
@@ -369,4 +382,15 @@ impl<'a> SA<'a> {
     fn update_current_values(self: &mut SA<'a>, sol_current: &mut Data, sol_new: &mut Data) {
         *sol_current = sol_new.clone();
     }
+
+    //--------------------------------------------------------------------------
+    /// Real Time Plots
+    ///
+    /// # Input
+    /// * NONE
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn _rtp(self: &mut SA<'a>) {}
 }

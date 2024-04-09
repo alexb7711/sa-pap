@@ -141,7 +141,12 @@ impl Plotter for AccumulatedEnergyUsagePlot {
 
     //===============================================================================
     //
-    fn real_time(_: bool, dat: &mut Box<Data>, fg: &mut Figure) {
+    fn real_time(rpt: bool, dat: &mut Box<Data>, fg: &mut Figure) {
+        // Determine whether to create the plot
+        if !rpt {
+            return;
+        }
+
         // Clear plots
         fg.clear_axes();
 
