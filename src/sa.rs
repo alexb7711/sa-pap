@@ -212,16 +212,17 @@ impl<'a> SA<'a> {
 
             // Plot schedule in real time
             if rtp {
-                PowerUsagePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_power);
-                ChargerUsagePlot::real_time(!rtp, &mut Box::new(sol_best.clone()), &mut fg_cu);
-                ChargePlot::real_time(rtp, &mut Box::new(sol_best.clone()), &mut fg_charge);
+                let schedule = &sol_current.clone();
+                PowerUsagePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_power);
+                ChargerUsagePlot::real_time(!rtp, &mut Box::new(schedule.clone()), &mut fg_cu);
+                ChargePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_charge);
                 AccumulatedEnergyUsagePlot::real_time(
                     !rtp,
-                    &mut Box::new(sol_best.clone()),
+                    &mut Box::new(schedule.clone()),
                     &mut fg_acc,
                 );
-                ScorePlot::real_time(rtp, &mut Box::new(sol_scores.clone()), &mut fg_score);
-                SchedulePlot::real_time(false, &mut Box::new(sol_best.clone()), &mut fg_schedule);
+                ScorePlot::real_time(!rtp, &mut Box::new(sol_scores.clone()), &mut fg_score);
+                SchedulePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_schedule);
             }
             // Set the prefix depending on whether a solution has been found or not
             self.update_prefix(start.elapsed());
