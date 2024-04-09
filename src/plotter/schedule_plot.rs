@@ -169,7 +169,6 @@ impl Plotter for SchedulePlot {
     fn plot(display_plot: bool, dat: &mut Box<Data>) {
         // Create object
         let mut fg = Figure::new();
-        let mut fg_fast = Figure::new();
 
         // Create plot
         SchedulePlot::create_plot(dat, &mut fg);
@@ -177,7 +176,6 @@ impl Plotter for SchedulePlot {
         // Plot Figure
         if display_plot {
             fg.show().unwrap();
-            fg_fast.show().unwrap();
         }
 
         // Save to disk
