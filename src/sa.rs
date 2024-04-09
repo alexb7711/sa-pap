@@ -193,11 +193,9 @@ impl<'a> SA<'a> {
                     (self.sol_found, J1) =
                         StdObj::run(&mut sol_new, &mut self.charger, run_all_constr);
 
-                    if rtp {
-                        sol_scores.dec.Jb.push(JB);
-                        sol_scores.dec.Jc.push(J0);
-                        sol_scores.dec.Jn.push(J1);
-                    }
+                    sol_scores.dec.Jb.push(JB);
+                    sol_scores.dec.Jc.push(J0);
+                    sol_scores.dec.Jn.push(J1);
 
                     // Update data sets
                     self.update_data_sets(
@@ -235,6 +233,11 @@ impl<'a> SA<'a> {
         // Check if the data has been changed
         let result: Option<Results>;
         if JB != JORIG {
+            // Update J's for best
+            sol_best.dec.Jb = sol_scores.dec.Jb.clone();
+            sol_best.dec.Jc = sol_scores.dec.Jc.clone();
+            sol_best.dec.Jn = sol_scores.dec.Jn.clone();
+
             // Create result object
             result = Some(Results {
                 score: JB,

@@ -70,25 +70,44 @@ impl TweakSchedule {
 //
 impl Generator for TweakSchedule {
     fn run(self: &mut TweakSchedule, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
+        // Get the data
+        let mut rd = r.get_data();
+        let k = rd.param.k[0];
+
         // Track the success of tweak
         let success: bool;
 
         // Create a vector of `Primitives` and shuffle the vector
         let primitives = Primitives::iter().collect::<Vec<_>>();
-        let weight = [3, 3, 2, 1];
-        let dist = WeightedIndex::new(&weight).unwrap();
+        let prim_weight = [3, 3, 2, 1];
+        let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
+
+        let idx_weight: Vec<f32> = rd
+            .dec
+            .eta
+            .clone()
+            .iter()
+            .map(|x| {
+                if x.abs() > 0.0 {
+                    1.0 / (x.abs() / k)
+                } else {
+                    1.0
+                }
+            })
+            .collect();
+        let idx_dist = WeightedIndex::new(&idx_weight).unwrap();
+
         let mut rng = thread_rng();
 
         // Get random visit
-        let mut rd = r.get_data();
-        let ri = rand::thread_rng().gen_range(0..rd.param.N);
+        let ri = idx_dist.sample(&mut rng);
         let q = rd.dec.v[ri];
         let id = rd.param.Gam[ri] as usize;
         let ud = &(rd.dec.u[ri], rd.dec.d[ri]);
         let ae = &(rd.param.a[ri], rd.param.e[ri]);
 
         // Loop through the primitives
-        let p = primitives[dist.sample(&mut rng)].clone();
+        let p = primitives[prim_dist.sample(&mut rng)].clone();
 
         // Try running the primitive and store the result
         success = match p {
