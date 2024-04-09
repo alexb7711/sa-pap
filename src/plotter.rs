@@ -10,6 +10,7 @@ pub mod charge_plot;
 pub mod charger_usage_plot;
 pub mod power_usage_plot;
 pub mod schedule_plot;
+pub mod score_plot;
 
 //===============================================================================
 /// Module to run the plots
@@ -22,6 +23,7 @@ pub mod plot {
     use crate::plotter::charger_usage_plot::ChargerUsagePlot;
     use crate::plotter::power_usage_plot::PowerUsagePlot;
     use crate::plotter::schedule_plot::SchedulePlot;
+    use crate::plotter::score_plot::ScorePlot;
     use crate::plotter::Plotter;
     use crate::sa::data::Data;
 
@@ -42,6 +44,7 @@ pub mod plot {
         ChargerUsagePlot::plot(should_plot, d);
         PowerUsagePlot::plot(should_plot, d);
         SchedulePlot::plot(should_plot, d);
+        ScorePlot::plot(should_plot, d);
     }
 }
 

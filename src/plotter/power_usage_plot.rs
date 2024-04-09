@@ -125,16 +125,14 @@ impl Plotter for PowerUsagePlot {
 
     //===============================================================================
     //
-    fn real_time(display_plot: bool, dat: &mut Box<Data>, fg: &mut Figure) {
-        if display_plot {
-            // Clear plots
-            fg.clear_axes();
+    fn real_time(_: bool, dat: &mut Box<Data>, fg: &mut Figure) {
+        // Clear plots
+        fg.clear_axes();
 
-            // Create plot
-            PowerUsagePlot::create_plot(dat, fg);
+        // Create plot
+        PowerUsagePlot::create_plot(dat, fg);
 
-            // Update plots
-            fg.show_and_keep_running().unwrap();
-        }
+        // Update plots
+        fg.show_and_keep_running().unwrap();
     }
 }
