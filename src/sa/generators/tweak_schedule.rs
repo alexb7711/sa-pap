@@ -72,9 +72,11 @@ impl Generator for TweakSchedule {
     fn run(self: &mut TweakSchedule, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get the data
         let mut rd = r.get_data();
+        let N = rd.param.N;
         let k = rd.param.k[0];
         let nu = rd.param.nu;
         let gam = &rd.param.gam;
+        let Gam = &rd.param.Gam;
         let eta = &rd.dec.eta;
 
         // Track the success of tweak
@@ -84,6 +86,7 @@ impl Generator for TweakSchedule {
         let primitives = Primitives::iter().collect::<Vec<_>>();
         let prim_weight = [3, 3, 2, 1];
         let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
+        let mut priority_id: Vec<usize> = vec![];
 
         let idx_weight: Vec<f32> = rd
             .dec
@@ -92,10 +95,18 @@ impl Generator for TweakSchedule {
             .iter()
             .enumerate()
             .map(|(idx, x)| {
-                if *x > nu * k {
-                    x.abs() / k
-                } else if *x <= nu * k || (gam[idx] >= 0 && eta[gam[idx] as usize] <= nu * k) {
+                let idx = N - idx - 1;
+                if *x <= nu * k
+                    || (gam[idx] >= 0 && eta[gam[idx] as usize] <= nu * k)
+                    || priority_id.contains(&(Gam[idx] as usize))
+                {
+                    if !priority_id.contains(&(Gam[idx] as usize)) {
+                        priority_id.push(idx);
+                    }
+
                     x.abs() * k
+                } else if *x > nu * k {
+                    x.abs() / k
                 } else {
                     k
                 }
