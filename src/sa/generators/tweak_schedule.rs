@@ -72,9 +72,10 @@ impl Generator for TweakSchedule {
     fn run(self: &mut TweakSchedule, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get the data
         let mut rd = r.get_data();
-        let N = rd.param.N;
+        let A = rd.param.A;
         let k = rd.param.k[0];
         let nu = rd.param.nu;
+        let eta = &rd.dec.eta;
         let Gam = &rd.param.Gam;
 
         // Track the success of tweak
@@ -84,43 +85,40 @@ impl Generator for TweakSchedule {
         let primitives = Primitives::iter().collect::<Vec<_>>();
         let prim_weight = [3, 3, 2, 1];
         let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
+
         let mut priority_id: Vec<usize> = vec![];
+        let mut idx_weight: Vec<f32> = vec![0.0; eta.len()];
 
-        let idx_weight: Vec<f32> = rd
-            .dec
-            .eta
-            .clone()
-            .iter()
-            .enumerate()
-            .map(|(idx, x)| {
-                // Go in reverse order
-                let idx = N - idx - 1;
+        for (idx, x) in idx_weight.iter_mut().enumerate().rev() {
+            if idx < A {
+                // Set the weight
+                continue;
+            }
 
-                // Check if the current BEB is in the priority list
-                let in_list = priority_id.contains(&(Gam[idx] as usize));
+            // Check if the current BEB is in the priority list
+            let in_list = priority_id.contains(&(Gam[idx] as usize));
 
-                // If the SOC is below the target threshold
-                if *x > nu * k {
-                    // Remove the BEB from the priority list
-                    priority_id.retain(|x| *x != Gam[idx] as usize);
-
-                    // Return the weight
-                    x.abs() / k
-                // All other cases
-                } else if *x <= nu * k || in_list {
-                    // Check if the BEB is in the priority list
-                    if !in_list {
-                        priority_id.push(idx);
-                    }
-
-                    // Return the weight
-                    x.abs() * k
-                // If the SOC is above the target threshold
-                } else {
-                    k
+            // If the SOC is zero
+            if eta[idx] == 0.0 {
+                // Set a weight of kappa
+                *x = k;
+            }
+            // If the SOC is below the target threshold
+            else if eta[idx] > nu * k {
+                // Set the weight
+                *x = eta[idx].abs() / k
+            // All other cases
+            } else if eta[idx] <= nu * k || in_list {
+                // Set if the BEB is in the priority list
+                if !in_list {
+                    priority_id.push(idx);
                 }
-            })
-            .collect();
+
+                // Set the weight
+                *x = eta[idx].abs() * k;
+            }
+        }
+
         let idx_dist = WeightedIndex::new(&idx_weight).unwrap();
 
         // Create random generate
@@ -128,6 +126,11 @@ impl Generator for TweakSchedule {
 
         // Get random visit
         let ri = idx_dist.sample(&mut rng);
+
+        if ri < A {
+            println!("BUTTS");
+        }
+
         let q = rd.dec.v[ri];
         let id = rd.param.Gam[ri] as usize;
         let ud = &(rd.dec.u[ri], rd.dec.d[ri]);
