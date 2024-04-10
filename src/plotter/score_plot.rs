@@ -35,6 +35,7 @@ impl ScorePlot {
 
         // Create domain
         let x: Vec<f32> = (0..cscore.len()).map(|x| x as f32).collect();
+        let zero: Vec<f32> = vec![0.0; cscore.len()];
 
         // Configure the plot
         let name: String = String::from("Score");
@@ -43,14 +44,45 @@ impl ScorePlot {
             .set_x_label("Iteration", &[])
             .set_y_label("Score", &[])
             .set_legend(
-                gnuplot::Graph(0.0),
-                gnuplot::Graph(0.0),
+                gnuplot::Graph(0.9),
+                gnuplot::Graph(1.0),
                 &[Placement(AlignLeft, AlignBottom)],
                 &[TextAlign(AlignRight)],
             )
-            .lines(x.clone(), bscore, &[Caption("Best")])
-            .lines(x.clone(), cscore, &[Caption("Current")])
-            .lines(x.clone(), nscore, &[Caption("New")]);
+            .fill_between(
+                x.clone(),
+                bscore.clone(),
+                nscore,
+                &[
+                    Caption("Candidate"),
+                    Color("green"),
+                    FillRegion(Below),
+                    FillAlpha(0.15),
+                ],
+            )
+            .lines(x.clone(), nscore, &[Color("green"), LineWidth(3.0)])
+            .fill_between(
+                x.clone(),
+                bscore.clone(),
+                cscore,
+                &[
+                    Color("blue"),
+                    FillRegion(Below),
+                    FillAlpha(0.50),
+                    Caption("Active"),
+                ],
+            )
+            .fill_between(
+                x.clone(),
+                zero.clone(),
+                bscore,
+                &[
+                    Color("red"),
+                    FillRegion(Below),
+                    FillAlpha(0.25),
+                    Caption("Best"),
+                ],
+            );
     }
 
     //--------------------------------------------------------------------------
