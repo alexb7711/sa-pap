@@ -75,9 +75,7 @@ impl Generator for TweakSchedule {
         let N = rd.param.N;
         let k = rd.param.k[0];
         let nu = rd.param.nu;
-        let gam = &rd.param.gam;
         let Gam = &rd.param.Gam;
-        let eta = &rd.dec.eta;
 
         // Track the success of tweak
         let success: bool;
@@ -95,18 +93,29 @@ impl Generator for TweakSchedule {
             .iter()
             .enumerate()
             .map(|(idx, x)| {
+                // Go in reverse order
                 let idx = N - idx - 1;
-                if *x <= nu * k
-                    || (gam[idx] >= 0 && eta[gam[idx] as usize] <= nu * k)
-                    || priority_id.contains(&(Gam[idx] as usize))
-                {
-                    if !priority_id.contains(&(Gam[idx] as usize)) {
+
+                // Check if the current BEB is in the priority list
+                let in_list = priority_id.contains(&(Gam[idx] as usize));
+
+                // If the SOC is below the target threshold
+                if *x > nu * k {
+                    // Remove the BEB from the priority list
+                    priority_id.retain(|x| *x != Gam[idx] as usize);
+
+                    // Return the weight
+                    x.abs() / k
+                // All other cases
+                } else if *x <= nu * k || in_list {
+                    // Check if the BEB is in the priority list
+                    if !in_list {
                         priority_id.push(idx);
                     }
 
+                    // Return the weight
                     x.abs() * k
-                } else if *x > nu * k {
-                    x.abs() / k
+                // If the SOC is above the target threshold
                 } else {
                     k
                 }

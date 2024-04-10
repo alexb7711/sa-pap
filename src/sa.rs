@@ -212,7 +212,7 @@ impl<'a> SA<'a> {
 
             // Plot schedule in real time
             if rtp {
-                let schedule = &sol_current.clone();
+                let schedule = &sol_best.clone();
                 PowerUsagePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_power);
                 ChargerUsagePlot::real_time(!rtp, &mut Box::new(schedule.clone()), &mut fg_cu);
                 ChargePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_charge);
