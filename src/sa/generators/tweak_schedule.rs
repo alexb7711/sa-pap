@@ -73,10 +73,10 @@ impl Generator for TweakSchedule {
         // Get the data
         let mut rd = r.get_data();
         let A = rd.param.A;
+        let Gam = &rd.param.Gam;
+        let eta = &rd.dec.eta;
         let k = rd.param.k[0];
         let nu = rd.param.nu;
-        let eta = &rd.dec.eta;
-        let Gam = &rd.param.Gam;
 
         // Track the success of tweak
         let success: bool;

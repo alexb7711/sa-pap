@@ -72,10 +72,11 @@ impl Generator for TweakScheduleQuick {
     fn run(self: &mut TweakScheduleQuick, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
         // Get the data
         let mut rd = r.get_data();
+        let A = rd.param.A;
+        let Gam = &rd.param.Gam;
+        let eta = &rd.dec.eta;
         let k = rd.param.k[0];
         let nu = rd.param.nu;
-        let gam = &rd.param.gam;
-        let eta = &rd.dec.eta;
 
         // Track the success of tweak
         let success: bool;
@@ -85,22 +86,39 @@ impl Generator for TweakScheduleQuick {
         let prim_weight = [3, 3, 2, 1];
         let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
 
-        let idx_weight: Vec<f32> = rd
-            .dec
-            .eta
-            .clone()
-            .iter()
-            .enumerate()
-            .map(|(idx, x)| {
-                if *x > nu * k {
-                    x.abs() / k
-                } else if *x <= nu * k || (gam[idx] >= 0 && eta[gam[idx] as usize] <= nu * k) {
-                    x.abs() * k
-                } else {
-                    k
+        let mut priority_id: Vec<usize> = vec![];
+        let mut idx_weight: Vec<f32> = vec![0.0; eta.len()];
+
+        for (idx, x) in idx_weight.iter_mut().enumerate().rev() {
+            if idx < A {
+                // Set the weight
+                continue;
+            }
+
+            // Check if the current BEB is in the priority list
+            let in_list = priority_id.contains(&(Gam[idx] as usize));
+
+            // If the SOC is zero
+            if eta[idx] == 0.0 {
+                // Set a weight of kappa
+                *x = k;
+            }
+            // If the SOC is below the target threshold
+            else if eta[idx] > nu * k {
+                // Set the weight
+                *x = eta[idx].abs() / k
+            // All other cases
+            } else if eta[idx] <= nu * k || in_list {
+                // Set if the BEB is in the priority list
+                if !in_list {
+                    priority_id.push(idx);
                 }
-            })
-            .collect();
+
+                // Set the weight
+                *x = eta[idx].abs() * k;
+            }
+        }
+
         let idx_dist = WeightedIndex::new(&idx_weight).unwrap();
 
         let mut rng = thread_rng();
