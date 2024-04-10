@@ -221,7 +221,7 @@ impl<'a> SA<'a> {
                     &mut Box::new(schedule.clone()),
                     &mut fg_acc,
                 );
-                ScorePlot::real_time(!rtp, &mut Box::new(sol_scores.clone()), &mut fg_score);
+                ScorePlot::real_time(rtp, &mut Box::new(sol_scores.clone()), &mut fg_score);
                 SchedulePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_schedule);
             }
             // Set the prefix depending on whether a solution has been found or not
@@ -316,6 +316,19 @@ impl<'a> SA<'a> {
 
             // Update J0
             *j0 = j1.clone();
+        // Otherwise try the best data again
+        } else {
+            // Update the current solution with the new data set
+            self.update_current_values(sol_current, sol_best);
+
+            // Update system with current solution
+            self.gsys.set_data(Box::new(sol_current.clone()));
+
+            // Update the charger availability matrix
+            self.charger.milp_to_schedule(sol_current);
+
+            // Update J0
+            *j0 = jb.clone();
         }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
