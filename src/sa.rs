@@ -152,7 +152,7 @@ impl<'a> SA<'a> {
 
         // Create objective function variables
         let mut J0: f64;
-        let mut J1: f64;
+        let mut J1: f64 = 0.0;
         let mut JB: f64;
         let JORIG: f64;
 
@@ -177,6 +177,11 @@ impl<'a> SA<'a> {
         JORIG = J0;
         self.update_current_values(&mut sol_current, &mut sol_new);
 
+        // Initialize solution scores
+        sol_scores.dec.Jb.push(JB);
+        sol_scores.dec.Jc.push(JB);
+        sol_scores.dec.Jn.push(JB);
+
         // While the temperature function is cooling down
         for t in self.tf.get_temp_vec().unwrap() {
             // Get starting time
@@ -192,10 +197,6 @@ impl<'a> SA<'a> {
                     // Calculate objective function
                     (self.sol_found, J1) =
                         StdObj::run(&mut sol_new, &mut self.charger, run_all_constr);
-
-                    sol_scores.dec.Jb.push(JB);
-                    sol_scores.dec.Jc.push(J0);
-                    sol_scores.dec.Jn.push(J1);
 
                     // Update data sets
                     self.update_data_sets(
@@ -213,6 +214,10 @@ impl<'a> SA<'a> {
             // Plot schedule in real time
             if rtp {
                 let schedule = &sol_best.clone();
+                sol_scores.dec.Jb.push(JB);
+                sol_scores.dec.Jc.push(J0);
+                sol_scores.dec.Jn.push(J1);
+
                 PowerUsagePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_power);
                 ChargerUsagePlot::real_time(!rtp, &mut Box::new(schedule.clone()), &mut fg_cu);
                 ChargePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_charge);
@@ -372,8 +377,6 @@ impl<'a> SA<'a> {
 
             // Generate a number between 0 and 1
             let prob = thread_rng().gen_range(0.0..=1.0);
-
-            // println!("{}: {} <= {} == {}", coef, prob, e, prob <= e);
 
             // Return whether to keep the new data.
             // - if e <= prob: keep new data

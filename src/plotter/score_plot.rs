@@ -2,9 +2,7 @@
 
 //===============================================================================
 // Standard library
-use chrono::{DateTime, Local};
 use gnuplot::*;
-use std::fs;
 
 //===============================================================================
 // Import modules
@@ -64,18 +62,10 @@ impl ScorePlot {
     /// # Output
     /// * NONE
     ///
-    fn save_to_disk(fg: &Figure) {
-        // Get the month and time strings
-        let current_local: DateTime<Local> = Local::now();
-        let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
-        let directory = "data/".to_string() + directory.as_str();
-
-        // Create Directories
-        fs::create_dir_all(directory.clone()).unwrap();
-
+    fn save_to_disk(fg: &Figure, p: &String) {
         // Save GNUPlot
         let name: String = String::from("slow-charger-power-usage");
-        fg.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
+        fg.echo_to_file(&format!("{}.gnuplot", p.clone() + name.as_str()));
     }
 }
 
@@ -91,7 +81,7 @@ impl ScorePlot {
 /// * Power usage plot
 ///
 impl Plotter for ScorePlot {
-    fn plot(display_plot: bool, dat: &mut Box<Data>) {
+    fn plot(display_plot: bool, dat: &mut Box<Data>, p: &String) {
         // Configure plot
         let mut fg = Figure::new();
 
@@ -104,7 +94,7 @@ impl Plotter for ScorePlot {
         }
 
         // Save to disk
-        ScorePlot::save_to_disk(&fg);
+        ScorePlot::save_to_disk(&fg, p);
     }
 
     //===============================================================================

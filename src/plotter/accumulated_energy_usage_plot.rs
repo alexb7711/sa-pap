@@ -2,9 +2,7 @@
 
 //===============================================================================
 // Standard library
-use chrono::{DateTime, Local};
 use gnuplot::*;
-use std::fs;
 
 //===============================================================================
 // Import modules
@@ -96,18 +94,10 @@ impl AccumulatedEnergyUsagePlot {
     /// # Output
     /// * NONE
     ///
-    fn save_to_disk(fg: &Figure) {
-        // Get the month and time strings
-        let current_local: DateTime<Local> = Local::now();
-        let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
-        let directory = "data/".to_string() + directory.as_str();
-
-        // Create Directories
-        fs::create_dir_all(directory.clone()).unwrap();
-
+    fn save_to_disk(fg: &Figure, p: &String) {
         // Save GNUPlot
         let name: String = String::from("accumulated-energy-usage");
-        fg.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
+        fg.echo_to_file(&format!("{}.gnuplot", p.clone() + name.as_str()));
     }
 }
 
@@ -117,14 +107,16 @@ impl AccumulatedEnergyUsagePlot {
 /// energy used to run the provided charge schedule.
 ///
 /// # Input
+/// * display_plot: Flag to indicate whether the plot is to be displayed
 /// * d: Boxed data
+/// * p: Base path to the plot will be saved
 ///
 /// # Output
 /// * Accumulated Energy Plot
 ///
 ///
 impl Plotter for AccumulatedEnergyUsagePlot {
-    fn plot(display_plot: bool, dat: &mut Box<Data>) {
+    fn plot(display_plot: bool, dat: &mut Box<Data>, p: &String) {
         let mut fg = Figure::new();
 
         // Create plot
@@ -136,7 +128,7 @@ impl Plotter for AccumulatedEnergyUsagePlot {
         }
 
         // Save to disk
-        AccumulatedEnergyUsagePlot::save_to_disk(&fg);
+        AccumulatedEnergyUsagePlot::save_to_disk(&fg, p);
     }
 
     //===============================================================================
