@@ -83,7 +83,7 @@ impl Generator for TweakSchedule {
 
         // Create a vector of `Primitives` and shuffle the vector
         let primitives = Primitives::iter().collect::<Vec<_>>();
-        let prim_weight = [3, 3, 2, 1];
+        let prim_weight = [3, 3, 1, 2];
         let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
 
         let mut priority_id: Vec<usize> = vec![];
@@ -115,7 +115,7 @@ impl Generator for TweakSchedule {
                 }
 
                 // Set the weight
-                *x = eta[idx].abs() * k;
+                *x = k * (nu * k - eta[idx]);
             }
         }
 

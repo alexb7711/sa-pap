@@ -213,7 +213,7 @@ impl<'a> SA<'a> {
 
             // Plot schedule in real time
             if rtp {
-                let schedule = &sol_best.clone();
+                let schedule = &sol_current.clone();
                 sol_scores.dec.Jb.push(JB);
                 sol_scores.dec.Jc.push(J0);
                 sol_scores.dec.Jn.push(J1);

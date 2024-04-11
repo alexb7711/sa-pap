@@ -42,7 +42,7 @@ pub mod new_visit {
 
         // Determine the charger offset from waiting queues
         let offset;
-        let w = [3, 1];
+        let w = [2, 1];
         let dist = WeightedIndex::new(&w).unwrap();
         let selection_vals = [0, 1];
         let mut rng = thread_rng();
