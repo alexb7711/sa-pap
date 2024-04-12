@@ -80,7 +80,7 @@ impl PowerUsagePlot {
     ///
     fn save_to_disk(fg: &Figure, p: &String) {
         // Save GNUPlot
-        let name: String = String::from("slow-charger-power-usage");
+        let name: String = String::from("power-usage");
         fg.echo_to_file(&format!("{}.gnuplot", p.clone() + name.as_str()));
     }
 }
