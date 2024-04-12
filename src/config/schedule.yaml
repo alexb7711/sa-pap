@@ -6,11 +6,11 @@ ignore: [27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50
 time:
   BOD: 0.0                                                                      # Beginning of day [hr]
   EOD: 24.0                                                                     # End of day [hr]
-  K: 10000                                                                       # [steps]
+  K: 50                                                                         # [steps]
 temp:
   type: Geometric                                                               # Geometric, Exponential, Linear
-  init: 9000.0                                                                  # Initial temperature
-  delta: 0.999                                                                 # Temperature step size
+  init: 90000.0                                                                  # Initial temperature
+  delta: 0.99                                                                   # Temperature step size
 buses:
   num_bus: 15
   num_visit: 200
