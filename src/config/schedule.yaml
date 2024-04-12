@@ -9,8 +9,8 @@ time:
   K: 50                                                                         # [steps]
 temp:
   type: Geometric                                                               # Geometric, Exponential, Linear
-  init: 90000.0                                                                  # Initial temperature
-  delta: 0.99                                                                   # Temperature step size
+  init: 90000.0                                                                 # Initial temperature
+  delta: 0.997                                                                  # Temperature step size
 buses:
   num_bus: 15
   num_visit: 200
@@ -28,7 +28,7 @@ final_charge: 0.70                                                              
 chargers:
   slow:
     num: 15
-    rate: 87.0                                                                  # [Kw]
+    rate: 30.0                                                                  # [Kw]
     conv: 0.01
   fast:
     num: 15
