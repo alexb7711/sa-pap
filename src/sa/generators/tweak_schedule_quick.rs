@@ -83,39 +83,34 @@ impl Generator for TweakScheduleQuick {
 
         // Create a vector of `Primitives` and shuffle the vector
         let primitives = Primitives::iter().collect::<Vec<_>>();
-        let prim_weight = [3, 3, 2, 1];
+        let prim_weight = [2, 1, 2, 2];
         let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
 
-        let mut priority_id: Vec<usize> = vec![];
+        let mut priority_id: Vec<(bool, f32)> = vec![(false, 0.0); A];
         let mut idx_weight: Vec<f32> = vec![0.0; eta.len()];
 
         for (idx, x) in idx_weight.iter_mut().enumerate().rev() {
             if idx < A {
+                // Ignore initial visits
+                break;
+            }
+
+            // If the BEB ID is in the priority list
+            if priority_id[Gam[idx] as usize].0 {
                 // Set the weight
-                continue;
+                *x = priority_id[Gam[idx] as usize].1;
             }
-
-            // Check if the current BEB is in the priority list
-            let in_list = priority_id.contains(&(Gam[idx] as usize));
-
-            // If the SOC is zero
-            if eta[idx] == 0.0 {
-                // Set a weight of kappa
-                *x = k;
-            }
-            // If the SOC is below the target threshold
+            // If the SOC is above the target threshold
             else if eta[idx] > nu * k {
                 // Set the weight
-                *x = eta[idx].abs() / k
-            // All other cases
-            } else if eta[idx] <= nu * k || in_list {
-                // Set if the BEB is in the priority list
-                if !in_list {
-                    priority_id.push(idx);
-                }
+                *x = 1.0;
+            } else if eta[idx] <= nu * k {
+                // Add to the priority list
+                priority_id[Gam[idx] as usize].0 = true;
 
                 // Set the weight
-                *x = eta[idx].abs() * k;
+                *x = k * (nu * k - eta[idx]);
+                priority_id[Gam[idx] as usize].1 = x.clone();
             }
         }
 
