@@ -73,14 +73,22 @@ impl ChargePlot {
     fn group_charge_results(dat: &Data) -> (Vec<Vec<f32>>, Vec<Vec<f32>>) {
         // Variables
         let A = dat.param.A;
-        let N = dat.param.N;
         let G = &dat.param.Gam;
+        let N = dat.param.N;
         let d = &dat.dec.d;
-        let r = &dat.param.r;
-        let u = &dat.dec.u;
         let eta = &dat.dec.eta;
-        let v = &dat.dec.v;
+        let kappa = &dat.param.k;
+        let r;
         let s = &dat.dec.s;
+        let u = &dat.dec.u;
+        let v = &dat.dec.v;
+
+        // Choose charge variable based on model
+        if dat.param.conv.len() > A {
+            r = &dat.param.conv;
+        } else {
+            r = &dat.param.r;
+        }
 
         let mut charges: Vec<Vec<f32>> = Vec::new();
         let mut idx: Vec<Vec<f32>> = Vec::new();
@@ -99,7 +107,25 @@ impl ChargePlot {
 
                     // Append the charge on departure
                     tmpx.push(d[i]);
-                    tmpy.push(eta[i] + s[i] * r[v[i]]);
+
+                    // Non-linear
+                    if dat.param.conv.len() > A {
+                        println!("HERE: {:?}", r);
+                        // Calculate model parameters
+                        let abar = f32::exp(3600.0 * -r[v[i]] * s[i]);
+                        let bbar = abar - 1.0;
+
+                        // Calculate charge amount
+                        let mut soc: f32 = eta[i];
+
+                        // Calculate the new SOC
+                        soc = soc * abar - bbar * kappa[G[i] as usize];
+
+                        tmpy.push(soc);
+                    } else {
+                        // Linear`
+                        tmpy.push(eta[i] + s[i] * r[v[i]]);
+                    }
                 }
             }
 
