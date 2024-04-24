@@ -17,7 +17,7 @@ buses:
   bus_length: 1
   bat_capacity: 388.0                                                           # [KWh]
   max_charge: 1                                                                 # [0-1]
-  min_charge: 0.2                                                               # [0-1]
+  min_charge: 0.25                                                              # [0-1]
   dis_rate: 32.4                                                                # [Kw]
   max_rest: 0.3                                                                 # [hr]
   min_rest: 0.15                                                                # [hr]
@@ -29,8 +29,8 @@ chargers:
   slow:
     num: 15
     rate: 30.0                                                                  # [Kw]
-    conv: 0.01
+    conv: 0.000045
   fast:
     num: 15
     rate: 910.95                                                                # [Kw]
-    conv: 0.1
+    conv: 0.0011

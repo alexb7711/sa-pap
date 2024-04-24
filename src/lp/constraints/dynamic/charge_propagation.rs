@@ -149,6 +149,8 @@ impl ChargePropagate {
         // Calculate the new SOC
         soc = soc * abar - bbar * kappa[Gam[i] as usize];
 
+        // println!("{} @ {}: {}", r[v[i]], dt, soc - eta[i]);
+
         return soc - eta[i];
     }
 }
