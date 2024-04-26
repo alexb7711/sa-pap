@@ -218,7 +218,7 @@ impl<'a> SA<'a> {
                 sol_scores.dec.Jc.push(J0);
                 sol_scores.dec.Jn.push(J1);
 
-                PowerUsagePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_power);
+                PowerUsagePlot::real_time(!rtp, &mut Box::new(schedule.clone()), &mut fg_power);
                 ChargerUsagePlot::real_time(!rtp, &mut Box::new(schedule.clone()), &mut fg_cu);
                 ChargePlot::real_time(rtp, &mut Box::new(schedule.clone()), &mut fg_charge);
                 AccumulatedEnergyUsagePlot::real_time(
@@ -310,6 +310,12 @@ impl<'a> SA<'a> {
 
         // Compare the objective functions
         if self.cmp_obj_fnc(*j0, *j1, t) {
+            // Ensure the configuration is valid
+            if !self.sol_found {
+                println!("Erroneous Configuration Detected! Ignoring configuration...");
+                return;
+            }
+
             // Update the current solution with the new data set
             self.update_current_values(sol_current, sol_new);
 

@@ -47,9 +47,6 @@ impl ChargePropagate {
         // Retrieve the charger speed
         let charge_rate: f32 = r[v[i]];
 
-        // Store the original charge duration
-        let l_s = s[i];
-
         // Adjust the charge time such that the BEB is at maximum charge
         // and the schedule does not fail
         //
@@ -60,11 +57,8 @@ impl ChargePropagate {
         if s[i] == 0.0 {
             s[i] = EPSILON;
         }
-        // Update initial and final charge times. Choose to move u and d
-        // closer together by (s_old - s_new) / 2
-        let s_diff = (l_s - s[i]) / 2.0;
-        u[i] += s_diff;
-        d[i] -= s_diff;
+        // Update initial and final charge times. Choose to move d back
+        d[i] = u[i] + s[i];
 
         // If the update causes the time ordering to flip
         if u[i] > d[i] {
@@ -107,7 +101,7 @@ impl ChargePropagate {
         let mut charge: f32 = r[dat.dec.v[i]] * s[i];
 
         // Ensure the charge does not exceed the battery limit
-        if !(dat.dec.eta[i] + charge <= kappa[Gam[i] as usize]) {
+        if dat.dec.eta[i] + charge > kappa[Gam[i] as usize] && dat.dec.v[i] >= dat.param.A {
             charge = ChargePropagate::update_lin_charge(dat, ch, i);
         }
 
