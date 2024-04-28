@@ -9,7 +9,7 @@ time:
   K: 500                                                                        # [steps]
 temp:
   type: Geometric                                                               # Geometric, Exponential, Linear
-  init: 99999.0                                                                 # Initial temperature
+  init: 90000.0                                                                 # Initial temperature
   delta: 0.997                                                                  # Temperature step size
 buses:
   num_bus: 15
