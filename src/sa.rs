@@ -211,12 +211,14 @@ impl<'a> SA<'a> {
                 }
             }
 
+            // Append the latest scores
+            sol_scores.dec.Jb.push(JB);
+            sol_scores.dec.Jc.push(J0);
+            sol_scores.dec.Jn.push(J1);
+
             // Plot schedule in real time
             if rtp {
                 let schedule = &sol_best.clone();
-                sol_scores.dec.Jb.push(JB);
-                sol_scores.dec.Jc.push(J0);
-                sol_scores.dec.Jn.push(J1);
 
                 PowerUsagePlot::real_time(!rtp, &mut Box::new(schedule.clone()), &mut fg_power);
                 ChargerUsagePlot::real_time(!rtp, &mut Box::new(schedule.clone()), &mut fg_cu);
