@@ -236,16 +236,16 @@ impl StdObj {
         let mut val_sched: bool = false;
 
         // Ensure charge schedule is valid
-        for q in ch.schedule.iter().skip(dat.param.A - 1) {
-            for i in 1..q.len() {
-                if q[i - 1].t.0 <= q[i - 1].t.1 && q[i - 1].t.1 <= q[i].t.0 && q[i].t.0 <= q[i].t.1
-                {
-                    continue;
-                }
+        // for q in ch.schedule.iter().skip(dat.param.A - 1) {
+        //     for i in 1..q.len() {
+        //         if q[i - 1].t.0 <= q[i - 1].t.1 && q[i - 1].t.1 <= q[i].t.0 && q[i].t.0 <= q[i].t.1
+        //         {
+        //             continue;
+        //         }
 
-                return (val_sched, J);
-            }
-        }
+        //         return (val_sched, J);
+        //     }
+        // }
 
         // Calculate charges and objective
         for i in 0..N {
