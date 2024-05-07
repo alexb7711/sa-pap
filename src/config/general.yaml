@@ -1,5 +1,5 @@
 # Number of processes to input values
-cores: 8
+cores: 1
 
 # 1: True; 0: False
 plot: 0
@@ -20,7 +20,7 @@ solution_gen: "rand"
 # "quick"; "exhaustive"
 tweak_method: "exhaustive"
 
-# Run all constraints (slow), or run required constraints (fast)
+# Run all con
 run_all_constr: false
 
 # Output previous decision variable/param results

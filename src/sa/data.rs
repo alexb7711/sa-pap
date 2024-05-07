@@ -59,6 +59,9 @@ pub struct Parameter {
 ///
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct DecisionVar {
+    pub Jb: Vec<f64>,          //  Best objective function score
+    pub Jc: Vec<f64>,          //  Current objective function score
+    pub Jn: Vec<f64>,          //  New objective function score
     pub d: Vec<f32>,           //  Detach time for visit i                [hr]
     pub g: Vec<Vec<f32>>,      //  Detach time for visit i                [hr]
     pub psi: Vec<Vec<bool>>,   //  Determines if i is "fully left" of j

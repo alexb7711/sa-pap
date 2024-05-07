@@ -67,6 +67,7 @@ pub mod DataOutput {
         power_out(&file_name, &d, &c, &fp);
         acc_energy_out(&file_name, &d, &c, &fp);
         schedule_out(&file_name, &d, &c, &fp);
+        score_out(&file_name, &d, &c, &fp);
     }
 
     //===========================================================================
@@ -85,8 +86,7 @@ pub mod DataOutput {
     /// * Data files
     ///
     fn charge_out(file_name: &String, dat: &Data, char: &Charger, path: &String) {
-        let slow = char.charger_count.0;
-        if dat.param.conv[slow] > 0.0 {
+        if dat.param.conv.len() > 0 {
             nonlinear_soc(file_name, dat, char, path);
         } else {
             linear_soc(file_name, dat, char, path);
@@ -387,6 +387,18 @@ pub mod DataOutput {
         }
     }
 
+    //---------------------------------------------------------------------------
+    ///
+    ///
+    /// # Input:
+    /// * file_name: Path to output directory
+    /// * dat: Matrix of data
+    /// * char: Title each column
+    /// * path: Title each column
+    ///
+    /// # Output:
+    /// * NONE
+    ///
     fn linear_soc(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
         let name = file_name.to_owned() + &"-charge";
@@ -418,7 +430,6 @@ pub mod DataOutput {
 
             // For every visit
             for i in 0..N {
-                println!("LINEAR");
                 // If the current visit is for the BEB of interest
                 if G[i] as usize == b {
                     // Append the charge on arrival
@@ -439,6 +450,18 @@ pub mod DataOutput {
         save_to_file(path, &name, &fields, data);
     }
 
+    //---------------------------------------------------------------------------
+    ///
+    ///
+    /// # Input:
+    /// * file_name: Path to output directory
+    /// * dat: Matrix of data
+    /// * char: Title each column
+    /// * path: Title each column
+    ///
+    /// # Output:
+    /// * NONE
+    ///
     fn nonlinear_soc(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
         // Variables
         let name = file_name.to_owned() + &"-charge";
@@ -497,6 +520,39 @@ pub mod DataOutput {
         }
 
         // Write data to disk
+        save_to_file(path, &name, &fields, data);
+    }
+
+    //---------------------------------------------------------------------------
+    /// Output score data over the time horizon
+    ///
+    /// * file_name : Base name of the file
+    /// * d : Data manager
+    /// * char: Charger object
+    /// * path: Path to output directory
+    ///
+    /// # Output:
+    /// * Data files
+    fn score_out(file_name: &String, dat: &Data, _char: &Charger, path: &String) {
+        // Variables
+        let jb = &dat.dec.Jb;
+        let jc = &dat.dec.Jc;
+        let jn = &dat.dec.Jn;
+
+        let name = file_name.to_owned() + &"-score";
+        let fields: Vec<String> = vec![
+            String::from("Best"),
+            String::from("Active"),
+            String::from("Candidate"),
+        ];
+        let mut data: Vec<Vec<f32>> = vec![vec![0.0; 3]; jb.len()];
+
+        for (idx, d) in data.iter_mut().enumerate() {
+            d[0] = jb[idx] as f32;
+            d[1] = jc[idx] as f32;
+            d[2] = jn[idx] as f32;
+        }
+
         save_to_file(path, &name, &fields, data);
     }
 }

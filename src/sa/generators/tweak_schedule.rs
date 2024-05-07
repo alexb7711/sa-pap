@@ -70,25 +70,71 @@ impl TweakSchedule {
 //
 impl Generator for TweakSchedule {
     fn run(self: &mut TweakSchedule, r: &mut Box<dyn Route>, c: &mut Charger) -> bool {
+        // Get the data
+        let mut rd = r.get_data();
+        let A = rd.param.A;
+        let Gam = &rd.param.Gam;
+        let eta = &rd.dec.eta;
+        let k = rd.param.k[0];
+        let nu = rd.param.nu;
+
         // Track the success of tweak
         let success: bool;
 
         // Create a vector of `Primitives` and shuffle the vector
         let primitives = Primitives::iter().collect::<Vec<_>>();
-        let weight = [3, 3, 2, 1];
-        let dist = WeightedIndex::new(&weight).unwrap();
+        let prim_weight = [2, 1, 2, 2];
+        let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
+
+        let mut priority_id: Vec<(bool, f32)> = vec![(false, 0.0); A];
+        let mut idx_weight: Vec<f32> = vec![0.0; eta.len()];
+
+        for (idx, x) in idx_weight.iter_mut().enumerate().rev() {
+            if idx < A {
+                // Ignore initial visits
+                break;
+            }
+
+            // If the BEB ID is in the priority list
+            if priority_id[Gam[idx] as usize].0 {
+                // Set the weight
+                *x = priority_id[Gam[idx] as usize].1;
+            }
+            // If the SOC is above the target threshold
+            else if eta[idx] > nu * k {
+                // Set the weight
+                *x = 1.0;
+            } else if eta[idx] <= nu * k {
+                // Add to the priority list
+                priority_id[Gam[idx] as usize].0 = true;
+
+                // Set the weight
+                *x = k * (nu * k - eta[idx]);
+                priority_id[Gam[idx] as usize].1 = x.clone();
+            }
+        }
+
+        // println!("{:?}", idx_weight);
+
+        let idx_dist = WeightedIndex::new(&idx_weight).unwrap();
+
+        // Create random generate
         let mut rng = thread_rng();
 
         // Get random visit
-        let mut rd = r.get_data();
-        let ri = rand::thread_rng().gen_range(0..rd.param.N);
+        let ri = idx_dist.sample(&mut rng);
+
+        if ri < A {
+            println!("BUTTS");
+        }
+
         let q = rd.dec.v[ri];
         let id = rd.param.Gam[ri] as usize;
         let ud = &(rd.dec.u[ri], rd.dec.d[ri]);
         let ae = &(rd.param.a[ri], rd.param.e[ri]);
 
         // Loop through the primitives
-        let p = primitives[dist.sample(&mut rng)].clone();
+        let p = primitives[prim_dist.sample(&mut rng)].clone();
 
         // Try running the primitive and store the result
         success = match p {

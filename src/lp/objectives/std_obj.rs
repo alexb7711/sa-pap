@@ -50,9 +50,9 @@ impl StdObj {
         let c_dif = eta[i] - (nu * k[G[i] as usize]) as f32;
         if c_dif < 0.0 {
             // Calculate the penalty
-            let C: f32 = 5000.0;
+            let zp: f32 = 5000.0;
 
-            phi = (C * f32::powf(c_dif, 2.0)) as f64;
+            phi = (zp * f32::powf(c_dif, 2.0)) as f64;
         }
 
         // Calculate the assignment cost
@@ -135,7 +135,14 @@ impl StdObj {
                 // t = k*dt
                 // k = t/dt
                 //
-                for k in linspace::<f64>(ts.t.0 as f64, ts.t.1 as f64, n).map(|x| x / dt as f64) {
+                for mut k in linspace::<f64>(ts.t.0 as f64, ts.t.1 as f64, n).map(|x| x / dt as f64)
+                {
+                    // Ensure the index is in the time horizon
+                    if k as usize >= p.len() {
+                        k = (p.len() - 1) as f64;
+                    }
+
+                    // Update the power usage for discrete time
                     p[k as usize] += rate as f64;
                 }
             }
@@ -228,6 +235,19 @@ impl StdObj {
         let mut J: f64 = 0.0;
         let mut val_sched: bool = false;
 
+        // Ensure charge schedule is valid
+        // for q in ch.schedule.iter().skip(dat.param.A - 1) {
+        //     for i in 1..q.len() {
+        //         if q[i - 1].t.0 <= q[i - 1].t.1 && q[i - 1].t.1 <= q[i].t.0 && q[i].t.0 <= q[i].t.1
+        //         {
+        //             continue;
+        //         }
+
+        //         return (val_sched, J);
+        //     }
+        // }
+
+        // Calculate charges and objective
         for i in 0..N {
             //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
             // Calculate constraints

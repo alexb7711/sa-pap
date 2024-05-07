@@ -171,7 +171,7 @@ impl TempFunc {
         self.c_step += 1;
 
         // Update temperature
-        self.t.append(&mut vec![t]);
+        self.t.push(t);
 
         // Return temp
         return Some(t);

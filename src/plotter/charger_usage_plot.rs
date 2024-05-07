@@ -2,9 +2,7 @@
 
 //===============================================================================
 // Standard library
-use chrono::{DateTime, Local};
 use gnuplot::*;
-use std::fs;
 
 //===============================================================================
 // Import modules
@@ -16,18 +14,29 @@ use crate::sa::data::Data;
 pub struct ChargerUsagePlot {}
 
 //===============================================================================
-/// Implementation of the plotting function for the slow/fast charger usage.
-/// It is a box graph that is merely tracking how many fast/slow chargers are
-/// being utilized at any given discrete time.
+/// Helper functions for the `ChargerUsagePlot` object.
+///
 ///
 /// # Input
 /// * d: Boxed data
 ///
 /// # Output
-/// * Charge usage plot
+/// * Charger Usage plot
 ///
-impl Plotter for ChargerUsagePlot {
-    fn plot(display_plot: bool, dat: &mut Box<Data>) {
+///
+impl ChargerUsagePlot {
+    //--------------------------------------------------------------------------
+    /// Process the data for the figure.
+    ///
+    /// # Input
+    /// * d : Boxed data
+    /// * fg: Charger schedule figure
+    /// * fg_fast: Fast charger schedule figure
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn create_plot(dat: &mut Box<Data>, fg: &mut Figure) {
         // Variables
         let A = dat.param.A;
         let N = dat.param.N;
@@ -42,8 +51,6 @@ impl Plotter for ChargerUsagePlot {
         let mut fast: Vec<usize> = vec![0; K as usize];
 
         // Configure plot
-        let name: String = String::from("Charger Usage");
-        let mut fg = Figure::new();
         fg.set_multiplot_layout(2, 1);
 
         // Create domain
@@ -72,6 +79,7 @@ impl Plotter for ChargerUsagePlot {
         }
 
         // Configure the plot
+        let name: String = String::from("Slow Charger Usage");
         fg.axes2d()
             .set_title(name.as_str(), &[])
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
@@ -80,6 +88,7 @@ impl Plotter for ChargerUsagePlot {
             .set_y_label("Energy Usage [KWh]", &[])
             .boxes(x.clone(), slow, &[]);
 
+        let name: String = String::from("Fast Charger Usage");
         fg.axes2d()
             .set_title(name.as_str(), &[])
             .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
@@ -87,26 +96,66 @@ impl Plotter for ChargerUsagePlot {
             .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Energy Usage [KWh]", &[])
             .boxes(x.clone(), fast, &[]);
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `save
+    ///
+    /// # Input
+    /// * fg: Figure for charger schedule
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn save_to_disk(fg: &Figure, p: &String) {
+        // Save GNUPlot
+        let name: String = String::from("charger-usage");
+        fg.echo_to_file(&format!("{}.gnuplot", p.clone() + name.as_str()));
+    }
+}
+
+//===============================================================================
+/// Implementation of the plotting function for the slow/fast charger usage.
+/// It is a box graph that is merely tracking how many fast/slow chargers are
+/// being utilized at any given discrete time.
+///
+/// # Input
+/// * d: Boxed data
+///
+/// # Output
+/// * Charge usage plot
+///
+impl Plotter for ChargerUsagePlot {
+    fn plot(display_plot: bool, dat: &mut Box<Data>, p: &String) {
+        let mut fg = Figure::new();
+
+        // Create plot
+        ChargerUsagePlot::create_plot(dat, &mut fg);
 
         // Plot Figure
         if display_plot {
             fg.show().unwrap();
         }
 
-        // Get the month and time strings
-        let current_local: DateTime<Local> = Local::now();
-        let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
-        let directory = "data/".to_string() + directory.as_str();
-
-        // Create Directories
-        fs::create_dir_all(directory.clone()).unwrap();
-
-        // Save GNUPlot
-        let name: String = String::from("charger-usage");
-        fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
+        // Save to disk
+        ChargerUsagePlot::save_to_disk(&fg, p);
     }
 
     //===============================================================================
     //
-    fn real_time(_: bool, _: &mut Box<Data>, _: &mut Figure) {}
+    fn real_time(rpt: bool, dat: &mut Box<Data>, fg: &mut Figure) {
+        // Determine whether to create the plot
+        if !rpt {
+            return;
+        }
+
+        // Clear plots
+        fg.clear_axes();
+
+        // Create plot
+        ChargerUsagePlot::create_plot(dat, fg);
+
+        // Update plots
+        fg.show_and_keep_running().unwrap();
+    }
 }

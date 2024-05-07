@@ -2,9 +2,7 @@
 
 //===============================================================================
 // Standard library
-use chrono::{DateTime, Local};
 use gnuplot::*;
-use std::fs;
 
 //===============================================================================
 // Import modules
@@ -137,18 +135,10 @@ impl SchedulePlot {
     /// # Output
     /// * NONE
     ///
-    fn save_to_disk(fg: &Figure) {
-        // Get the month and time strings
-        let current_local: DateTime<Local> = Local::now();
-        let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
-        let directory = "data/".to_string() + directory.as_str();
-
-        // Create Directories
-        fs::create_dir_all(directory.clone()).unwrap();
-
+    fn save_to_disk(fg: &Figure, p: &String) {
         // Save GNUPlot
         let name: String = String::from("schedule");
-        fg.echo_to_file(&format!("{}.gnuplot", directory.clone() + name.as_str()));
+        fg.echo_to_file(&format!("{}.gnuplot", p.clone() + name.as_str()));
     }
 }
 
@@ -166,10 +156,9 @@ impl Plotter for SchedulePlot {
     /// * Schedule plot
     ///
     ///
-    fn plot(display_plot: bool, dat: &mut Box<Data>) {
+    fn plot(display_plot: bool, dat: &mut Box<Data>, p: &String) {
         // Create object
         let mut fg = Figure::new();
-        let mut fg_fast = Figure::new();
 
         // Create plot
         SchedulePlot::create_plot(dat, &mut fg);
@@ -177,25 +166,25 @@ impl Plotter for SchedulePlot {
         // Plot Figure
         if display_plot {
             fg.show().unwrap();
-            fg_fast.show().unwrap();
         }
 
         // Save to disk
-        SchedulePlot::save_to_disk(&fg);
+        SchedulePlot::save_to_disk(&fg, p);
     }
 
     //--------------------------------------------------------------------------
     //
     fn real_time(display_plot: bool, dat: &mut Box<Data>, fg: &mut Figure) {
-        if display_plot {
-            // Clear plots
-            fg.clear_axes();
-
-            // Create plot
-            SchedulePlot::create_plot(dat, fg);
-
-            // Update plots
-            fg.show_and_keep_running().unwrap();
+        if !display_plot {
+            return;
         }
+        // Clear plots
+        fg.clear_axes();
+
+        // Create plot
+        SchedulePlot::create_plot(dat, fg);
+
+        // Update plots
+        fg.show_and_keep_running().unwrap();
     }
 }

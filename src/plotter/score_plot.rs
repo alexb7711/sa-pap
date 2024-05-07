@@ -11,11 +11,11 @@ use crate::sa::data::Data;
 
 //===============================================================================
 /// Structure for `accumulated_energy_usage_plot`
-pub struct PowerUsagePlot {}
+pub struct ScorePlot {}
 
 //===============================================================================
 //
-impl PowerUsagePlot {
+impl ScorePlot {
     //--------------------------------------------------------------------------
     /// Implementation of the plotting function to display the schedule of the BEBs.
     /// The plot consists of
@@ -29,44 +29,60 @@ impl PowerUsagePlot {
     ///
     fn create_plot(dat: &mut Box<Data>, fg: &mut Figure) {
         // Variables
-        let N = dat.param.N;
-        let T = dat.param.T;
-        let K = dat.param.K;
-        let v = &dat.dec.v;
-        let u = &dat.dec.u;
-        let d = &dat.dec.d;
-        let r = &dat.param.r;
-        let delta = T / K as f32;
-
-        let mut power: Vec<f32> = vec![0.0; K as usize];
+        let bscore: &Vec<f64> = &dat.dec.Jb;
+        let cscore: &Vec<f64> = &dat.dec.Jc;
+        let nscore: &Vec<f64> = &dat.dec.Jn;
 
         // Create domain
-        let x: Vec<f32> = (0..K).map(|x| x as f32 * delta).collect();
-
-        // For each discrete time step
-        for k in 0..K {
-            // Calculate the discrete time
-            let dt = k as f32 * delta;
-
-            // For each visit
-            for i in 0..N {
-                // Check if the visit is in within the current discrete step
-                if u[i] <= dt && d[i] >= dt {
-                    // Add on the power
-                    power[k as usize] += r[v[i]];
-                }
-            }
-        }
+        let x: Vec<f32> = (0..cscore.len()).map(|x| x as f32).collect();
+        let zero: Vec<f32> = vec![0.0; cscore.len()];
 
         // Configure the plot
-        let name: String = String::from("Power Usage");
+        let name: String = String::from("Score");
         fg.axes2d()
             .set_title(name.as_str(), &[])
-            .set_legend(gnuplot::Graph(0.0), gnuplot::Graph(1.0), &[], &[])
-            .set_x_label("Time [hr]", &[])
-            .set_x_range(Fix(0.0), Fix(24.0))
-            .set_y_label("Energy Usage [KWh]", &[])
-            .boxes(x.clone(), power, &[]);
+            .set_x_label("Iteration", &[])
+            .set_y_label("Score", &[])
+            .set_legend(
+                gnuplot::Graph(0.9),
+                gnuplot::Graph(1.0),
+                &[Placement(AlignLeft, AlignBottom)],
+                &[TextAlign(AlignRight)],
+            )
+            .fill_between(
+                x.clone(),
+                bscore.clone(),
+                nscore,
+                &[
+                    Caption("Candidate"),
+                    Color("green"),
+                    FillRegion(Below),
+                    FillAlpha(0.15),
+                ],
+            )
+            .lines(x.clone(), nscore, &[Color("green"), LineWidth(3.0)])
+            .fill_between(
+                x.clone(),
+                bscore.clone(),
+                cscore,
+                &[
+                    Color("blue"),
+                    FillRegion(Below),
+                    FillAlpha(0.50),
+                    Caption("Active"),
+                ],
+            )
+            .fill_between(
+                x.clone(),
+                zero.clone(),
+                bscore,
+                &[
+                    Color("red"),
+                    FillRegion(Below),
+                    FillAlpha(0.25),
+                    Caption("Best"),
+                ],
+            );
     }
 
     //--------------------------------------------------------------------------
@@ -80,7 +96,7 @@ impl PowerUsagePlot {
     ///
     fn save_to_disk(fg: &Figure, p: &String) {
         // Save GNUPlot
-        let name: String = String::from("power-usage");
+        let name: String = String::from("score-plot");
         fg.echo_to_file(&format!("{}.gnuplot", p.clone() + name.as_str()));
     }
 }
@@ -96,13 +112,13 @@ impl PowerUsagePlot {
 /// # Output
 /// * Power usage plot
 ///
-impl Plotter for PowerUsagePlot {
+impl Plotter for ScorePlot {
     fn plot(display_plot: bool, dat: &mut Box<Data>, p: &String) {
         // Configure plot
         let mut fg = Figure::new();
 
         // Create plot
-        PowerUsagePlot::create_plot(dat, &mut fg);
+        ScorePlot::create_plot(dat, &mut fg);
 
         // Plot Figure
         if display_plot {
@@ -110,7 +126,7 @@ impl Plotter for PowerUsagePlot {
         }
 
         // Save to disk
-        PowerUsagePlot::save_to_disk(&fg, p);
+        ScorePlot::save_to_disk(&fg, p);
     }
 
     //===============================================================================
@@ -125,7 +141,7 @@ impl Plotter for PowerUsagePlot {
         fg.clear_axes();
 
         // Create plot
-        PowerUsagePlot::create_plot(dat, fg);
+        ScorePlot::create_plot(dat, fg);
 
         // Update plots
         fg.show_and_keep_running().unwrap();

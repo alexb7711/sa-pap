@@ -2,9 +2,7 @@
 
 //===============================================================================
 // Standard library
-use chrono::{DateTime, Local};
 use gnuplot::*;
-use std::fs;
 
 //===============================================================================
 // Import modules
@@ -16,19 +14,29 @@ use crate::sa::data::Data;
 pub struct AccumulatedEnergyUsagePlot {}
 
 //===============================================================================
-/// Implementation of the plotting function for the total accumulated energy usage.
-/// This plot is a simple line graph that tracks the total amount of accumulated
-/// energy used to run the provided charge schedule.
+/// Helper functions for the `SchedulePlot` object.
+///
 ///
 /// # Input
 /// * d: Boxed data
 ///
 /// # Output
-/// * Accumulated Energy Plot
+/// * Schedule plot
 ///
 ///
-impl Plotter for AccumulatedEnergyUsagePlot {
-    fn plot(display_plot: bool, dat: &mut Box<Data>) {
+impl AccumulatedEnergyUsagePlot {
+    //--------------------------------------------------------------------------
+    /// Process the data for the figure.
+    ///
+    /// # Input
+    /// * d : Boxed data
+    /// * fg: Charger schedule figure
+    /// * fg_fast: Fast charger schedule figure
+    ///
+    /// # Output
+    /// * None
+    ///
+    fn create_plot(dat: &mut Box<Data>, fg: &mut Figure) {
         // Variables
         let K = dat.param.K as usize;
         let N = dat.param.N;
@@ -41,7 +49,6 @@ impl Plotter for AccumulatedEnergyUsagePlot {
 
         // Configure plot
         let name: String = String::from("Accumulated Energy Usage");
-        let mut fg = Figure::new();
 
         // Create array to count usage
         let mut usage: Vec<f32> = vec![0.0; K];
@@ -76,26 +83,69 @@ impl Plotter for AccumulatedEnergyUsagePlot {
             .set_x_range(Fix(0.0), Fix(24.0))
             .set_y_label("Energy Usage [KWh]", &[])
             .lines(x, usage, &[]);
+    }
+
+    //--------------------------------------------------------------------------
+    /// The `save_do_disk` function outputs the results of the plot to disk.
+    ///
+    /// # Input
+    /// * fg: Figure for charger schedule
+    ///
+    /// # Output
+    /// * NONE
+    ///
+    fn save_to_disk(fg: &Figure, p: &String) {
+        // Save GNUPlot
+        let name: String = String::from("accumulated-energy-usage");
+        fg.echo_to_file(&format!("{}.gnuplot", p.clone() + name.as_str()));
+    }
+}
+
+//===============================================================================
+/// Implementation of the plotting function for the total accumulated energy usage.
+/// This plot is a simple line graph that tracks the total amount of accumulated
+/// energy used to run the provided charge schedule.
+///
+/// # Input
+/// * display_plot: Flag to indicate whether the plot is to be displayed
+/// * d: Boxed data
+/// * p: Base path to the plot will be saved
+///
+/// # Output
+/// * Accumulated Energy Plot
+///
+///
+impl Plotter for AccumulatedEnergyUsagePlot {
+    fn plot(display_plot: bool, dat: &mut Box<Data>, p: &String) {
+        let mut fg = Figure::new();
+
+        // Create plot
+        AccumulatedEnergyUsagePlot::create_plot(dat, &mut fg);
 
         // Plot Figure
         if display_plot {
             fg.show().unwrap();
         }
 
-        // Get the month and time strings
-        let current_local: DateTime<Local> = Local::now();
-        let directory = current_local.format("%m/%d/%H-%M-%S/").to_string();
-        let directory = "data/".to_string() + directory.as_str();
-
-        // Create Directories
-        fs::create_dir_all(directory.clone()).unwrap();
-
-        // Save GNUPlot
-        let name: String = String::from("accumulated-energy-usage");
-        fg.echo_to_file(&format!("{}.gnuplot", directory + name.as_str()));
+        // Save to disk
+        AccumulatedEnergyUsagePlot::save_to_disk(&fg, p);
     }
 
     //===============================================================================
     //
-    fn real_time(_: bool, _: &mut Box<Data>, _: &mut Figure) {}
+    fn real_time(rpt: bool, dat: &mut Box<Data>, fg: &mut Figure) {
+        // Determine whether to create the plot
+        if !rpt {
+            return;
+        }
+
+        // Clear plots
+        fg.clear_axes();
+
+        // Create plot
+        AccumulatedEnergyUsagePlot::create_plot(dat, fg);
+
+        // Update plots
+        fg.show_and_keep_running().unwrap();
+    }
 }
