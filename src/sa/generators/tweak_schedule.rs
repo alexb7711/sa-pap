@@ -77,14 +77,16 @@ impl Generator for TweakSchedule {
         let eta = &rd.dec.eta;
         let k = rd.param.k[0];
         let nu = rd.param.nu;
+        let s = &rd.dec.s;
+        let v = &rd.dec.v;
 
         // Track the success of tweak
         let success: bool;
 
         // Create a vector of `Primitives` and shuffle the vector
         let primitives = Primitives::iter().collect::<Vec<_>>();
-        let prim_weight = [2, 1, 2, 2];
-        let prim_dist = WeightedIndex::new(&prim_weight).unwrap();
+        let mut prim_weight = [2, 1, 2, 2];
+        let mut prim_dist = WeightedIndex::new(&prim_weight).unwrap();
 
         let mut priority_id: Vec<(bool, f32)> = vec![(false, 0.0); A];
         let mut idx_weight: Vec<f32> = vec![0.0; eta.len()];
@@ -112,20 +114,34 @@ impl Generator for TweakSchedule {
                 *x = k * (nu * k - eta[idx]);
                 priority_id[Gam[idx] as usize].1 = x.clone();
             }
-        }
 
-        // println!("{:?}", idx_weight);
+            // If not a priority BEB, the queue is a slow queue, and the BEB is there for a short time
+            if !priority_id[Gam[idx] as usize].0
+                && v[idx] >= c.charger_count.0
+                && v[idx] < c.charger_count.0 + c.charger_count.1
+                && s[idx] <= 20.0 / 60.0
+            {
+                // Make it more important
+                *x = 1.0 / s[idx];
+            }
+        }
 
         let idx_dist = WeightedIndex::new(&idx_weight).unwrap();
 
-        // Create random generate
+        // Create random generater
         let mut rng = thread_rng();
 
         // Get random visit
         let ri = idx_dist.sample(&mut rng);
 
-        if ri < A {
-            println!("BUTTS");
+        // If the BEB is on a slow charger and the service time is small
+        if v[ri] >= c.charger_count.0
+            && v[ri] < c.charger_count.0 + c.charger_count.1
+            && s[ri] <= 20.0 / 60.0
+        {
+            // Put that bitch in an idle queue
+            prim_weight = [0, 0, 1, 0];
+            prim_dist = WeightedIndex::new(&prim_weight).unwrap();
         }
 
         let q = rd.dec.v[ri];
